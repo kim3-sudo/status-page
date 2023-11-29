@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.1c ("Burtnett")
+
+- Updated the installer to show successful installation message. Previous messaging indicating successful installation was possibly ambiguous.
+- Update the table reference in the PES query to use the `pes` table instead of the `post_event_summary` table. Previous attempts to add a PES were unsuccessful as the table name was incorrect. Instead, a SQL error message was thrown and the PES was not saved.
+
 ## 0.0.1b ("Grove Church")
 
 - Updated the installer to drop foreign-key constraints before attempting to drop tables. Previous behavior was the installer failing on the table drop stage of installation due to a foreign key constraint. Instead, all foreign keys are dropped before the installer attempts to drop any tables.

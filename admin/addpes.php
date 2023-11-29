@@ -15,9 +15,9 @@ $pessummary = mysqli_real_escape_string($link, $_POST['pessummary']);
 $pesimpact = mysqli_real_escape_string($link, $_POST['pesimpact']);
 $pesdate = mysqli_real_escape_string($link, $_POST['pesdate']);
 if ($pesdate == "") {
-  $sql = "INSERT INTO post_event_summary (pes_title, pes_issue_summary, pes_issue_service_impact) VALUES ('" . $pestitle . "', '" . $pessummary . "', '" . $pesimpact . "')";
+  $sql = "INSERT INTO pes (pes_title, pes_issue_summary, pes_issue_service_impact) VALUES ('" . $pestitle . "', '" . $pessummary . "', '" . $pesimpact . "')";
 } else {
-  $sql = "INSERT INTO post_event_summary (pes_title, pes_date, pes_issue_summary, pes_issue_service_impact) VALUES ('" . $pestitle . "', '" . $pesdate . "', '" . $pessummary . "', '" . $pesimpact . "')";
+  $sql = "INSERT INTO pes (pes_title, pes_date, pes_issue_summary, pes_issue_service_impact) VALUES ('" . $pestitle . "', '" . $pesdate . "', '" . $pessummary . "', '" . $pesimpact . "')";
 }
 if ($link->query($sql) === TRUE) {
   echo '<p>Added post-event summary</p>';
