@@ -206,7 +206,7 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
   unset($mempass);
   $link->close();
   echo '======== END INSTALLATION LOG ========<br><br>';
-  echo 'Installation has finished. You should delete the install directory to prevent these settings from being overwritten.';
+  echo 'Installation has finished successfully!<br>You should delete the install directory to prevent these settings from being overwritten.';
 } else {
   die('Unable to connect to MySQL or MariaDB server');
 }
