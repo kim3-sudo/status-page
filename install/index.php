@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>Install Status Page</title>
-    <!-- Installer version 0.0.1 -->
+    <!-- Installer version 0.0.2 -->
   </head>
   <body>
     <h1>Install this status page software</h1>
@@ -82,7 +82,7 @@
         <input type="checkbox" id="installconfirm" name="installconfirm" value="true" required>
         <label for="installconfirm">Confirm?</label>
       </fieldset>
-      <p>This installer will prepare software version 0.0.1a ("Hopewell") and database version 0.0.1 for use.</p>
+      <p>This installer will prepare software version 0.0.1b ("Grove Church") and database version 0.0.1 for use.</p>
       <button type="submit">Install Now</button>
     </form>
   </body>

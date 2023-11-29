@@ -33,7 +33,7 @@ git clone https://github.com/kim3-sudo/status-page.git
 
 ## Configuration
 
-By in large, configuration is handled in the software itself, rather than in local configuration files. When you installed the software, you should have set a **root password**. This password is different from the root of the server that the software is running on. Use this, along with the `root` **username** to log into the **admin portal**. Then, on the left-side, go to **System Settings**. Here, you can set individual system settings by entering the parameter, then clicking on **Submit** to save the setting.
+By in large, configuration is handled in the software itself, rather than in local configuration files. When you installed the software, you should have set a **root password**. This password is different from the root of the server that the software is running on. Use this, along with the `root@localhost` **username** to log into the **admin portal**. Then, on the left-side, go to **System Settings**. Here, you can set individual system settings by entering the parameter, then clicking on **Submit** to save the setting.
 
 ## Software Versions
 
