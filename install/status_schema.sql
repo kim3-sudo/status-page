@@ -157,6 +157,3 @@ CREATE TABLE `users` (
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
-INSERT INTO settings (setting_key) VALUES ('about_this_site'), ('enable_sso'), ('entity_id'), ('feedback_link'), ('footer_org'), ('ga_measurement_id'), ('get_help_destination'), ('header_image_location'), ('name_id_format'), ('org_link'), ('pes_description'), ('privacy_policy_link'), ('service_provider_base_url'), ('slo_service'), ('sso_service'), ('x509cert');
-INSERT INTO settings VALUES ('software_version', '0.0.1 ("Hopewell")'), ('database_version', '0.0.1');
