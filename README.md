@@ -37,11 +37,11 @@ When new software versions are released, they will contain a new software versio
 
 ```
 0.0.1a (`Hopewell`)
-| | ||       |------- Code name
-| | ||--------------- Build number
-| | |---------------- Revision number
-| |------------------ Minor version number
-|-------------------- Major version number
+│ │ ││       └─── Code name
+│ │ │└─────────── Build number
+│ │ └──────────── Revision number
+│ └────────────── Minor version number
+└──────────────── Major version number
 ```
 
 - Major version updates are generally not going to be compatible with previous versions, and they may require full reinstalls.
