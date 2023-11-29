@@ -9,7 +9,7 @@ include('templates/_header.php');
   <form action="authenticate.php" method="post">
     <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
     <div class="form-floating">
-      <input type="email" class="form-control" id="email" name="email" placeholder="smith10@kenyon.edu" required>
+      <input type="email" class="form-control" id="email" name="email" placeholder="smith10@organization.tld" required>
       <label for="email">Email address</label>
     </div>
     <div class="form-floating">
