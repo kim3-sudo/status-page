@@ -8,3 +8,7 @@
 ## 0.0.1a ("Hopewell")
 
 - Initial commit
+
+## Updating Version Numbers
+
+On a new version release, the database schema is updated (under `settings`), the installer form will report that it is installing a new version, the installer runner will insert a new version number into the database, and a new release will be published in the repository. 
