@@ -36,6 +36,14 @@ $row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM setting
   <title><?=$row['setting_value']?> Service Status</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+<?php
+$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'meta_description'"));
+if ($row['setting_value'] != '') {
+?>
+<meta name="description" content="<?=$row['setting_value']?>">
+<?php
+}
+?>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="/assets/fontawesome/css/fontawesome.css">
   <link rel="stylesheet" href="/assets/fontawesome/css/brands.css">

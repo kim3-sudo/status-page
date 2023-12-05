@@ -152,12 +152,12 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
   } else {
     die('Unable to insert initial service status codes<br>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('software_version', '0.0.1d (`McLarnan`)')")) {
+  if ($link->query("INSERT INTO settings VALUES ('software_version', '0.0.1e (`Earlywine`)')")) {
     echo 'Created and assigned <code>software_version</code> key<br>';
   } else {
     die('Unable to create and assign <code>software_version</code> key<br>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('database_version', '0.0.2')")) {
+  if ($link->query("INSERT INTO settings VALUES ('database_version', '0.0.3')")) {
     echo 'Created and assigned <code>database_version</code> key<br>';
   } else {
     die('Unable to create and assign <code>database_version</code> key<br>');
@@ -192,7 +192,7 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
   } else {
     die('Unable to create and assign <code>get_help_destination</code> key<br>');
   }
-  if ($link->query("INSERT INTO settings (setting_key) VALUES ('about_this_site'), ('enable_sso'), ('entity_id'), ('ga_measurement_id'), ('name_id_format'), ('pes_description'), ('service_provider_base_url'), ('slo_service'), ('sso_service'), ('x509cert'), ('welcome_message')")) {
+  if ($link->query("INSERT INTO settings (setting_key) VALUES ('about_this_site'), ('enable_sso'), ('entity_id'), ('ga_measurement_id'), ('name_id_format'), ('pes_description'), ('service_provider_base_url'), ('slo_service'), ('sso_service'), ('x509cert'), ('welcome_message'), ('meta_description')")) {
     echo 'Created additional setting keys<br>';
   } else {
     die('Unable to create additional setting keys<br>');
