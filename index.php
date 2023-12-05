@@ -18,7 +18,7 @@ if (mysqli_num_rows($result) > 0) {
         foreach ($xaffectedservices as &$value) {
           $sql = "UPDATE services SET service_status_short = 'OPE' WHERE service_id = " . $value . " AND service_status_short = 'PLA'";
           if ($link->query($sql) === TRUE) {
-            echo '<script>console.log("Changed status of "' . $value . ' to OPE from PLA")</script>';
+            echo '<script>console.log("Changed status of ' . $value . ' to OPE from PLA")</script>';
           } else {
             echo '<script>console.log("Failed to change status of "' . $value . ' to OPE from PLA")</script>';
           }
@@ -28,6 +28,20 @@ if (mysqli_num_rows($result) > 0) {
   }
 }
 ?>
+<?php
+$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'footer_org'"));
+?>
+<div class="bg-dark">
+  <div class="container-sm">
+    <div class="row">
+      <div class="col">
+        <div class="text-light p-2 text-center">
+          <h4><?=$row['setting_value']?> Service Status</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="bg-dark">
   <div class="container-sm">
     <div class="row">
