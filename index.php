@@ -28,6 +28,20 @@ if (mysqli_num_rows($result) > 0) {
   }
 }
 ?>
+<?php
+$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'footer_org'"));
+?>
+<div class="bg-dark">
+  <div class="container-sm">
+    <div class="row">
+      <div class="col">
+        <div class="text-light p-2 text-center">
+          <h4><?=$row['setting_value']?> Service Status</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="bg-dark">
   <div class="container-sm">
     <div class="row">
