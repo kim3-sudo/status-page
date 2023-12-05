@@ -124,6 +124,21 @@ $aboutthissite = $row['setting_value'];
       <p class="text-muted mb-3"><small>This text is printed on the status page as a reference for readers. If left blank, this section will not print.</small></p>
     </form>
     <form action="updatesettings.php" method="post">
+      <input type="hidden" name="setting_key" id="systemkey-meta_description" value="meta_description">
+      <label for="metadescriptionupdate" class="form-label">Meta Description</label>
+      <div class="input-group">
+<?php
+$sql = "SELECT setting_value FROM settings WHERE setting_key = 'meta_description'";
+$result = mysqli_query($link, $sql);
+$row = mysqli_fetch_assoc($result);
+$metadescription = $row['setting_value'];
+?>
+        <input type="text" id="metadescriptionupdate" name="setting_value" class="form-control" placeholder="Meta Description" aria-label="Meta Description" aria-describedby="Meta description" value="<?=$metadescription?>">
+        <button class="btn btn-primary" type="submit">Submit</button>
+      </div>
+      <p class="text-muted mb-3"><small>This text is provided for search engines as the site description in a meta tag. If left blank, no description will be provided in the document head.</small></p>
+    </form>
+    <form action="updatesettings.php" method="post">
       <input type="hidden" name="setting_key" id="systemkey-ga_measurement_id" value="ga_measurement_id">
       <label for="gameasurementidupdate" class="form-label">Google Analytics Measurement ID</label>
       <div class="input-group">
