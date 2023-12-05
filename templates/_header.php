@@ -42,7 +42,7 @@ $row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM setting
   <link rel="stylesheet" href="/assets/fontawesome/css/solid.css">
   <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
-<body class="d-flex flex-column h-100">
+<body class="d-flex flex-column h-100 bg-light">
   <header class="bg-dark p-5 d-flex flex-wrap align-items-center justify-content-center justify-content-md-between">
     <a href="/">
 <?php
