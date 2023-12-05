@@ -55,7 +55,7 @@ $row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM setting
       <img class="d-flex align-items-center mb-2 mb-lg-0" src="<?=$row['setting_value']?>" alt="<?=$orow['setting_value']?>'s logo or logotype. This alt text was automatically generated." width="102">
     </a>
     <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-start">
-      <ul class="col nav text-end">
+      <ul class="col nav text-end d-none d-md-block">
         <li class="nav-item">
 <?php
 $row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'get_help_destination'"));
