@@ -356,5 +356,66 @@ if (mysqli_num_rows($updateresult) > 0) {
   </div>
 </div>
 <?php
+$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'welcome_message'"));
+if ($row['setting_value'] != '') {
+?>
+<div class="modal fade" id="welcomemodal" tabindex="-1" aria-labelledby="welcomemodallabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="welcomemodallabel">Message</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close"></button>
+      </div>
+      <div class="modal-body">
+        <p><?=$row['setting_value']?></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" onclick="dontshowmessageagain()">Close and don't show again</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  function getCookie(cname) {
+    let name = cname + "=";
+    let decodedCookie = decodeURIComponent(document.cookie);
+    let ca = decodedCookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1)
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return "";
+  }
+  window.onload = () => {
+    const welcomemodal = new bootstrap.Modal('#welcomemodal');
+    if (getCookie('hidewelcomemodal') == 'true') {
+      welcomemodal.hide();
+    } else {
+      welcomemodal.show();
+    }
+  }
+  function dontshowmessageagain() {
+    console.log('Hiding welcome modal');
+    var welcomemodalel = document.getElementById('welcomemodal');
+    var modal = bootstrap.Modal.getInstance(welcomemodalel);
+    modal.hide();
+    console.log('Setting expiration for one day from now');
+    const d = new Date();
+    d.setTime(d.getTime() + (24*60*60*1000));
+    let expires = "expires="+ d.toUTCString();
+    document.cookie = "hidewelcomemodal=true;" + expires + ";path=/";
+    console.log('Expiration set');
+  }
+</script>
+<?php
+}
+?>
+<?php
 include('templates/_footer.php');
 ?>

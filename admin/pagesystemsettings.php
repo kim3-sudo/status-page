@@ -138,6 +138,21 @@ $gameasurementid = $row['setting_value'];
       </div>
       <p class="text-muted mb-3"><small>Paste your Google Analytics measurement ID here. If you do not use Google Analytics, leave this blank.</small></p>
     </form>
+    <form action="updatesettings.php" method="post">
+      <input type="hidden" name="setting_key" id="systemkey-welcome_message" value="welcome_message">
+      <label for="welcomemessageupdate" class="form-label">Welcome Message</label>
+      <div class="input-group">
+<?php
+$sql = "SELECT setting_value FROM settings WHERE setting_key = 'welcome_message'";
+$result = mysqli_query($link, $sql);
+$row = mysqli_fetch_assoc($result);
+$welcomemessage = $row['setting_value'];
+?>
+        <input type="text" id="welcomemessageupdate" name="setting_value" class="form-control" placeholder="Welcome Message" aria-label="Welcome Message" aria-describedby="Welcome Message" value="<?=$welcomemessage?>">
+        <button class="btn btn-primary" type="submit">Submit</button>
+      </div>
+      <p class="text-muted mb-3"><small>If this welcome message is set, a modal will open with the message text on status page load.</small></p>
+    </form>
   </div>
   <div class="rounded border p-3 my-2">
     <p>Single Sign-On Settings</p>
