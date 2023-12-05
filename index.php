@@ -18,7 +18,7 @@ if (mysqli_num_rows($result) > 0) {
         foreach ($xaffectedservices as &$value) {
           $sql = "UPDATE services SET service_status_short = 'OPE' WHERE service_id = " . $value . " AND service_status_short = 'PLA'";
           if ($link->query($sql) === TRUE) {
-            echo '<script>console.log("Changed status of "' . $value . ' to OPE from PLA")</script>';
+            echo '<script>console.log("Changed status of ' . $value . ' to OPE from PLA")</script>';
           } else {
             echo '<script>console.log("Failed to change status of "' . $value . ' to OPE from PLA")</script>';
           }
