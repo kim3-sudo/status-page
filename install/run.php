@@ -206,7 +206,17 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
   unset($mempass);
   $link->close();
   echo '======== END INSTALLATION LOG ========<br><br>';
-  echo 'Installation has finished successfully!<br>You should delete the install directory to prevent these settings from being overwritten.';
+?>
+Installation has finished successfully!<br>
+Here are some next steps to continue configuration.<br>
+<ul>
+  <li>You should delete the install directory to prevent these settings from being overwritten.<li>
+  <li>Log into the admin portal by clicking at the link in the footer, then log in using the username and password you just configured.</li>
+  <li>Configure your site settings by clicking on System Settings in the admin portal, like your feedback webpage or link, privacy policy, header image URL, Google Analytics measurement ID, and welcome message.</li>
+  <li>Add some service groups.</li>
+  <li>After you've added some service groups, add some services. (Services need to be a member of a service group.)</li>
+</ul>
+<?php
 } else {
   die('Unable to connect to MySQL or MariaDB server');
 }
