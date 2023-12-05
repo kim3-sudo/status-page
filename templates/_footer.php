@@ -11,8 +11,14 @@ $prow = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settin
 ?>
             <p class="mb-0"><small class="text-light">&copy; <?=date("Y")?> <a class="link-light" style="text-decoration: none;" href="<?=$lrow['setting_value']?>"><?=$orow['setting_value']?></a></small></p>
           </div>
-          <div class="col-sm-6">
-            <p class="mb-0" style="text-align: right;"><small class="text-muted"><a class="link-light" style="text-decoration: underline;" href="/admin">Admin Login</a><a class="ml-3 link-light" style="text-decoration: underline;" href="<?=$prow['setting_value']?>">Privacy Policy</a><a class="ml-3 link-light" style="text-decoration: underline;" href="<?=$frow['setting_value']?>">Feedback</a></small></p>
+          <div class="col-sm-6 d-none d-sm-block">
+            <p class="mb-0" style="text-align: right;">
+              <small class="text-muted">
+                <a class="link-light" style="text-decoration: underline;" href="/admin">Admin Login</a>
+                <a class="ml-3 link-light" style="text-decoration: underline;" href="<?=$prow['setting_value']?>">Privacy Policy</a>
+                <a class="ml-3 link-light" style="text-decoration: underline;" href="<?=$frow['setting_value']?>">Feedback</a>
+              </small>
+            </p>
           </div>
         </div>
       </div>
