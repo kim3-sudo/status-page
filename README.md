@@ -6,16 +6,34 @@ This software is *very* sloppily written in some places. Function over form. Lar
 
 I'm not gonna push a KoFi or sponsorship on this project. That's not its purpose. It's to be useful. If you want to be helpful, contribute, don't donate. If you have gobs of money, give it to the [IRC](https://www.rescue.org/) instead.
 
+## Accessibility
+
+This software aims to be accessible to the WCAG 2.1 level A guidelines for accessibility. It also fulfills some of the level AA guidelines but is not fully AA compliant.
+
+Requests to improve the accessibility of the software should be submitted as a GitHub issue.
+
 ## License
 
 The code in this repository is licensed under the [MIT License](https://github.com/kim3-sudo/status-page/blob/main/LICENSE) by Sejin Kim.
 
 ## Prerequisites
 
-- CentOS >7 OR RHEL >7 OR Rocky Linux >9
-- Apache >2
-- PHP >8 AND php-mysqlnd >8
-- MySQL >8 OR MariaDB >10.5
+- Operating System
+  + Rocky Linux (>=9) OR
+  + CentOS Linux (>=7) OR
+  + RHEL (>=7) OR
+  + Unofficial support: Ubuntu Server (>=20.04 LTS)
+  + Unofficial support: Debian Server (>=12)
+  + Unofficial support: Fedora Server (>=38)
+- Web Server
+  + Apache (=2) OR
+  + Nginx (1.20-1.21)
+- PHP Processors
+  + PHP (>=8) AND
+  + php-mysqlnd (>=8)
+- SQL Database
+  + MariaDB (>=10.5) OR
+  + MySQL (>=8)
 
 ## Installation
 
