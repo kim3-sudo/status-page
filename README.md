@@ -35,6 +35,8 @@ The code in this repository is licensed under the [MIT License](https://github.c
   + MariaDB (>=10.5) OR
   + MySQL (>=8)
 
+Windows, macOS, and other types of Linux (including Ubuntu Server) are not officially supported, but you may have success with these operating systems. Future official support for these operating systems may be added in the future. Unofficial support indicates that the software may work, but it has not been officially validated.
+
 ## Installation
 
 1. Install the prerequisites.
