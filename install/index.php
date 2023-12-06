@@ -2,18 +2,43 @@
 <html>
   <head>
     <title>Install Status Page</title>
-    <!-- Installer version 0.0.3 -->
+    <!-- Installer version 0.0.4 -->
   </head>
   <body>
     <h1>Install this status page software</h1>
     <h2>Prerequisites</h2>
     <p>YOU ARE FULLY RESPONSIBLE FOR CHECKING PREREQUISITES. The current version of the installation script does NOT check prerequisites for you!</p>
     <ul>
-      <li>Operating System: CentOS (>7) OR RHEL (>7) OR Rocky Linux (>9.0)</li>
-      <li>PHP (>8.0) AND php-mysqlnd (>8.0)</li>
-      <li>MySQL (>8.0) OR MariaDB (>10.5)</li>
+      <li>Operating System
+        <ul>
+          <li>Rocky Linux (>=9.0) OR</li>
+          <li>CentOS (>=7) OR</li>
+          <li>RHEL (>=7) OR</li>
+          <li>Unofficial support: Ubuntu Server (>=20.04 LTS)</li>
+          <li>Unofficial support: Debian Server (>=12)</li>
+          <li>Unofficial support: Fedora Server (>=38)</li>
+        </ul>
+      </li>
+      <li>Web Server
+        <ul>
+          <li>Apache (=2) OR</li>
+          <li>Nginx (1.20-1.21)</li>
+        </ul>
+      </li>
+      <li>PHP Processors
+        <ul>
+          <li>PHP (>=8) AND</li>
+          <li>php-mysqlnd (>=8)</li>
+        </ul>
+      </li>
+      <li>SQL Database
+        <ul>
+          <li>MariaDB (>=10.5) OR</li>
+          <li>MySQL (>=8)</li>
+        </ul>
+      </li>
     </ul>
-    <p>Windows, macOS, and other types of Linux (including Ubuntu Server) are not officially supported, but you may have success with these operating systems. Future official support for these operating systems may be added in the future.</p>
+    <p>Windows, macOS, and other types of Linux (including Ubuntu Server) are not officially supported, but you may have success with these operating systems. Future official support for these operating systems may be added in the future. Unofficial support indicates that the software may work, but it has not been officially validated.</p>
     <form action="run.php" method="post">
       <fieldset>
         <legend>Site Information</legend>
