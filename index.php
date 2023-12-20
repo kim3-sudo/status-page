@@ -210,6 +210,12 @@ if (mysqli_num_rows($uptimeresult) == 0) {
       $started = strtotime($uptimearray['PLA']);
     } else {
       $started = strtotime($uptimearray['IDE']);
+      if ($uptimearray['IDE'] == '') {
+        $started = strtotime($uptimearray['INV']);
+        if ($uptimearray['INV'] == '') {
+          $started = strtotime($uptimearray['MON']);
+        }
+      }
     }
     echo '<script>console.log("Started on ' . $started . '")</script>';
     $resolved = strtotime($uptimearray['RES']);
