@@ -196,7 +196,7 @@ if ($service['service_description'] != '') {
                     <div class="col-4 text-end">
                       <h6 class="text-muted">
 <?php
-$uptimesql = "SELECT incident_update_timestamp, incident_update_status_short, incident.incident_describes_ids FROM incident_update INNER JOIN incident ON incident_update.incident_update_incident_id = incident.incident_id WHERE incident_update_timestamp > DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 90 DAY) AND instr(concat(',', incident.incident_describes_ids, ','), '," . $service['service_id'] . ",') <> 0"; //incident.incident_describes_ids = '" . $service['service_id'] . "'
+$uptimesql = "SELECT incident_update_timestamp, incident_update_status_short, incident.incident_describes_ids FROM incident_update INNER JOIN incident ON incident_update.incident_update_incident_id = incident.incident_id WHERE incident_update_timestamp > DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 90 DAY) AND instr(concat(',', incident.incident_describes_ids, ','), '," . $service['service_id'] . ",') <> 0 LIMIT 4"; //incident.incident_describes_ids = '" . $service['service_id'] . "'
 $uptimeresult = mysqli_query($link, $uptimesql);
 if (mysqli_num_rows($uptimeresult) == 0) {
   echo '100.00';
@@ -225,6 +225,12 @@ if (mysqli_num_rows($uptimeresult) == 0) {
     echo $percentage;
   } else {
     $started = strtotime($uptimearray['IDE']);
+    if ($uptimearray['IDE'] == '') {
+      $started = strtotime($uptimearray['INV']);
+      if ($uptimearray['INV'] == '') {
+        $started = strtotime($uptimearray['MON']);
+      }
+    }
     echo '<script>console.log("Started on ' . $started . '")</script>';
     $now = idate('U');
     echo '<script>console.log("Not resolved, current time is ' . $now . '")</script>';
