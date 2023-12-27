@@ -40,11 +40,11 @@ if (mysqli_num_rows($serviceresult) > 0) {
         <form action="updateservice.php" method="post">
           <input type="hidden" id="update<?=$servicerow['service_id']?>id" name="updateid" value="<?=$servicerow['service_id']?>">
           <div class="mb-3">
-            <label for="update<?=$servicerow['service_id']?>name" class="form-label">Update Name</label>
+            <label for="update<?=$servicerow['service_id']?>name" class="form-label">Update Name<span class="required">*</span></label>
             <input type="text" class="form-control" id="update<?=$servicerow['service_id']?>name" name="updatename" value="<?=$subservicerow['service_name']?>">
           </div>
           <div class="mb-3">
-            <label for="update<?=$servicerow['service_id']?>group" class="form-label">Update Group</label>
+            <label for="update<?=$servicerow['service_id']?>group" class="form-label">Update Group<span class="required">*</span></label>
             <select class="form-control" id="update<?=$servicerow['service_id']?>group" name="updategroup">
 <?php
       $subservicegroupsql = 'SELECT servicegroup_id, servicegroup_name FROM servicegroups ORDER BY servicegroup_name ASC';
@@ -140,7 +140,7 @@ if (mysqli_num_rows($serviceresult) > 0) {
         <form action="updateservicegroup.php" method="post">
           <input type="hidden" id="updateservicegroup<?=$servicegrouprow['servicegroup_id']?>id" name="updateservicegroupid" value="<?=$servicegrouprow['servicegroup_id']?>">
           <div class="mb-3">
-            <label for="updateservicegroup<?=$servicegrouprow['servicegroup_id']?>name" class="form-label">Update Service Group Name</label>
+            <label for="updateservicegroup<?=$servicegrouprow['servicegroup_id']?>name" class="form-label">Update Service Group Name<span class="required">*</span></label>
             <input class="form-control" id="updateservicegroup<?=$servicegrouprow['servicegroup_id']?>name" name="updateservicegroupname" type="text">
           </div>
           <button type="submit" class="btn btn-primary">Submit</button>

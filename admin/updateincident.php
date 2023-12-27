@@ -13,7 +13,12 @@ include('../templates/_header.php');
 $existingincident = mysqli_real_escape_string($link, $_POST['existingincident']);
 $existingincidentupdate = mysqli_real_escape_string($link, $_POST['existingincidentupdate']);
 $existingincidentstatus = mysqli_real_escape_string($link, $_POST['existingincidentstatus']);
-$sql = "INSERT INTO incident_update (incident_update_status_short, incident_update_description, incident_update_incident_id) VALUES ('" . $existingincidentstatus . "', '" . $existingincidentupdate . "', " . $existingincident . ")";
+if ($_POST['updatetimestamp'] != '') {
+  $updatetimestamp = mysqli_real_escape_string($link, $_POST['updatetimestamp']);
+  $sql = "INSERT INTO incident_update (incident_update_status_short, incident_update_description, incident_update_incident_id, incident_update_timestamp) VALUES ('" . $existingincidentstatus . "', '" . $existingincidentupdate . "', " . $existingincident . ", '" . $updatetimestamp . "')";
+} else {
+  $sql = "INSERT INTO incident_update (incident_update_status_short, incident_update_description, incident_update_incident_id) VALUES ('" . $existingincidentstatus . "', '" . $existingincidentupdate . "', " . $existingincident . ")";
+}
 if ($link->query($sql) === TRUE) {
   $addsql = "UPDATE incident SET incident_status_short = '" . $existingincidentstatus . "' WHERE incident_id = " . $existingincident;
   if ($link->query($addsql) === TRUE) {

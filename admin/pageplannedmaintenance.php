@@ -4,23 +4,23 @@
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#messagestylemodal">View Style Guide and Examples</button>
     <form action="addplannedmaintenance.php" method="post">
       <div class="mb-3">
-        <label for="plannedmaintenancestart" class="form-label">Planned Maintenance Start</label>
+        <label for="plannedmaintenancestart" class="form-label">Planned Maintenance Start<span class="required">*</span></label>
         <input type="datetime-local" id="plannedmaintenancestart" name="plannedmaintenancestart" class="form-control" required>
       </div>
       <div class="mb-3">
-        <label for="plannedmaintenanceend" class="form-label">Planned Maintenance End</label>
+        <label for="plannedmaintenanceend" class="form-label">Planned Maintenance End<span class="required">*</span></label>
         <input type="datetime-local" id="plannedmaintenanceend" name="plannedmaintenanceend" class="form-control" required>
       </div>
       <div class="mb-3">
-        <label for="plannedmaintenancedescription" class="form-label">Planned Maintenance Description</label>
+        <label for="plannedmaintenancedescription" class="form-label">Planned Maintenance Description<span class="required">*</span></label>
         <input type="text" id="plannedmaintenancedescription" name="plannedmaintenancedescription" maxlength="255" class="form-control" placeholder="Planned Maintenance: Network Maintenance...">
       </div>
       <div class="mb-3">
-        <label for="plannedmaintenancemessage" class="form-label">Planned Maintenance Message</label>
+        <label for="plannedmaintenancemessage" class="form-label">Planned Maintenance Message<span class="required">*</span></label>
         <textarea id="plannedmaintenancemessage" name="plannedmaintenancemessage" maxlength="2000" class="form-control" placeholder="A maintenance window has been scheduled for..." required></textarea>
       </div>
       <div class="mb-3">
-        <label for="plannedmaintenanceaffected" class="form-label">Affected Services</label>
+        <label for="plannedmaintenanceaffected" class="form-label">Affected Services<span class="required">*</span></label>
 <?php
 $servicesql = 'SELECT service_id, servicegroups.servicegroup_name, service_name FROM services INNER JOIN servicegroups ON services.servicegroup_id = servicegroups.servicegroup_id ORDER BY servicegroups.servicegroup_name ASC';
 $serviceresult = mysqli_query($link, $servicesql);
