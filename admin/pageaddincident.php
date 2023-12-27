@@ -4,17 +4,17 @@
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#messagestylemodal">View Style Guide and Examples</button>
     <form action="addincident.php" method="post">
       <div class="mb-3">
-        <label for="addincidentdescription" class="form-label">Incident Description</label>
+        <label for="addincidentdescription" class="form-label">Incident Description<span class="required">*</span></label>
         <input type="text" class="form-control" id="addincidentdescription" name="addincidentdescription" aria-describedby="addincidentdescriptionhelp" maxlength="255" required placeholder="Wireless Connectivity Issue">
         <p id="addincidentdescriptionhelp" class="form-text">This is the incident's headline.</p>
       </div>
       <div class="mb-3">
-        <label for="addincidentupdatedescription" class="form-label">Incident Update</label>
+        <label for="addincidentupdatedescription" class="form-label">Incident Update<span class="required">*</span></label>
         <textarea class="form-control" id="addincidentupdatedescription" name="addincidentupdatedescription" aria-describedby="addincidentupdatehelp" maxlength="2000" required placeholder="We have identified an issue with..."></textarea>
         <p id="addincidentupdatehelp" class="form-text">This is a description of symptoms and resolutions.</p>
       </div>
       <div class="mb-3">
-        <label for="addincidentstatus" class="form-label">Incident Status</label>
+        <label for="addincidentstatus" class="form-label">Incident Status<span class="required">*</span></label>
         <select id="addincidentstatus" name="addincidentstatus" class="form-control" required>
           <option disabled selected>Select one...</option>
 <?php
@@ -33,7 +33,7 @@ if (mysqli_num_rows($statusresult) > 0) {
         </select>
       </div>
       <div class="mb-3">
-        <label for="addincidentaffected" name="addincidentaffected" class="form-label">Affected Services</label>
+        <label for="addincidentaffected" name="addincidentaffected" class="form-label">Affected Services<span class="required">*</span></label>
 <?php
 $servicesql = 'SELECT service_id, servicegroups.servicegroup_name, service_name FROM services INNER JOIN servicegroups ON services.servicegroup_id = servicegroups.servicegroup_id ORDER BY servicegroups.servicegroup_name ASC';
 $serviceresult = mysqli_query($link, $servicesql);
@@ -47,7 +47,7 @@ if (mysqli_num_rows($statusresult) > 0) {
 ?>
       </div>
       <div class="mb-3">
-        <label for="outageseverity" name="outageseverity" class="form-label">Outage Severity</label>
+        <label for="outageseverity" name="outageseverity" class="form-label">Outage Severity<span class="required">*</span></label>
         <select id="outageseverity" name="outageseverity" class="form-control" required>
           <option disabled selected>Select one...</option>
 <?php
@@ -64,6 +64,11 @@ if (mysqli_num_rows($severityresult) > 0) {
 }
 ?>
         </select>
+      </div>
+      <div class="mb-3">
+        <label for="starttimestamp" class="form-label">Start Timestamp</label>
+        <input type="datetime-local" id="starttimestamp" name="starttimestamp" class="form-control">
+        <p class="text-muted"><small>Optional. If no timestamp is provided, the current timestamp will be used.</small></p>
       </div>
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>

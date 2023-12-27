@@ -3,7 +3,7 @@
     <p>Manage groups</p>
     <form action="addservicegroup.php" method="post">
       <div class="mb-3">
-        <label for="newservicegroupname" class="form-label">New Service Group Name</label>
+        <label for="newservicegroupname" class="form-label">New Service Group Name<span class="required">*</span></label>
         <input type="text" class="form-control" id="newservicegroupname" name="newservicegroupname" maxlength="64" required>
       </div>
       <button type="submit" class="btn btn-primary">Submit</button>

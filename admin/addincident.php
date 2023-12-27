@@ -19,11 +19,18 @@ if (isset($_POST['affectedservices'])) {
 } else {
   exit('Missing affected services');
 }
+if ($_POST['starttimestamp'] != '') {
+  $starttimestamp = mysqli_real_escape_string($link, $_POST['starttimestamp']);
+}
 $outageseverity = mysqli_real_escape_string($link, $_POST['outageseverity']);
 $sql = "INSERT INTO incident (incident_description, incident_status_short, incident_describes_ids) VALUES ('" . $addincidentdescription . "', '" . $addincidentstatus . "', '" . $affectedservicesstr . "')";
 if ($link->query($sql) === TRUE) {
   $incidentid = $link->insert_id;
-  $subsql = "INSERT INTO incident_update (incident_update_status_short, incident_update_description, incident_update_incident_id) VALUES ('" . $addincidentstatus . "', '" . $addincidentupdatedescription . "', '" . $incidentid . "')";
+  if ($_POST['starttimestamp'] != '') {
+    $subsql = "INSERT INTO incident_update (incident_update_status_short, incident_update_description, incident_update_incident_id, incident_update_timestamp) VALUES ('" . $addincidentstatus . "', '" . $addincidentupdatedescription . "', '" . $incidentid . "', '" . $starttimestamp . "')";
+  } else {
+    $subsql = "INSERT INTO incident_update (incident_update_status_short, incident_update_description, incident_update_incident_id) VALUES ('" . $addincidentstatus . "', '" . $addincidentupdatedescription . "', '" . $incidentid . "')";
+  }
   if ($link->query($subsql) === TRUE) {
     foreach ($affectedservicesarray as &$serviceid) {
       $subsubsql = "UPDATE services SET service_status_short = '" . $outageseverity . "' WHERE service_id = " . $serviceid;

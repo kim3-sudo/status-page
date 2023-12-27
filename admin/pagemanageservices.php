@@ -3,11 +3,11 @@
     <p>Manage services</p>
     <form action="addservice.php" method="post">
       <div class="mb-3">
-        <label for="newservicename" class="form-label">New Service Name</label>
+        <label for="newservicename" class="form-label">New Service Name<span class="required">*</span></label>
         <input type="text" class="form-control" id="newservicename" name="newservicename" maxlength="64" required placeholder="Service Name">
       </div>
       <div class="mb-3">
-        <label for="newserviceingroup" class="form-label">New Service Group</label>
+        <label for="newserviceingroup" class="form-label">New Service Group<span class="required">*</span></label>
         <select name="newserviceingroup" class="form-control" id="newserviceingroup" required>
           <option disabled selected>Select one...</option>
 <?php
