@@ -113,13 +113,18 @@ if ($row['setting_value'] != '') {
   <div class="container-sm">
     <div class="row">
       <div class="col">
+        <!--<div id="accordionsearchbarcontainer">
+          <input type="search" id="accordionsearchbar" placeholder="Search">
+        </div>-->
         <div class="accordion py-4 m-2" id="statusparent">
 <?php
 $sql = 'SELECT servicegroup_id, servicegroup_name FROM servicegroups ORDER BY servicegroup_name ASC';
 $result = mysqli_query($link, $sql);
+$cleangroupnames = [];
 if (mysqli_num_rows($result) > 0) {
   while ($row = mysqli_fetch_assoc($result)) {
     $cleangroupname = strtolower(preg_replace('/\W/', '', $row['servicegroup_name']));
+    array_push($cleangroupnames, $cleangroupname);
 ?>
           <div class="accordion-item">
             <h2 class="accordion-header" id="<?=$cleangroupname?>Heading">
@@ -247,6 +252,7 @@ document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Major Outage";
         </div>
         <div class="text-center">
           <p><small class="text-muted"><em>Uptime is calculated as the percentage of time services were fully operational over the last 90 days.</em></small></p>
+          <button class="btn btn-primary m-4 btn-sm" type="button" data-bs-toggle="collapse" data-bs-target=".multi-collapse" aria-expanded="false" aria-controls="<?php foreach ($cleangroupnames as $cleangroupname) {echo $cleangroupname . "panel ";} ?>">Expand/Collapse All</button>
         </div>
       </div>
     </div>
