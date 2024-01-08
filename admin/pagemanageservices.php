@@ -11,7 +11,7 @@
         <select name="newserviceingroup" class="form-control" id="newserviceingroup" required>
           <option disabled selected>Select one...</option>
 <?php
-$servicegroupsql = 'SELECT servicegroup_id, servicegroup_name FROM servicegroups';
+$servicegroupsql = 'SELECT servicegroup_id, servicegroup_name FROM servicegroups ORDER BY servicegroup_name ASC';
 $servicegroupresult = mysqli_query($link, $servicegroupsql);
 if (mysqli_num_rows($servicegroupresult) > 0) {
   while($servicegrouprow = mysqli_fetch_assoc($servicegroupresult)) {
@@ -33,7 +33,7 @@ if (mysqli_num_rows($servicegroupresult) > 0) {
     <table class="table table-striped table-hover">
       <tbody>
 <?php
-$servicesql = 'SELECT service_id, service_name, servicegroups.servicegroup_name FROM services INNER JOIN servicegroups ON servicegroups.servicegroup_id = services.servicegroup_id';
+$servicesql = 'SELECT service_id, service_name, servicegroups.servicegroup_name FROM services INNER JOIN servicegroups ON servicegroups.servicegroup_id = services.servicegroup_id ORDER BY servicegroups.servicegroup_name ASC, services.service_name ASC';
 $serviceresult = mysqli_query($link, $servicesql);
 if (mysqli_num_rows($serviceresult) > 0) {
   while ($servicerow = mysqli_fetch_assoc($serviceresult)) {

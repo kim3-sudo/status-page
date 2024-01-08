@@ -12,7 +12,7 @@
     <table class="table table-striped table-hover">
       <tbody>
 <?php
-$servicegroupsql = 'SELECT servicegroup_id, servicegroup_name FROM servicegroups';
+$servicegroupsql = 'SELECT servicegroup_id, servicegroup_name FROM servicegroups ORDER BY servicegroup_name ASC';
 $servicegroupresult = mysqli_query($link, $servicegroupsql);
 if (mysqli_num_rows($servicegroupresult) > 0) {
   while ($servicegrouprow = mysqli_fetch_assoc($servicegroupresult)) {

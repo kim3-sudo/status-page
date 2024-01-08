@@ -130,7 +130,7 @@ if (mysqli_num_rows($result) > 0) {
             <div id="<?=$cleangroupname?>panel" class="accordion-collapse collapse" aria-labelledby="<?=$cleangroupname?>Heading">
               <div class="accordion-body">
 <?php
-    $servicesql = 'SELECT service_id, service_name, service_description, service_status_short, service_status.service_status_description FROM services INNER JOIN servicegroups ON services.servicegroup_id = servicegroups.servicegroup_id INNER JOIN service_status ON service_status.service_status_code = services.service_status_short WHERE servicegroups.servicegroup_id = ' . $row['servicegroup_id'];
+    $servicesql = 'SELECT service_id, service_name, service_description, service_status_short, service_status.service_status_description FROM services INNER JOIN servicegroups ON services.servicegroup_id = servicegroups.servicegroup_id INNER JOIN service_status ON service_status.service_status_code = services.service_status_short WHERE servicegroups.servicegroup_id = ' . $row['servicegroup_id'] . ' ORDER BY service_name';
     $serviceresult = mysqli_query($link, $servicesql);
     if (mysqli_num_rows($serviceresult) > 0) {
       while ($service = mysqli_fetch_assoc($serviceresult)) {
