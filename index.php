@@ -130,21 +130,21 @@ if (mysqli_num_rows($result) > 0) {
             <div id="<?=$cleangroupname?>panel" class="accordion-collapse collapse" aria-labelledby="<?=$cleangroupname?>Heading">
               <div class="accordion-body">
 <?php
-$servicesql = 'SELECT service_id, service_name, service_description, service_status_short, service_status.service_status_description FROM services INNER JOIN servicegroups ON services.servicegroup_id = servicegroups.servicegroup_id INNER JOIN service_status ON service_status.service_status_code = services.service_status_short WHERE servicegroups.servicegroup_id = ' . $row['servicegroup_id'];
-$serviceresult = mysqli_query($link, $servicesql);
-if (mysqli_num_rows($serviceresult) > 0) {
-  while ($service = mysqli_fetch_assoc($serviceresult)) {
+    $servicesql = 'SELECT service_id, service_name, service_description, service_status_short, service_status.service_status_description FROM services INNER JOIN servicegroups ON services.servicegroup_id = servicegroups.servicegroup_id INNER JOIN service_status ON service_status.service_status_code = services.service_status_short WHERE servicegroups.servicegroup_id = ' . $row['servicegroup_id'];
+    $serviceresult = mysqli_query($link, $servicesql);
+    if (mysqli_num_rows($serviceresult) > 0) {
+      while ($service = mysqli_fetch_assoc($serviceresult)) {
 ?>
                 <div class="container px-4 py-2">
                   <div class="row">
                     <div class="col-8">
                       <h6>
 <?php
-if ($service['service_status_short'] == 'OPE') {
+        if ($service['service_status_short'] == 'OPE') {
 ?>
 <span class="badge text-bg-success" data-bs-toggle="tooltip" data-bs-title="The service is working normally and as expected."><i class="fa-solid fa-check-circle"></i>&nbsp;Operational</span>
 <?php
-} else if ($service['service_status_short'] == 'DEG') {
+        } else if ($service['service_status_short'] == 'DEG') {
 ?>
 <span class="badge text-bg-warning" data-bs-toggle="tooltip" data-bs-title="The service may be experiencing degraded performance."><i class="fa-solid fa-circle-exclamation"></i>&nbsp;Degraded Performance</span>
 <script>
@@ -153,8 +153,8 @@ document.getElementById("<?=$cleangroupname?>badge").classList.add("text-bg-warn
 document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Degraded";
 </script>
 <?php
-} else if ($service['service_status_short'] == 'PLA') {
-  // Need a subquery here to detect if the maintenance window is now
+        } else if ($service['service_status_short'] == 'PLA') {
+          // Need a subquery here to detect if the maintenance window is now
 ?>
 <span class="badge text-bg-info" data-bs-toggle="tooltip" data-bs-title="The system may be under planned maintenance right now. If it is not currently available, it will be soon."><i class="fa-solid fa-circle-exclamation"></i>&nbsp;Planned Maintenance</span>
 <script>
@@ -163,7 +163,7 @@ document.getElementById("<?=$cleangroupname?>badge").classList.add("text-bg-info
 document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Planned Maintenance";
 </script>
 <?php
-} else if ($service['service_status_short'] == 'MIN') {
+        } else if ($service['service_status_short'] == 'MIN') {
 ?>
 <span class="badge text-bg-warning" data-bs-toggle="tooltip" data-bs-title="The system may be experiencing a minor outage right now."><i class="text-warning fa-solid fa-circle-exclamation"></i>&nbsp;Minor Outage</span>
 <script>
@@ -172,7 +172,7 @@ document.getElementById("<?=$cleangroupname?>badge").classList.add("text-bg-warn
 document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Minor Outage";
 </script>
 <?php
-} else if ($service['service_status_short'] == 'MAJ') {
+        } else if ($service['service_status_short'] == 'MAJ') {
 ?>
 <span class="badge text-bg-danger" data-bs-toggle="tooltip" data-bs-title="The system may be experiencing a major outage right now."><i class="fa-solid fa-triangle-exclamation"></i>&nbsp;Major Outage</span>
 <script>
@@ -181,74 +181,59 @@ document.getElementById("<?=$cleangroupname?>badge").classList.add("text-bg-dang
 document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Major Outage";
 </script>
 <?php
-}
+        }
 ?>
                         &nbsp;<?=$service['service_name']?>
 <?php
-if ($service['service_description'] != '') {
+        if ($service['service_description'] != '') {
 ?>
 &nbsp;<i class="text-muted fa-solid fa-question-circle" data-bs-toggle="tooltip" data-bs-title="<?=$service['service_description']?>"></i>
 <?php
-}
+        }
 ?>
                       </h6>
                     </div>
                     <div class="col-4 text-end">
                       <h6 class="text-muted">
 <?php
-$uptimesql = "SELECT incident_update_timestamp, incident_update_status_short, incident.incident_describes_ids FROM incident_update INNER JOIN incident ON incident_update.incident_update_incident_id = incident.incident_id WHERE incident_update_timestamp > DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 90 DAY) AND instr(concat(',', incident.incident_describes_ids, ','), '," . $service['service_id'] . ",') <> 0 LIMIT 4"; //incident.incident_describes_ids = '" . $service['service_id'] . "'
-$uptimeresult = mysqli_query($link, $uptimesql);
-if (mysqli_num_rows($uptimeresult) == 0) {
-  echo '100.00';
-} else {
-  $uptimearray = array();
-  while ($uptimerow = mysqli_fetch_assoc($uptimeresult)) {
-    $uptimearray[$uptimerow['incident_update_status_short']] = $uptimerow['incident_update_timestamp'];
-  }
-  if (array_key_exists('RES', $uptimearray)) {
-    if (array_key_exists('PLA', $uptimearray)) {
-      $started = strtotime($uptimearray['PLA']);
-    } else {
-      $started = strtotime($uptimearray['IDE']);
-      if ($uptimearray['IDE'] == '') {
-        $started = strtotime($uptimearray['INV']);
-        if ($uptimearray['INV'] == '') {
-          $started = strtotime($uptimearray['MON']);
+        $uptimesql = "SELECT DISTINCT incident_update_incident_id FROM incident_update INNER JOIN incident ON incident_update.incident_update_incident_id = incident.incident_id WHERE incident_update_timestamp > DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 90 DAY) AND instr(concat(',', incident.incident_describes_ids, ','), '," . $service['service_id'] . ",') <> 0";
+        $uptimeresult = mysqli_query($link, $uptimesql);
+        if (mysqli_num_rows($uptimeresult) == 0) {
+          echo '100.00';
+        } else {
+          $accumulatedtime = 0;
+          $incidentidarray = array(); // an array of unique incident IDs
+          while ($uptimerow = mysqli_fetch_assoc($uptimeresult)) {
+            array_push($incidentidarray, $uptimerow['incident_update_incident_id']);
+          }
+          foreach ($incidentidarray as $incidentid) {
+            $incidentaccumsql = "SELECT incident_update_timestamp, incident_update_status_short FROM incident_update WHERE incident_update_incident_id = " . $incidentid;
+            $incidentaccumresult = mysqli_query($link, $incidentaccumsql);
+            $incidenttimes = []; // an array of times in the incident
+            $resolved = idate('U');
+            while ($incidentaccumrow = mysqli_fetch_assoc($incidentaccumresult)) {
+              if ($incidentaccumrow['incident_update_status_short'] == 'RES') {
+                $resolved = strtotime($incidentaccumrow['incident_update_timestamp']);
+              } else {
+                array_push($incidenttimes, strtotime($incidentaccumrow['incident_update_timestamp']));
+              }
+            }
+            $started = min($incidenttimes);
+            $accumulatedtime = $accumulatedtime + abs($resolved - $started);
+          }
+          $percentage = 100 - round(($accumulatedtime/7776000) * 100, 2);
+          echo $percentage;
         }
-      }
-    }
-    echo '<script>console.log("Started on ' . $started . '")</script>';
-    $resolved = strtotime($uptimearray['RES']);
-    echo '<script>console.log("Resolved on ' . $resolved . '")</script>';
-    $diff_seconds = abs($resolved - $started);
-    $percentage = 100 - round(($diff_seconds/7776000) * 100, 2);
-    echo $percentage;
-  } else {
-    $started = strtotime($uptimearray['IDE']);
-    if ($uptimearray['IDE'] == '') {
-      $started = strtotime($uptimearray['INV']);
-      if ($uptimearray['INV'] == '') {
-        $started = strtotime($uptimearray['MON']);
-      }
-    }
-    echo '<script>console.log("Started on ' . $started . '")</script>';
-    $now = idate('U');
-    echo '<script>console.log("Not resolved, current time is ' . $now . '")</script>';
-    $diff_seconds = abs($now - $started);
-    $percentage = 100 - round(($diff_seconds/7776000) * 100, 2);
-    echo $percentage;
-  }
-}
 ?>% Uptime
                       </h6>
                     </div>
                   </div>
                 </div>
 <?php
-  }
-} else {
-  echo 'No services';
-}
+      }
+    } else {
+      echo 'No services';
+    }
 ?>
               </div>
             </div>
