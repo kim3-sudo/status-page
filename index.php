@@ -64,7 +64,7 @@ if (array_key_exists('MAJ', $statusarray)) {
   echo '<h2><i class="text-warning fa-solid fa-info-circle"></i>&nbsp;Some systems experiencing degraded performance</h2>';
 } else if (array_key_exists('PLA', $statusarray)) {
   // Need a subquery here to detect if the planned maintenance window is now
-  $sql = "SELECT incident_update_timestamp FROM incident_update WHERE incident_update_status_short = 'PLA' AND incident_update_timestamp < CURRENT_DATE()";
+  $sql = "SELECT incident_update_timestamp FROM incident_update WHERE incident_update_status_short = 'PLA' AND incident_update_timestamp <= NOW()";
   $result = mysqli_query($link, $sql);
   $inmaintenancewindow = array();
   while ($maintenancewindow = mysqli_fetch_assoc($result)) {
@@ -156,7 +156,7 @@ document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Degraded";
         } else if ($service['service_status_short'] == 'PLA') {
           // Need a subquery here to detect if the maintenance window is now
 ?>
-<span class="badge text-bg-info" data-bs-toggle="tooltip" data-bs-title="The system may be under planned maintenance right now. If it is not currently available, it will be soon."><i class="fa-solid fa-circle-exclamation"></i>&nbsp;Planned Maintenance</span>
+<span class="badge text-bg-info" data-bs-toggle="tooltip" data-bs-title="There is planned maintenance for this system soon."><i class="fa-solid fa-circle-info"></i>&nbsp;Planned Maintenance</span>
 <script>
 document.getElementById("<?=$cleangroupname?>badge").classList.remove("text-bg-success");
 document.getElementById("<?=$cleangroupname?>badge").classList.add("text-bg-info");
@@ -196,7 +196,7 @@ document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Major Outage";
                     <div class="col-4 text-end">
                       <h6 class="text-muted">
 <?php
-        $uptimesql = "SELECT DISTINCT incident_update_incident_id FROM incident_update INNER JOIN incident ON incident_update.incident_update_incident_id = incident.incident_id WHERE incident_update_timestamp > DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 90 DAY) AND instr(concat(',', incident.incident_describes_ids, ','), '," . $service['service_id'] . ",') <> 0";
+        $uptimesql = "SELECT DISTINCT incident_update_incident_id FROM incident_update INNER JOIN incident ON incident_update.incident_update_incident_id = incident.incident_id WHERE incident_update_timestamp > DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 90 DAY) AND incident_update_timestamp <= NOW() AND instr(concat(',', incident.incident_describes_ids, ','), '," . $service['service_id'] . ",') <> 0";
         $uptimeresult = mysqli_query($link, $uptimesql);
         if (mysqli_num_rows($uptimeresult) == 0) {
           echo '100.00';
