@@ -107,7 +107,7 @@
         <input type="checkbox" id="installconfirm" name="installconfirm" value="true" required>
         <label for="installconfirm">Confirm?</label>
       </fieldset>
-      <p>This installer will prepare software version 0.0.1h ("Bell Church") and database version 0.0.3 for use.</p>
+      <p>This installer will prepare software version 0.0.2 ("Monroe Mills") and database version 0.0.3 for use.</p>
       <button type="submit">Install Now</button>
     </form>
   </body>
