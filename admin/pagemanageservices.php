@@ -24,8 +24,12 @@ if (mysqli_num_rows($servicegroupresult) > 0) {
         </select>
       </div>
       <div class="mb-3">
-        <label for="newservicedescription" class="form-label">New Service Desciption</label>
+        <label for="newservicedescription" class="form-label">New Service Description</label>
         <textarea id="newservicedescription" name="newservicedescription" class="form-control" maxlength="255"></textarea>
+      </div>
+      <div class="mb-3">
+        <label for="newservicelink" class="form-label">New Service External Link</label>
+        <input type="url" name="newservicelink" id="newservicelink" class="form-control" maxlength="120">
       </div>
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>

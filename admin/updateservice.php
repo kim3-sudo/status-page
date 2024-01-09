@@ -33,6 +33,14 @@ if ($link->query($sql) === TRUE) {
   echo '<p>Error: ' . $sql . '<br>' . $link->error . '</p>';
 }
 ?>
+<?php
+$sql = "UPDATE services SET service_link = '" . mysqli_real_escape_string($link, $_POST['updatelink']) . "' WHERE service_id = " . mysqli_real_escape_string($link, $_POST['updateid']);
+if ($link->query($sql) === TRUE) {
+  echo '<p>Updated service link</p>';
+} else {
+  echo '<p>Error: ' . $sql . '<br>' . $link->error . '</p>';
+}
+?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
       <button class="btn btn-secondary" onclick="history.back()">Go Back</a>
       </div>

@@ -25,7 +25,7 @@ if (mysqli_num_rows($serviceresult) > 0) {
   </div>
 </div>
 <?php
-    $subservicesql = 'SELECT service_id, service_name, servicegroup_id, service_description FROM services WHERE service_id = ' . $servicerow['service_id'];
+    $subservicesql = 'SELECT service_id, service_name, servicegroup_id, service_description, service_link FROM services WHERE service_id = ' . $servicerow['service_id'];
     $subserviceresult = mysqli_query($link, $subservicesql);
     if ($subservicerow = mysqli_fetch_assoc($subserviceresult)) {
 ?>
@@ -64,6 +64,10 @@ if (mysqli_num_rows($serviceresult) > 0) {
           <div class="mb-3">
             <label for="update<?=$servicerow['service_id']?>description" class="form-label">Update Description</label>
             <textarea maxlength="144" name="updatedescription" id="update<?=$servicerow['service_id']?>description" class="form-control"><?=$subservicerow['service_description']?></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="update<?=$servicerow['service_id']?>link" class="form-label">Update Link</label>
+            <input maxlength="120" name="updatelink" id="update<?=$servicerow['service_id']?>link" class="form-control" value="<?=$servicerow['service_link']?>">
           </div>
           <button type="submit" class="btn btn-primary">Submit</button>
         </form>

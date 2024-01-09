@@ -10,7 +10,7 @@ include('../templates/_header.php');
     <div class="row">
       <div class="col">
 <?php
-$sql = "INSERT INTO services (service_name, servicegroup_id, service_description, service_status_short) VALUE ('" . mysqli_real_escape_string($link, $_POST['newservicename']) . "', " . mysqli_real_escape_string($link, $_POST['newserviceingroup']) . ", '" . mysqli_real_escape_string($link, $_POST['newservicedescription']) . "', 'OPE')";
+$sql = "INSERT INTO services (service_name, servicegroup_id, service_description, service_status_short, service_link) VALUE ('" . mysqli_real_escape_string($link, $_POST['newservicename']) . "', " . mysqli_real_escape_string($link, $_POST['newserviceingroup']) . ", '" . mysqli_real_escape_string($link, $_POST['newservicedescription']) . "', 'OPE', '" . mysqli_real_escape_string($link, $_POST['newservicelink']) . "')";
 if ($link->query($sql) === TRUE) {
   echo '<p>Created new service</p>';
 } else {

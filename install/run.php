@@ -117,7 +117,7 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
   } else {
     die('Unable to drop <code>services</code> or insufficient permissions<br>');
   }
-  if ($link->query("CREATE TABLE `services` ( `service_id` int(8) NOT NULL AUTO_INCREMENT, `service_name` varchar(64) DEFAULT NULL, `servicegroup_id` int(8) DEFAULT NULL, `service_description` varchar(144) DEFAULT NULL, `service_status_short` varchar(3) DEFAULT NULL, PRIMARY KEY (`service_id`), KEY `servicegroup_id` (`servicegroup_id`), KEY `service_status_short` (`service_status_short`), CONSTRAINT `services_ibfk_1` FOREIGN KEY (`servicegroup_id`) REFERENCES `servicegroups` (`servicegroup_id`), CONSTRAINT `services_ibfk_2` FOREIGN KEY (`service_status_short`) REFERENCES `service_status` (`service_status_code`)) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci")) {
+  if ($link->query("CREATE TABLE `services` ( `service_id` int(8) NOT NULL AUTO_INCREMENT, `service_name` varchar(64) DEFAULT NULL, `servicegroup_id` int(8) DEFAULT NULL, `service_description` varchar(144) DEFAULT NULL, `service_link` varchar(120) DEFAULT NULL, `service_status_short` varchar(3) DEFAULT NULL, PRIMARY KEY (`service_id`), KEY `servicegroup_id` (`servicegroup_id`), KEY `service_status_short` (`service_status_short`), CONSTRAINT `services_ibfk_1` FOREIGN KEY (`servicegroup_id`) REFERENCES `servicegroups` (`servicegroup_id`), CONSTRAINT `services_ibfk_2` FOREIGN KEY (`service_status_short`) REFERENCES `service_status` (`service_status_code`)) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci")) {
     echo 'Table <code>services</code> created<br>';
   } else {
     die('Unable to create <code>services</code>');
@@ -152,12 +152,12 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
   } else {
     die('Unable to insert initial service status codes<br>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('software_version', '0.0.2d (`Henpeck`)')")) {
+  if ($link->query("INSERT INTO settings VALUES ('software_version', '0.0.3 (`Sycamore`)')")) {
     echo 'Created and assigned <code>software_version</code> key<br>';
   } else {
     die('Unable to create and assign <code>software_version</code> key<br>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('database_version', '0.0.4')")) {
+  if ($link->query("INSERT INTO settings VALUES ('database_version', '0.0.5')")) {
     echo 'Created and assigned <code>database_version</code> key<br>';
   } else {
     die('Unable to create and assign <code>database_version</code> key<br>');
