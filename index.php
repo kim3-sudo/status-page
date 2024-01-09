@@ -123,9 +123,9 @@ if ($row['setting_value'] != '') {
   <div class="container-sm">
     <div class="row">
       <div class="col">
-        <!--<div id="accordionsearchbarcontainer">
-          <input type="search" id="accordionsearchbar" placeholder="Search">
-        </div>-->
+        <div id="accordionsearchbarcontainer">
+          <input type="search" id="accordionsearchbar" placeholder="Search services..." onkeyup="evaluatesearch()">
+        </div>
         <div class="accordion py-4 m-2" id="statusparent">
 <?php
 $sql = 'SELECT servicegroup_id, servicegroup_name FROM servicegroups ORDER BY servicegroup_name ASC';
@@ -153,7 +153,8 @@ if (mysqli_num_rows($result) > 0) {
                 <div class="container px-4 py-2">
                   <div class="row">
                     <div class="col-8">
-                      <h6>
+                      <?php $cleanname = strtolower(preg_replace('/\W/', '', $service['service_name'])); ?>
+                      <h6 id="<?=$cleanname?>heading" class="servicehead">
 <?php
         if ($service['service_status_short'] == 'OPE') {
 ?>
