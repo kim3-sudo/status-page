@@ -29,6 +29,30 @@ $prow = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settin
       // Enable tooltips for all tooltip triggers
       let tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
       tooltipTriggerList.forEach((el) => {new bootstrap.Tooltip(el);});
+      function evaluatesearch() {
+        document.getElementById("accordionsearchbar");
+      }
+
+      // Search driver
+      const accordion = document.getElementsByClassName('accordion-collapse'); //li
+      const serviceparent = document.getElementById("statusparent"); //ul
+      function evaluatesearch() {
+        var searchquery = document.getElementById("accordionsearchbar").value.toLowerCase(); //filter
+        console.log("Searching for " + searchquery);
+        for (i = 0; i < accordion.length; i++) {
+          headelement = accordion[i].getElementsByClassName("servicehead")[0];
+          textval = headelement.textContent || headelement.innerText;
+          if (textval.toLowerCase().indexOf(searchquery) > -1) {
+            // expand
+            console.log("Expand " + accordion[i]);
+            accordion[i].classList.remove("collapse");
+          } else {
+            // collapse
+            console.log("Collapse " + accordion[i]);
+            accordion[i].classList.add("collapse");
+          }
+        }
+      }
     </script>
   </body>
 </html>

@@ -1,14 +1,5 @@
 #accordionsearchbarcontainer {
   position: relative;
-  &:after { 
-    content: '\e003';
-    font-family: Glyphicons Halflings;
-    width: 18px;
-    height: 18px;
-    position: absolute;
-    right: 10px;
-    bottom: 10px; 
-  }  
   #accordionsearchbar {
     display: block;
     margin: 10px auto;
