@@ -67,7 +67,7 @@ if (mysqli_num_rows($serviceresult) > 0) {
           </div>
           <div class="mb-3">
             <label for="update<?=$servicerow['service_id']?>link" class="form-label">Update Link</label>
-            <input maxlength="120" name="updatelink" id="update<?=$servicerow['service_id']?>link" class="form-control" value="<?=$servicerow['service_link']?>">
+            <input maxlength="120" name="updatelink" id="update<?=$servicerow['service_id']?>link" class="form-control" value="<?=$subservicerow['service_link']?>">
           </div>
           <button type="submit" class="btn btn-primary">Submit</button>
         </form>
