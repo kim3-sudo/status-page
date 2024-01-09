@@ -16,11 +16,20 @@ if (mysqli_num_rows($result) > 0) {
       while ($xincident = mysqli_fetch_assoc($result)) {
         $xaffectedservices = explode(',', $xincident['incident_describes_ids']);
         foreach ($xaffectedservices as &$value) {
-          $sql = "UPDATE services SET service_status_short = 'OPE' WHERE service_id = " . $value . " AND service_status_short = 'PLA'";
+          $preres = mysqli_query($link, "SELECT incident_describes_ids FROM incident WHERE incident_date >= CURRENT_DATE()");
+          $futures = '';
+          if (mysqli_num_rows($preres) > 0) {
+            while ($preresrow = mysqli_fetch_assoc($preres)) {
+              $futures .= $preresrow['incident_describes_ids'] . ',';
+            }
+          }
+          $futures = rtrim($futures, ',');
+          echo '<script>console.log("Explicitly not modifying services ' . $futures . ' because they are in a future maintenance window")</script>';
+          $sql = "UPDATE services SET service_status_short = 'OPE' WHERE service_id = " . $value . " AND service_status_short = 'PLA' AND service_id NOT IN (" . $futures . ")";
           if ($link->query($sql) === TRUE) {
-            echo '<script>console.log("Changed status of ' . $value . ' to OPE from PLA")</script>';
+            echo '<script>console.log("Changed status of ' . $value . ' from PLA to OPE")</script>';
           } else {
-            echo '<script>console.log("Failed to change status of "' . $value . ' to OPE from PLA")</script>';
+            echo '<script>console.log("Failed to change status of ' . $value . ' to OPE from PLA")</script>';
           }
         }
       }
@@ -64,16 +73,17 @@ if (array_key_exists('MAJ', $statusarray)) {
   echo '<h2><i class="text-warning fa-solid fa-info-circle"></i>&nbsp;Some systems experiencing degraded performance</h2>';
 } else if (array_key_exists('PLA', $statusarray)) {
   // Need a subquery here to detect if the planned maintenance window is now
-  $sql = "SELECT incident_update_timestamp FROM incident_update WHERE incident_update_status_short = 'PLA' AND incident_update_timestamp <= NOW()";
+  $sql = "SELECT incident_update_incident_id, incident_update_timestamp FROM incident_update WHERE incident_update_status_short = 'PLA' AND incident_update_timestamp <= NOW()";
   $result = mysqli_query($link, $sql);
   $inmaintenancewindow = array();
   while ($maintenancewindow = mysqli_fetch_assoc($result)) {
     $sql = "SELECT incident_update_timestamp FROM incident_update WHERE incident_update_incident_id = " . $maintenancewindow['incident_update_incident_id'] . " AND incident_update_status_short = 'PLA' OR incident_update_status_short = 'RES' ORDER BY incident_update_timestamp ASC";
-    $result = mysqli_query($link, $sql);
+    $maintresult = mysqli_query($link, $sql);
     $maintenancetimearray = array();
-    while ($maintenancetimes = mysqli_fetch_assoc($result)) {
+    while ($maintenancetimes = mysqli_fetch_assoc($maintresult)) {
       array_push($maintenancetimearray, strtotime($maintenancetimes['incident_update_timestamp']));
     }
+    echo '<script>console.log("'.time().' between '.$maintenancetimearray[0].' and '.$maintenancetimearray[1].'")</script>';
     if ($maintenancetimearray[0] < time() && time() < $maintenancetimearray[1]) {
       array_push($inmaintenancewindow, true);
     } else {
@@ -132,10 +142,10 @@ if (mysqli_num_rows($result) > 0) {
                 <span id="<?=$cleangroupname?>badge" class="badge text-bg-success">Operational</span>&nbsp;<?=$row['servicegroup_name']?>
               </button>
             </h2>
-            <div id="<?=$cleangroupname?>panel" class="accordion-collapse collapse" aria-labelledby="<?=$cleangroupname?>Heading">
+            <div id="<?=$cleangroupname?>panel" class="accordion-collapse collapse multi-collapse" aria-labelledby="<?=$cleangroupname?>Heading">
               <div class="accordion-body">
 <?php
-    $servicesql = 'SELECT service_id, service_name, service_description, service_status_short, service_status.service_status_description FROM services INNER JOIN servicegroups ON services.servicegroup_id = servicegroups.servicegroup_id INNER JOIN service_status ON service_status.service_status_code = services.service_status_short WHERE servicegroups.servicegroup_id = ' . $row['servicegroup_id'] . ' ORDER BY service_name';
+    $servicesql = 'SELECT service_id, service_name, service_description, service_status_short, service_status.service_status_description FROM services INNER JOIN servicegroups ON services.servicegroup_id = servicegroups.servicegroup_id INNER JOIN service_status ON service_status.service_status_code = services.service_status_short WHERE servicegroups.servicegroup_id = ' . $row['servicegroup_id'] . ' ORDER BY service_name ASC';
     $serviceresult = mysqli_query($link, $servicesql);
     if (mysqli_num_rows($serviceresult) > 0) {
       while ($service = mysqli_fetch_assoc($serviceresult)) {
@@ -267,7 +277,7 @@ $incidentsql = 'SELECT incident_id, incident_date, incident_description, inciden
 $incidentresult = mysqli_query($link, $incidentsql);
 if (mysqli_num_rows($incidentresult) > 0) {
   while ($incident = mysqli_fetch_assoc($incidentresult)) {
-    $prettydate = date_format(date_create($incident['incident_date']), 'M jS, Y');
+    $prettydate = date_format(date_create($incident['incident_date']), 'M. jS, Y');
 ?>
         <div class="relative incidents-monthly__item pt-2 pb-3 line">
           <p class="incidents-monthly__item__month text-black dark:text-white group-hover:opacity-100 ">
