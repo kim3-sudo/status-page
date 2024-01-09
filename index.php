@@ -145,7 +145,7 @@ if (mysqli_num_rows($result) > 0) {
             <div id="<?=$cleangroupname?>panel" class="accordion-collapse collapse multi-collapse" aria-labelledby="<?=$cleangroupname?>Heading">
               <div class="accordion-body">
 <?php
-    $servicesql = 'SELECT service_id, service_name, service_description, service_status_short, service_status.service_status_description FROM services INNER JOIN servicegroups ON services.servicegroup_id = servicegroups.servicegroup_id INNER JOIN service_status ON service_status.service_status_code = services.service_status_short WHERE servicegroups.servicegroup_id = ' . $row['servicegroup_id'] . ' ORDER BY service_name ASC';
+    $servicesql = 'SELECT service_id, service_name, service_description, service_link, service_status_short, service_status.service_status_description FROM services INNER JOIN servicegroups ON services.servicegroup_id = servicegroups.servicegroup_id INNER JOIN service_status ON service_status.service_status_code = services.service_status_short WHERE servicegroups.servicegroup_id = ' . $row['servicegroup_id'] . ' ORDER BY service_name ASC';
     $serviceresult = mysqli_query($link, $servicesql);
     if (mysqli_num_rows($serviceresult) > 0) {
       while ($service = mysqli_fetch_assoc($serviceresult)) {
@@ -204,6 +204,11 @@ document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Major Outage";
         if ($service['service_description'] != '') {
 ?>
 &nbsp;<i class="text-muted fa-solid fa-question-circle" data-bs-toggle="tooltip" data-bs-title="<?=$service['service_description']?>"></i>
+<?php
+        }
+        if ($service['service_link'] != '') {
+?>
+&nbsp;<a href="<?=$service['service_link']?>"><i class="text-muted fa fa-external-link"></i></a>
 <?php
         }
 ?>
