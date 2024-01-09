@@ -72,6 +72,17 @@
           <input type="text" id="gethelpdestination" name="gethelpdestination" required>
           <p>This address is linked to the 'Get Help' button in the header.</p>
         </fieldset>
+        <fieldset>
+          <label for="timezone">Timezone</label>
+          <select id="timezone" name="timezone" required>
+            <option disabled selected>Select one...</option>
+            <?php
+foreach (timezone_identifiers_list() as $row) {
+  echo '<option value="' . $row . '">' . $row . '</option>';
+}
+            ?>
+          </select>
+        </fieldset>
         <p>You can add additional site information in the System Settings page in the Admin Portal later, like your Google Analytics measurement ID and 'About This Page' descriptions.</p>
       </fieldset>
       <fieldset>
