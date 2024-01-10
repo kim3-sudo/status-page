@@ -6,28 +6,23 @@ if (!file_exists('templates/config.php')) {
 include('templates/_header.php');
 // Update planned maintenance, triggered on page load
 // This IS A REALLY SLOPPY WAY OF DOING THIS, but I'm too lazy to write a proper trigger
-$sql = "SELECT incident_update_incident_id FROM incident_update WHERE incident_update_timestamp < CURRENT_DATE() AND incident_update_status_short = 'PLA'";
+$sql = "SELECT incident_update_incident_id FROM incident_update WHERE incident_update_timestamp < CURRENT_DATE() AND incident_update_is_planned_maint IS NOT NULL";
 $result = mysqli_query($link, $sql);
 if (mysqli_num_rows($result) > 0) {
   while ($xincidentupdate = mysqli_fetch_assoc($result)) {
-    $sql = "SELECT incident_describes_ids FROM incident WHERE incident_id = " . $xincidentupdate['incident_update_incident_id'];
+    echo '<script>console.log("' . $xincidentupdate['incident_update_incident_id'] . '")</script>';
+    $sql = "SELECT incident_describes_ids FROM incident WHERE incident_id = " . $xincidentupdate['incident_update_incident_id'] . " AND incident_date < CURRENT_DATE()";
     $result = mysqli_query($link, $sql);
     if (mysqli_num_rows($result) > 0) {
       while ($xincident = mysqli_fetch_assoc($result)) {
         $xaffectedservices = explode(',', $xincident['incident_describes_ids']);
         foreach ($xaffectedservices as &$value) {
-          $preres = mysqli_query($link, "SELECT incident_describes_ids FROM incident WHERE incident_date >= CURRENT_DATE()");
-          $futures = '';
-          if (mysqli_num_rows($preres) > 0) {
-            while ($preresrow = mysqli_fetch_assoc($preres)) {
-              $futures .= $preresrow['incident_describes_ids'] . ',';
-            }
-          }
-          $futures = rtrim($futures, ',');
-          echo '<script>console.log("Explicitly not modifying services ' . $futures . ' because they are in a future maintenance window")</script>';
-          $sql = "UPDATE services SET service_status_short = 'OPE' WHERE service_id = " . $value . " AND service_status_short = 'PLA' AND service_id NOT IN (" . $futures . ")";
+          $sql = "UPDATE services SET service_status_short = 'OPE' WHERE service_id = " . $value . " AND service_status_short = 'PLA'";
           if ($link->query($sql) === TRUE) {
             echo '<script>console.log("Changed status of ' . $value . ' from PLA to OPE")</script>';
+            if ($link->query("UPDATE incident_update SET incident_update_is_planned_maint = NULL WHERE incident_update_timestamp < CURRENT_DATE()") === TRUE) {
+              echo '<script>console.log("Removed planned future flag from this incident")</script>';
+            }
           } else {
             echo '<script>console.log("Failed to change status of ' . $value . ' to OPE from PLA")</script>';
           }

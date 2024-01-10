@@ -25,9 +25,9 @@ if (isset($_POST['plannedmaintenanceaffectedservices'])) {
 $sql = "INSERT INTO incident (incident_date, incident_description, incident_status_short, incident_describes_ids) VALUES ('" . $addmaintstarttimestamp . "', '" . $addmaintdescription . "', 'RES', '" . $affectedservicesstr . "')";
 if ($link->query($sql) === TRUE) {
   $incidentid = $link->insert_id;
-  $subsql = "INSERT INTO incident_update (incident_update_timestamp, incident_update_status_short, incident_update_description, incident_update_incident_id) VALUES ('" . $addmaintstarttimestamp . "', 'PLA', 'Planned maintenance begins', '" . $incidentid . "')";
+  $subsql = "INSERT INTO incident_update (incident_update_timestamp, incident_update_status_short, incident_update_description, incident_update_incident_id, incident_update_is_planned_maint) VALUES ('" . $addmaintstarttimestamp . "', 'PLA', 'Planned maintenance begins', '" . $incidentid . "', 'Y')";
   if ($link->query($subsql) === TRUE) {
-    $subsubsql = "INSERT INTO incident_update (incident_update_timestamp, incident_update_status_short, incident_update_description, incident_update_incident_id) VALUES ('" . $addmaintendtimestamp . "', 'RES', '" . $addmaintmessage . "', '" . $incidentid . "')";
+    $subsubsql = "INSERT INTO incident_update (incident_update_timestamp, incident_update_status_short, incident_update_description, incident_update_incident_id, incident_update_is_planned_maint) VALUES ('" . $addmaintendtimestamp . "', 'RES', '" . $addmaintmessage . "', '" . $incidentid . "', 'Y')";
     if ($link->query($subsubsql) === TRUE) {
       foreach ($affectedservicesarray as &$serviceid) {
         $subsubsubsql = "UPDATE services SET service_status_short = 'PLA' WHERE service_id = " . $serviceid;
