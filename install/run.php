@@ -137,7 +137,7 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
   } else {
     die('Unable to drop <code>incident_update</code> or insufficient permissions<br>');
   }
-  if ($link->query("CREATE TABLE `incident_update` ( `incident_update_id` int(8) NOT NULL AUTO_INCREMENT, `incident_update_timestamp` datetime DEFAULT current_timestamp(), `incident_update_status_short` varchar(3) DEFAULT NULL, `incident_update_description` varchar(2000) DEFAULT NULL, `incident_update_incident_id` int(8) DEFAULT NULL, PRIMARY KEY (`incident_update_id`), KEY `incident_update_status_short` (`incident_update_status_short`), KEY `incident_update_incident_id` (`incident_update_incident_id`), CONSTRAINT `incident_update_ibfk_1` FOREIGN KEY (`incident_update_status_short`) REFERENCES `incident_status` (`incident_status_code`), CONSTRAINT `incident_update_ibfk_2` FOREIGN KEY (`incident_update_incident_id`) REFERENCES `incident` (`incident_id`)) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci")) {
+  if ($link->query("CREATE TABLE `incident_update` ( `incident_update_id` int(8) NOT NULL AUTO_INCREMENT, `incident_update_timestamp` datetime DEFAULT current_timestamp(), `incident_update_status_short` varchar(3) DEFAULT NULL, `incident_update_description` varchar(2000) DEFAULT NULL, `incident_update_incident_id` int(8) DEFAULT NULL, incident_update_is_planned_maint VARCHAR(2) DEFAULT NULL, PRIMARY KEY (`incident_update_id`), KEY `incident_update_status_short` (`incident_update_status_short`), KEY `incident_update_incident_id` (`incident_update_incident_id`), CONSTRAINT `incident_update_ibfk_1` FOREIGN KEY (`incident_update_status_short`) REFERENCES `incident_status` (`incident_status_code`), CONSTRAINT `incident_update_ibfk_2` FOREIGN KEY (`incident_update_incident_id`) REFERENCES `incident` (`incident_id`)) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci")) {
     echo 'Table <code>incident_update</code> created<br>';
   } else {
     die('Unable to create <code>incident_update</code> or insufficient permissions<br>');
@@ -152,12 +152,12 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
   } else {
     die('Unable to insert initial service status codes<br>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('software_version', '0.0.3 (`Sycamore`)')")) {
+  if ($link->query("INSERT INTO settings VALUES ('software_version', '0.0.4 (`Rock Run`)')")) {
     echo 'Created and assigned <code>software_version</code> key<br>';
   } else {
     die('Unable to create and assign <code>software_version</code> key<br>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('database_version', '0.0.5')")) {
+  if ($link->query("INSERT INTO settings VALUES ('database_version', '0.0.6')")) {
     echo 'Created and assigned <code>database_version</code> key<br>';
   } else {
     die('Unable to create and assign <code>database_version</code> key<br>');
