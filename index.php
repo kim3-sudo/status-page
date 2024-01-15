@@ -274,7 +274,7 @@ document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Major Outage";
     <div class="col">
       <h4 class="text-uppercase text-muted">Messages</h4>
 <?php
-$incidentsql = 'SELECT incident_id, incident_date, incident_description, incident_status_short, incident_status.incident_status_description FROM incident INNER JOIN incident_status ON incident_status.incident_status_code = incident.incident_status_short ORDER BY incident_date DESC LIMIT 5';
+$incidentsql = 'SELECT incident_id, incident_date, incident_description, incident_status_short, incident_status.incident_status_description FROM incident INNER JOIN incident_status ON incident_status.incident_status_code = incident.incident_status_short WHERE incident.incident_date >= DATE_ADD(CURDATE(), INTERVAL -90 DAY) ORDER BY incident_date DESC';
 $incidentresult = mysqli_query($link, $incidentsql);
 if (mysqli_num_rows($incidentresult) > 0) {
   while ($incident = mysqli_fetch_assoc($incidentresult)) {
