@@ -61,11 +61,11 @@ if (mysqli_num_rows($result) > 0) {
   }
 }
 if (array_key_exists('MAJ', $statusarray)) {
-  echo '<h2><i class="text-danger fa-solid fa-info-circle"></i>&nbsp;Some systems experiencing major outages</h2>';
+  echo '<h2><i class="text-danger fa-solid fa-triangle-exclamation"></i>&nbsp;Some systems experiencing major outages</h2>';
 } else if (array_key_exists('MIN', $statusarray)) {
-  echo '<h2><i class="text-warning fa-solid fa-info-circle"></i>&nbsp;Some systems experiencing minor outages</h2>';
+  echo '<h2><i class="text-warning fa-solid fa-exclamation-circle"></i>&nbsp;Some systems experiencing minor outages</h2>';
 } else if (array_key_exists('DEG', $statusarray)) {
-  echo '<h2><i class="text-warning fa-solid fa-info-circle"></i>&nbsp;Some systems experiencing degraded performance</h2>';
+  echo '<h2><i class="text-warning fa-solid fa-exclamation-circle"></i>&nbsp;Some systems experiencing degraded performance</h2>';
 } else if (array_key_exists('PLA', $statusarray)) {
   // Need a subquery here to detect if the planned maintenance window is now
   $sql = "SELECT incident_update_incident_id, incident_update_timestamp FROM incident_update WHERE incident_update_status_short = 'PLA' AND incident_update_timestamp <= NOW()";
