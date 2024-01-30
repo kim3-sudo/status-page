@@ -27,7 +27,7 @@ if (mysqli_num_rows($result) > 0) {
   while ($row = mysqli_fetch_assoc($result)) {
 ?>
 <li>
-  <button class="a" data-bs-toggle="modal" data-bs-target="pes<?=$row['pes_id']?>modal"><?=$row['pes_title']?></button>, <?=$row['pes_date']?>
+  <button class="a" data-bs-toggle="modal" data-bs-target="#pes<?=$row['pes_id']?>modal"><?=$row['pes_title']?></button>, <?=$row['pes_date']?>
 </li>
 <div class="modal fade" id="pes<?=$row['pes_id']?>modal" tabindex="-1" aria-labelledby="pes<?=$row['pes_id']?>modallabel" aria-hidden="true">
   <div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
