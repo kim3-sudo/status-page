@@ -37,11 +37,18 @@ if (mysqli_num_rows($result) > 0) {
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p><b><em><?=$row['pes_date']?></em></b></p>
-        <p><b>Issue Summary</b></p>
-        <p><?=$row['pes_issue_summary']?></p>
-        <p><b>Issue Service Impact</b></p>
-        <p><?=$row['pes_issue_service_impact']?></p>
+        <div class="container">
+          <div class="row">
+            <div class="col">
+              <h3><?=$row['pes_title']?></h3>
+              <h5><em><?=$row['pes_date']?></em></h5>
+              <h4 class="pt-3">Issue Summary</h4>
+              <p class="lh-lg pt-3" style="text-align: justify;"><?=$row['pes_issue_summary']?></p>
+              <h4 class="pt-3">Issue Service Impact</h4>
+              <p class="lh-lg pt-3" style="text-align: justify;"><?=$row['pes_issue_service_impact']?></p>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
