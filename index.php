@@ -39,6 +39,15 @@ $row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM setting
   <div class="container-sm">
     <div class="row">
       <div class="col">
+<?php
+if (isset($_SESSION['firstname'])) {
+?>
+        <div class="text-muted p-2 text-center">
+          <p>You are authenticated as an admin. You may see elements that are not ordinarily visible.</p>
+        </div>
+<?php
+}
+?>
         <div class="text-light p-2 text-center">
           <h4><?=$row['setting_value']?> Service Status</h4>
         </div>
@@ -76,16 +85,15 @@ if (array_key_exists('MAJ', $statusarray)) {
     $maintresult = mysqli_query($link, $sql);
     $maintenancetimearray = array();
     while ($maintenancetimes = mysqli_fetch_assoc($maintresult)) {
+      echo '<script>console.log("' . strtotime($maintenancetimes['incident_update_timestamp']) . '")</script>';
       array_push($maintenancetimearray, strtotime($maintenancetimes['incident_update_timestamp']));
     }
-    echo '<script>console.log("'.time().' between '.$maintenancetimearray[0].' and '.$maintenancetimearray[1].'")</script>';
-    if ($maintenancetimearray[0] < time() && time() < $maintenancetimearray[1]) {
-      array_push($inmaintenancewindow, true);
-    } else {
-      array_push($inmaintenancewindow, false);
+    echo '<script>console.log("'.time().' between '.$maintenancetimearray[7].' and '.$maintenancetimearray[8].'")</script>';
+    if ($maintenancetimearray[7] < time() && time() < $maintenancetimearray[8]) {
+      $inmaintenancewindow = true;
     }
   }
-  if (in_array(true, $inmaintenancewindow)) {
+  if ($inmaintenancewindow == true) {
     echo '<h2><i class="text-info fa-solid fa-info-circle"></i>&nbsp;Some systems under planned maintenance</h2>';
   } else {
     echo '<h2><i class="fa-regular fa-check-circle"></i>&nbsp;All systems operational</h2>';
@@ -274,89 +282,176 @@ document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Major Outage";
     <div class="col">
       <h4 class="text-uppercase text-muted">Messages</h4>
 <?php
-$incidentsql = 'SELECT incident_id, incident_date, incident_description, incident_status_short, incident_status.incident_status_description FROM incident INNER JOIN incident_status ON incident_status.incident_status_code = incident.incident_status_short WHERE incident.incident_date >= DATE_ADD(CURDATE(), INTERVAL -90 DAY) ORDER BY incident_date DESC';
+$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'plannedfuturedays'"));
+$plannedfuturedays = (int)$row['setting_value'];
+// Admin preview future incidents beyond public limit
+if (isset($_SESSION['firstname'])) {
+  $incidentsql = 'SELECT incident_id, incident_date, incident_description, incident_status_short, incident_status.incident_status_description FROM incident INNER JOIN incident_status ON incident_status.incident_status_code = incident.incident_status_short WHERE incident.incident_date >= DATE_ADD(CURDATE(), INTERVAL ' . $plannedfuturedays . ' DAY) ORDER BY incident_date DESC';
+  $incidentresult = mysqli_query($link, $incidentsql);
+  if (mysqli_num_rows($incidentresult) > 0) {
+    while ($incident = mysqli_fetch_assoc($incidentresult)) {
+      $prettydate = date_format(date_create($incident['incident_date']), 'M. jS, Y');
+?>
+          <div class="relative incidents-monthly__item pt-2 pb-3 line">
+            <p class="incidents-monthly__item__month text-black dark:text-white group-hover:opacity-100 ">
+              <span><?=$prettydate?></span>
+            </p>
+            <div class="incident-details incident-item">
+              <div class="flex items-start justify-between">
+                  <div class="incident-details__header">
+                    <span>
+<?php
+      if ($incident['incident_status_short'] != 'RES') {
+        echo '<i class="fa-solid fa-check-circle"></i>';
+      } else {
+        echo '<i class="fa-solid fa-exclamation-circle"></i>';
+      }
+?>
+                    </span>
+                    <span class="incident-name"><?=$incident['incident_description']?></span>
+                  </div>
+                </div>
+                <p><small class="text-muted">This element is not visible unless you are logged in because the event is more than <?=$plannedfuturedays?> days in the future.</small></p>
+                <ul class="incident-details__updates">
+<?php
+      $updatesql = 'SELECT incident_update_timestamp, incident_update_description, incident_status.incident_status_description FROM incident_update INNER JOIN incident_status ON incident_update.incident_update_status_short = incident_status.incident_status_code WHERE incident_update_incident_id = ' . $incident['incident_id'] . ' ORDER BY incident_update_timestamp DESC';
+      $updateresult = mysqli_query($link, $updatesql);
+      if (mysqli_num_rows($updateresult) > 0) {
+        $updatecount = 0;
+        while ($update = mysqli_fetch_assoc($updateresult)) {
+          $prettydate = date_format(date_create($update['incident_update_timestamp']), 'M jS, Y') . ' at ' . date_format(date_create($update['incident_update_timestamp']), 'g:i A');
+          if ($updatecount == 0) {
+?>
+                  <li class="incident-update update-list-item">
+                    <div class="update-list-item__inner-wrapper">
+                      <div title="<?=$update['incident_status_description']?>" class="update-list-item__status update-list-item__status--desktop first"><?=$update['incident_status_description']?><small class="text-muted">This is invisible to non-authenticated users.</small></div>
+                      <div class="update-list-item__message">
+                        <span class="opacity-75 inline updated-list-item__date">
+                          <p><?=$prettydate?></p>
+                        </span>
+                        <div class="inline prose-sm prose dark:prose-invert">
+                          <p><?=$update['incident_update_description']?></p>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+<?php
+          } else {
+?>
+                  <li class="incident-update update-list-item">
+                    <div class="update-list-item__inner-wrapper">
+                      <div title="<?=$update['incident_status_description']?>" class="update-list-item__status update-list-item__status--desktop default stormtrooper"><?=$update['incident_status_description']?></div>
+                      <div class="update-list-item__message">
+                        <span class="opacity-75 inline updated-list-item__date">
+                          <p><?=$prettydate?></p>
+                        </span>
+                        <div class="inline prose-sm prose dark:prose-invert">
+                          <p><?=$update['incident_update_description']?></p>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+<?php
+          }
+          $updatecount++;
+        }
+      } else {
+?>
+                  <li><p>No updates</p></li>
+<?php
+      }
+?>
+                </ul>
+            </div>
+          </div>
+<?php
+    }
+  }
+}
+// All other public incidents
+$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'plannedfuturedays'"));
+$incident_to_show_timerange = (int)$row['setting_value'];
+$incidentsql = 'SELECT incident_id, incident_date, incident_description, incident_status_short, incident_status.incident_status_description FROM incident INNER JOIN incident_status ON incident_status.incident_status_code = incident.incident_status_short WHERE incident.incident_date >= DATE_ADD(CURDATE(), INTERVAL -' . $incident_to_show_timerange . ' DAY) AND incident.incident_date <= DATE_ADD(CURDATE(), INTERVAL ' . $plannedfuturedays . ' DAY) ORDER BY incident_date DESC';
 $incidentresult = mysqli_query($link, $incidentsql);
 if (mysqli_num_rows($incidentresult) > 0) {
   while ($incident = mysqli_fetch_assoc($incidentresult)) {
     $prettydate = date_format(date_create($incident['incident_date']), 'M. jS, Y');
 ?>
-        <div class="relative incidents-monthly__item pt-2 pb-3 line">
-          <p class="incidents-monthly__item__month text-black dark:text-white group-hover:opacity-100 ">
-            <span><?=$prettydate?></span>
-          </p>
-          <div class="incident-details incident-item">
-            <div class="flex items-start justify-between">
-                <div class="incident-details__header">
-                  <span>
+          <div class="relative incidents-monthly__item pt-2 pb-3 line">
+            <p class="incidents-monthly__item__month text-black dark:text-white group-hover:opacity-100 ">
+              <span><?=$prettydate?></span>
+            </p>
+            <div class="incident-details incident-item">
+              <div class="flex items-start justify-between">
+                  <div class="incident-details__header">
+                    <span>
 <?php
-if ($incident['incident_status_short'] != 'RES') {
-  echo '<i class="fa-solid fa-check-circle"></i>';
-} else {
-  echo '<i class="fa-solid fa-exclamation-circle"></i>';
-}
+    if ($incident['incident_status_short'] != 'RES') {
+      echo '<i class="fa-solid fa-check-circle"></i>';
+    } else {
+      echo '<i class="fa-solid fa-exclamation-circle"></i>';
+    }
 ?>
-                  </span>
-                  <span class="incident-name"><?=$incident['incident_description']?></span>
+                    </span>
+                    <span class="incident-name"><?=$incident['incident_description']?></span>
+                  </div>
                 </div>
-              </div>
-              <ul class="incident-details__updates">
+                <ul class="incident-details__updates">
 <?php
-$updatesql = 'SELECT incident_update_timestamp, incident_update_description, incident_status.incident_status_description FROM incident_update INNER JOIN incident_status ON incident_update.incident_update_status_short = incident_status.incident_status_code WHERE incident_update_incident_id = ' . $incident['incident_id'] . ' ORDER BY incident_update_timestamp DESC';
-$updateresult = mysqli_query($link, $updatesql);
-if (mysqli_num_rows($updateresult) > 0) {
-  $updatecount = 0;
-  while ($update = mysqli_fetch_assoc($updateresult)) {
-    $prettydate = date_format(date_create($update['incident_update_timestamp']), 'M jS, Y') . ' at ' . date_format(date_create($update['incident_update_timestamp']), 'g:i A');
-    if ($updatecount == 0) {
+    $updatesql = 'SELECT incident_update_timestamp, incident_update_description, incident_status.incident_status_description FROM incident_update INNER JOIN incident_status ON incident_update.incident_update_status_short = incident_status.incident_status_code WHERE incident_update_incident_id = ' . $incident['incident_id'] . ' ORDER BY incident_update_timestamp DESC';
+    $updateresult = mysqli_query($link, $updatesql);
+    if (mysqli_num_rows($updateresult) > 0) {
+      $updatecount = 0;
+      while ($update = mysqli_fetch_assoc($updateresult)) {
+        $prettydate = date_format(date_create($update['incident_update_timestamp']), 'M jS, Y') . ' at ' . date_format(date_create($update['incident_update_timestamp']), 'g:i A');
+        if ($updatecount == 0) {
 ?>
-                <li class="incident-update update-list-item">
-                  <div class="update-list-item__inner-wrapper">
-                    <div title="<?=$update['incident_status_description']?>" class="update-list-item__status update-list-item__status--desktop first"><?=$update['incident_status_description']?></div>
-                    <div class="update-list-item__message">
-                      <span class="opacity-75 inline updated-list-item__date">
-                        <p><?=$prettydate?></p>
-                      </span>
-                      <div class="inline prose-sm prose dark:prose-invert">
-                        <p><?=$update['incident_update_description']?></p>
+                  <li class="incident-update update-list-item">
+                    <div class="update-list-item__inner-wrapper">
+                      <div title="<?=$update['incident_status_description']?>" class="update-list-item__status update-list-item__status--desktop first"><?=$update['incident_status_description']?><small class="text-muted">This is invisible to non-authenticated users.</small></div>
+                      <div class="update-list-item__message">
+                        <span class="opacity-75 inline updated-list-item__date">
+                          <p><?=$prettydate?></p>
+                        </span>
+                        <div class="inline prose-sm prose dark:prose-invert">
+                          <p><?=$update['incident_update_description']?></p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </li>
+                  </li>
 <?php
+        } else {
+?>
+                  <li class="incident-update update-list-item">
+                    <div class="update-list-item__inner-wrapper">
+                      <div title="<?=$update['incident_status_description']?>" class="update-list-item__status update-list-item__status--desktop default stormtrooper"><?=$update['incident_status_description']?></div>
+                      <div class="update-list-item__message">
+                        <span class="opacity-75 inline updated-list-item__date">
+                          <p><?=$prettydate?></p>
+                        </span>
+                        <div class="inline prose-sm prose dark:prose-invert">
+                          <p><?=$update['incident_update_description']?></p>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+<?php
+        }
+        $updatecount++;
+      }
     } else {
 ?>
-                <li class="incident-update update-list-item">
-                  <div class="update-list-item__inner-wrapper">
-                    <div title="<?=$update['incident_status_description']?>" class="update-list-item__status update-list-item__status--desktop default stormtrooper"><?=$update['incident_status_description']?></div>
-                    <div class="update-list-item__message">
-                      <span class="opacity-75 inline updated-list-item__date">
-                        <p><?=$prettydate?></p>
-                      </span>
-                      <div class="inline prose-sm prose dark:prose-invert">
-                        <p><?=$update['incident_update_description']?></p>
-                      </div>
-                    </div>
-                  </div>
-                </li>
+                  <li><p>No updates</p></li>
 <?php
     }
-    $updatecount++;
-  }
-} else {
 ?>
-<li><p>No updates</p></li>
-<?php
-}
-?>
-              </ul>
+                </ul>
+            </div>
           </div>
-        </div>
 <?php
   }
 } else {
-?>
-<p>No incidents to report</p>
-<?php
+  echo '<p>No incidents to report</p>';
 }
 ?>
     </div>

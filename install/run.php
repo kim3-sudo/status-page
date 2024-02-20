@@ -152,12 +152,12 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
   } else {
     die('Unable to insert initial service status codes<br>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('software_version', '0.0.5a (`Pigeon Roost`)')")) {
+  if ($link->query("INSERT INTO settings VALUES ('software_version', '0.0.6 (`Sapps Run`)')")) {
     echo 'Created and assigned <code>software_version</code> key<br>';
   } else {
     die('Unable to create and assign <code>software_version</code> key<br>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('database_version', '0.0.6')")) {
+  if ($link->query("INSERT INTO settings VALUES ('database_version', '0.0.6a')")) {
     echo 'Created and assigned <code>database_version</code> key<br>';
   } else {
     die('Unable to create and assign <code>database_version</code> key<br>');
@@ -196,6 +196,16 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
     echo 'Created and assigned <code>timezone</code> key<br>';
   } else {
     die('Unable to create and assign <code>timezone</code> key<br>');
+  }
+  if ($link->query("INSERT INTO settings VALUES ('plannedfuturedays', '7')") {
+    echo 'Created and assigned <code>plannedfuturedays</code> key</br>';
+  } else {
+    die('Unable to create and assign <code>plannedfuturedays</code> key<br>');
+  }
+  if ($link->query("INSERT INTO settings VALUES ('incident_to_show_timerange', '90')") {
+    echo 'Created and assigned <code>incident_to_show_timerange</code> key</br>';
+  } else {
+    die('Unable to create and assign <code>incident_to_show_timerange</code> key</br>');
   }
   if ($link->query("INSERT INTO settings (setting_key) VALUES ('about_this_site'), ('enable_sso'), ('entity_id'), ('ga_measurement_id'), ('name_id_format'), ('pes_description'), ('service_provider_base_url'), ('slo_service'), ('sso_service'), ('x509cert'), ('welcome_message'), ('meta_description')")) {
     echo 'Created additional setting keys<br>';

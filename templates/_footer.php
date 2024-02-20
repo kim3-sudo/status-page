@@ -29,9 +29,6 @@ $prow = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settin
       // Enable tooltips for all tooltip triggers
       let tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
       tooltipTriggerList.forEach((el) => {new bootstrap.Tooltip(el);});
-      function evaluatesearch() {
-        document.getElementById("accordionsearchbar");
-      }
 
       // Search driver
       const accordion = document.getElementsByClassName('accordion-collapse'); //li

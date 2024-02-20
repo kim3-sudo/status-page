@@ -2,6 +2,8 @@
 session_start();
 include_once('config.php');
 $static_base_url = $_SERVER['DOCUMENT_ROOT'];
+$timezonerow = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'timezone'"));
+date_default_timezone_set($timezonerow['setting_value']);
 ?>
 <!doctype html>
 <html lang="en">
