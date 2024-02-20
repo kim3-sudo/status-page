@@ -168,6 +168,70 @@ $welcomemessage = $row['setting_value'];
       </div>
       <p class="text-muted mb-3"><small>If this welcome message is set, a modal will open with the message text on status page load.</small></p>
     </form>
+    <form action="updatesettings.php" method="post">
+      <input type="hidden" name="setting_key" id="systemkey-timezone" value="timezone">
+      <label for="timezoneupdate" class="form-label">Timezone</label>
+      <div class="input-group">
+        <select class="form-control" name="setting_value" id="timezoneupdate">
+<?php
+$sql = "SELECT setting_value FROM settings WHERE setting_key = 'timezone'";
+$result = mysqli_query($link, $sql);
+$row = mysqli_fetch_assoc($result);
+$activetimezone = $row['setting_value'];
+foreach (timezone_identifiers_list() as $timezonerow) {
+  if ($activetimezone == $timezonerow) {
+    echo '<option value="' . $timezonerow . '" selected>' . $timezonerow . '</option>';
+  } else {
+    echo '<option value="' . $timezonerow . '">' . $timezonerow . '</option>';
+  }
+}
+?>
+        </select>
+        <button class="btn btn-primary" type="submit">Submit</button>
+      </div>
+    </form>
+    <form action="updatesettings.php" method="post">
+      <input type="hidden" name="setting_key" id="systemkey-plannedfuturedays" value="plannedfuturedays">
+      <label for="plannedfuturedaysupdate" class="form-label">Planned Maintenance Preview Days</label>
+      <div class="input-group">
+        <select class="form-control" name="setting_value" id="plannedfuturedaysupdate">
+<?php
+$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'plannedfuturedays'"));
+$activeplannedfutureday = $row['setting_value'];
+foreach (array(1, 3, 7, 14, 30, 60) as $dayrange) {
+  if ($dayrange == $activeplannedfutureday) {
+    echo '<option value="' . $dayrange . '" selected>' . $dayrange . ' days</option>';
+  } else {
+    echo '<option value="' . $dayrange . '">' . $dayrange . ' days</option>';
+  }
+}
+?>
+        </select>
+        <button class="btn btn-primary" type="submit">Submit</button>
+      </div>
+      <p class="text-muted mb-3"><small>Planned maintenance messages will not display in the messages until a certain number of days defined here.</small></p>
+    </form>
+    <form action="updatesettings.php" method="post">
+      <input type="hidden" name="setting_key" id="systemkey-incidenttoshowtimerange" value="incident_to_show_timerange">
+      <label for="incidenttoshowtimerangeupdate" class="form-label">Incident To Show Timerange</label>
+      <div class="input-group">
+        <select class="form-control" name="setting_value" id="incidenttoshowtimerangeupdate">
+<?php
+$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'incident_to_show_timerange'"));
+$activetimerange = $row['setting_value'];
+foreach (array(30, 60, 90, 120) as $dayrange) {
+  if ($dayrange == $activetimerange) {
+    echo '<option value="' . $dayrange . '" selected>' . $dayrange . ' days</option>';
+  } else {
+    echo '<option value="' . $dayrange . '">' . $dayrange . ' days</option>';
+  }
+}
+?>
+        </select>
+        <button class="btn btn-primary" type="submit">Submit</button>
+      </div>
+      <p class="text-muted mb-3"><small>Incidents will no longer display after the number of days defined here.</small></p>
+    </form>
   </div>
   <div class="rounded border p-3 my-2">
     <p>Single Sign-On Settings</p>
