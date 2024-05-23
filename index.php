@@ -6,12 +6,13 @@ if (!file_exists('templates/config.php')) {
 include('templates/_header.php');
 // Update planned maintenance, triggered on page load
 // This IS A REALLY SLOPPY WAY OF DOING THIS, but I'm too lazy to write a proper trigger
-$sql = "SELECT incident_update_incident_id FROM incident_update WHERE incident_update_timestamp < CURRENT_DATE() AND incident_update_is_planned_maint IS NOT NULL";
+$sql = "SELECT incident_update_incident_id FROM incident_update WHERE incident_update_timestamp < CURRENT_TIMESTAMP() AND incident_update_is_planned_maint IS NOT NULL";
 $result = mysqli_query($link, $sql);
 if (mysqli_num_rows($result) > 0) {
+  echo '<script>console.log("Planned maintenance update triggered")</script>';
   while ($xincidentupdate = mysqli_fetch_assoc($result)) {
     echo '<script>console.log("' . $xincidentupdate['incident_update_incident_id'] . '")</script>';
-    $sql = "SELECT incident_describes_ids FROM incident WHERE incident_id = " . $xincidentupdate['incident_update_incident_id'] . " AND incident_date < CURRENT_DATE()";
+    $sql = "SELECT incident_describes_ids FROM incident WHERE incident_id = " . $xincidentupdate['incident_update_incident_id'] . " AND incident_date < CURRENT_TIMESTAMP()";
     $result = mysqli_query($link, $sql);
     if (mysqli_num_rows($result) > 0) {
       while ($xincident = mysqli_fetch_assoc($result)) {
@@ -220,7 +221,7 @@ document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Major Outage";
                     <div class="col-4 text-end">
                       <h6 class="text-muted">
 <?php
-        $uptimesql = "SELECT DISTINCT incident_update_incident_id FROM incident_update INNER JOIN incident ON incident_update.incident_update_incident_id = incident.incident_id WHERE incident_update_timestamp > DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 90 DAY) AND incident_update_timestamp <= NOW() AND instr(concat(',', incident.incident_describes_ids, ','), '," . $service['service_id'] . ",') <> 0";
+        $uptimesql = "SELECT DISTINCT incident_update_incident_id FROM incident_update INNER JOIN incident ON incident_update.incident_update_incident_id = incident.incident_id WHERE incident_update_timestamp > DATE_SUB(CURRENT_TIMESTAMP, INTERVAL (SELECT setting_value FROM settings WHERE setting_key = 'incident_to_show_timerange') DAY) AND incident_update_timestamp <= NOW() AND instr(concat(',', incident.incident_describes_ids, ','), '," . $service['service_id'] . ",') <> 0";
         $uptimeresult = mysqli_query($link, $uptimesql);
         if (mysqli_num_rows($uptimeresult) == 0) {
           echo '100.00';
@@ -245,7 +246,9 @@ document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Major Outage";
             $started = min($incidenttimes);
             $accumulatedtime = $accumulatedtime + abs($resolved - $started);
           }
-          $percentage = 100 - round(($accumulatedtime/7776000) * 100, 2);
+          $itstassoc = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'incident_to_show_timerange'"));
+          $itst = (int)$itstassoc['setting_value'];
+          $percentage = 100 - round(($accumulatedtime/($itst * 24 * 60 * 60)) * 100, 2);
           echo $percentage;
         }
 ?>% Uptime
@@ -270,7 +273,7 @@ document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Major Outage";
 ?>
         </div>
         <div class="text-center">
-          <p><small class="text-muted"><em>Uptime is calculated as the percentage of time services were fully operational over the last 90 days.</em></small></p>
+          <p><small class="text-muted"><em>Uptime is calculated as the percentage of time services were fully operational over the last <?=$itst?> days.</em></small></p>
           <button class="btn btn-primary m-4 btn-sm" type="button" data-bs-toggle="collapse" data-bs-target=".multi-collapse" aria-expanded="false" aria-controls="<?php foreach ($cleangroupnames as $cleangroupname) {echo $cleangroupname . "panel ";} ?>">Expand/Collapse All</button>
         </div>
       </div>
