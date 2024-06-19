@@ -57,7 +57,7 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
   } else {
     die('Unable to drop <code>users</code> or insufficient permissions<br>');
   }
-  if ($link->query("CREATE TABLE `users` ( `user_id` int(8) NOT NULL AUTO_INCREMENT, `user_first_name` varchar(64) DEFAULT NULL, `user_last_name` varchar(64) DEFAULT NULL, `user_email` varchar(100) DEFAULT NULL, `user_password` varchar(255) DEFAULT NULL, PRIMARY KEY (`user_id`)) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci")) {
+  if ($link->query("CREATE TABLE `users` ( `user_id` int(8) NOT NULL AUTO_INCREMENT, `user_first_name` varchar(64) DEFAULT NULL, `user_last_name` varchar(64) DEFAULT NULL, `user_email` varchar(100) DEFAULT NULL, `user_password` varchar(255) DEFAULT NULL, user_issuperuser BOOL DEFAULT 0, PRIMARY KEY (`user_id`)) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci")) {
     echo 'Table <code>users</code> created<br>';
   } else {
     die('Unable to create <code>users</code>');
