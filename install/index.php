@@ -118,7 +118,7 @@ foreach (timezone_identifiers_list() as $row) {
         <input type="checkbox" id="installconfirm" name="installconfirm" value="true" required>
         <label for="installconfirm">Confirm?</label>
       </fieldset>
-      <p>This installer will prepare software version 0.0.9 ("Colwill") and database version 0.0.7 for use.</p>
+      <p>This installer will prepare software version 0.1.0 ("Depolo") and database version 0.0.8 for use.</p>
       <button type="submit">Install Now</button>
     </form>
   </body>

@@ -4,6 +4,7 @@ if (!isset($_SESSION['id'])) {
   header('Location: ../login.php');
 }
 include('../templates/_header.php');
+writeToLog($link, 'Admin page accessed', $_SESSION['id']);
 ?>
 <div class="d-flex flex-row" style="margin-bottom: 40px;" id="actions">
   <div class="d-flex flex-column flex-shrink-0 p-3 bg-light" style="width: 280px;">
