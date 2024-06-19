@@ -30,6 +30,12 @@ include('../templates/_header.php');
         <a href="#systemsettings" role="button" data-bs-toggle="collapse" aria-controls="systemsettings" class="nav-link" aria-current="page">System Settings</a>
       </li>
       <li class="nav-item">
+        <a href="#adminuser" role="button" data-bs-toggle="collapse" aria-controls="adminuser" class="nav-link" aria-current="page">Admin Users</a>
+      </li>
+      <li class="nav-item">
+        <a href="#updatepassword" role="button" data-bs-toggle="collapse" aria-controls="updatepassword" class="nav-link" aria-current="page">Update Password</a>
+      </li>
+      <li class="nav-item">
         <a href="logout.php" class="nav-link" aria-current="page">Log out</a>
       </li>
     </ul>
@@ -42,6 +48,8 @@ include('pagemanageservicegroups.php');
 include('pagepes.php');
 include('pageplannedmaintenance.php');
 include('pagesystemsettings.php');
+include('pageadminuser.php');
+include('pageownpassword.php');
 include('pagemodals.php');
 ?>
 </div>

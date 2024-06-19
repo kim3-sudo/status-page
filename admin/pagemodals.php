@@ -182,6 +182,75 @@ if (mysqli_num_rows($serviceresult) > 0) {
   echo '';
 }
 ?>
+<?php
+$usersql = 'SELECT user_id, user_last_name, user_first_name, user_email FROM users';
+$userresult = mysqli_query($link, $usersql);
+while ($userrow = mysqli_fetch_assoc($userresult)) {
+?>
+<div class="modal fade" id="user<?=$userrow['user_id']?>modal" tabindex="-1" aria-labelledby="user<?=$userrow['user_id']?>modallabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="user<?=$userrow['user_id']?>modallabel"><?=$userrow['user_first_name']?>&nbsp;<?=$userrow['user_last_name']?>'s Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close"></button>
+      </div>
+      <div class="modal-body">
+        <form action="updateuser.php" method="post">
+          <input type="hidden" id="updateuser<?=$userrow['user_id']?>id" name="updateuserid" value="<?=$userrow['user_id']?>">
+          <div class="mb-3">
+            <label for="updateuser<?=$userrow['user_id']?>firstname" class="form-label">Update First Name<span class="required">*</span></label>
+            <input class="form-control" id="updateuser<?=$userrow['user_id']?>firstname" name="updateuserfirstname" type="text" value="<?=$userrow['user_first_name']?>">
+          </div>
+          <div class="mb-3">
+            <label for="updateuser<?=$userrow['user_id']?>lastname" class="form-label">Update Last Name<span class="required">*</span></label>
+            <input class="form-control" id="updateuser<?=$userrow['user_id']?>lastname" name="updateuserlastname" type="text" value="<?=$userrow['user_last_name']?>">
+          </div>
+          <div class="mb-3">
+            <label for="updateuser<?=$userrow['user_id']?>email" class="form-label">Update Email Address<span class="required">*</span></label>
+            <input class="form-control" id="updateuser<?=$userrow['user_id']?>email" name="updateuseremail" type="email" value="<?=$userrow['user_email']?>">
+          </div>
+<?php
+if ($_SESSION['suflag'] == '1') {
+?>
+          <div class="mb-3">
+            <label for="updateuser<?=$userrow['user_id']?>password" class="form-label">Update Password</label>
+            <input class="form-control" id="updateuser<?=$userrow['user_id']?>password" name="updateuserpassword" type="password" placeholder="Leave blank to leave unchanged">
+          </div>
+<?php
+}
+?>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="user<?=$userrow['user_id']?>delete" tabindex="-1" aria-labelledby="user<?=$userrow['user_id']?>deletelabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-label" id="user<?=$userrow['user_id']?>deletelabel">Delete Confirmation</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close"></button>
+      </div>
+      <div class="modal-body">
+        <form action="deleteuser.php" method="post">
+          <input type="hidden" name="deleteuserid" value="<?=$userrow['user_id']?>">
+          <label class="form-label">Delete user with ID <?=$userrow['user_id']?>?</label>
+          <button type="submit" class="btn btn-primary">Confirm</button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<?php
+}
+?>
 <div class="modal fade" id="messagestylemodal" tabindex="-1" aria-labelledby="messagestylelabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-fullscreen-lg-down modal-dialog-scrollable">
     <div class="modal-content">
