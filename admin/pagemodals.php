@@ -15,7 +15,7 @@ if (mysqli_num_rows($serviceresult) > 0) {
         <form action="deleteservice.php" method="post">
           <input type="hidden" name="deleteserviceid" value="<?=$servicerow['service_id']?>">
           <label class="form-label">Delete service with ID <?=$servicerow['service_id']?>?</label>
-          <button type="submit" class="btn btn-primary">Confirm</button>
+          <button type="submit" class="btn btn-danger">Delete</button>
         </form>
       </div>
       <div class="modal-footer">
@@ -103,7 +103,7 @@ if (mysqli_num_rows($serviceresult) > 0) {
 } else {
   echo '';
 }
-$servicegroupsql = 'SELECT servicegroup_id FROM servicegroups';
+$servicegroupsql = 'SELECT servicegroup_id, servicegroup_name FROM servicegroups';
 $servicegroupresult = mysqli_query($link, $servicegroupsql);
 if (mysqli_num_rows($serviceresult) > 0) {
   while ($servicegrouprow = mysqli_fetch_assoc($servicegroupresult)) {
@@ -119,7 +119,7 @@ if (mysqli_num_rows($serviceresult) > 0) {
         <form action="deleteservicegroup.php" method="post">
           <input type="hidden" name="deleteservicegroupid" value="<?=$servicegrouprow['servicegroup_id']?>">
           <label class="form-label">Delete service group with ID <?=$servicegrouprow['servicegroup_id']?>?</label>
-          <button type="submit" class="btn btn-primary">Confirm</button>
+          <button type="submit" class="btn btn-danger">Delete</button>
         </form>
       </div>
       <div class="modal-footer">
@@ -145,7 +145,7 @@ if (mysqli_num_rows($serviceresult) > 0) {
           <input type="hidden" id="updateservicegroup<?=$servicegrouprow['servicegroup_id']?>id" name="updateservicegroupid" value="<?=$servicegrouprow['servicegroup_id']?>">
           <div class="mb-3">
             <label for="updateservicegroup<?=$servicegrouprow['servicegroup_id']?>name" class="form-label">Update Service Group Name<span class="required">*</span></label>
-            <input class="form-control" id="updateservicegroup<?=$servicegrouprow['servicegroup_id']?>name" name="updateservicegroupname" type="text">
+            <input class="form-control" id="updateservicegroup<?=$servicegrouprow['servicegroup_id']?>name" name="updateservicegroupname" value="<?=$servicegrouprow['servicegroup_name']?>" type="text">
           </div>
           <button type="submit" class="btn btn-primary">Submit</button>
         </form>
@@ -221,6 +221,23 @@ if ($_SESSION['suflag'] == '1') {
 ?>
           <button type="submit" class="btn btn-primary">Submit</button>
         </form>
+<?php
+if ($_SESSION['suflag'] == '1') {
+  $sql = "SELECT user_totpenabled FROM users WHERE user_id = " . $userrow['user_id'];
+  $enrollment = mysqli_fetch_assoc(mysqli_query($link, $sql))['user_totpenabled'];
+  if ($enrollment == 1) {
+?>
+        <form action="updatetotpadmin.php" method="post" class="mt-3">
+          <input type="hidden" name="totpuserid" value="<?=$userrow['user_id']?>">
+          <label class="form-label">Resetting 2FA configuration will immediately disable two-factor authentication for this user! The user must re-enroll in two-factor authentication themselves.</label>
+          <button type="submit" class="btn btn-danger">Reset 2FA For User</button>
+        </form>
+<?php
+  } else {
+    echo '<p class="form-label mt-3">This user is not enrolled in two-factor authentication.</p>';
+  }
+}
+?>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -239,7 +256,7 @@ if ($_SESSION['suflag'] == '1') {
         <form action="deleteuser.php" method="post">
           <input type="hidden" name="deleteuserid" value="<?=$userrow['user_id']?>">
           <label class="form-label">Delete user with ID <?=$userrow['user_id']?>?</label>
-          <button type="submit" class="btn btn-primary">Confirm</button>
+          <button type="submit" class="btn btn-danger">Delete</button>
         </form>
       </div>
       <div class="modal-footer">

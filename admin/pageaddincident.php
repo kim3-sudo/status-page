@@ -1,7 +1,7 @@
   <div class="container collapse show notransition" id="addincident" data-bs-parent="#actions">
-    <p>Welcome, <?=$_SESSION['firstname']?>!</p>
-    <p>Add an incident</p>
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#messagestylemodal">View Style Guide and Examples</button>
+    <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
+    <h1 class="my-3">Add an incident</h1>
+    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#messagestylemodal">View Style Guide and Examples</button>
     <form action="addincident.php" method="post">
       <div class="mb-3">
         <label for="addincidentdescription" class="form-label">Incident Description<span class="required">*</span></label>

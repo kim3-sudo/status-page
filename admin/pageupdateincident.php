@@ -1,7 +1,7 @@
   <div class="container collapse notransition" id="updateincident" data-bs-parent="#actions">
-    <p>Welcome, <?=$_SESSION['firstname']?>!</p>
-    <p>Update an incident</p>
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#messagestylemodal">View Style Guide and Examples</button>
+    <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
+    <h1 class="my-3">Update an incident</h1>
+    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#messagestylemodal">View Style Guide and Examples</button>
     <form action="updateincident.php" method="post">
       <div class="mb-3">
         <label for="existingincident" class="form-label">Existing Incident<span class="required">*</span></label>

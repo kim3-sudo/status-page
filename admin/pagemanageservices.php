@@ -1,6 +1,6 @@
   <div class="container collapse notransition" id="manageservices" data-bs-parent="#actions">
-    <p>Welcome, <?=$_SESSION['firstname']?>!</p>
-    <p>Manage services</p>
+    <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
+    <h1 class="my-3">Manage services</h1>
     <form action="addservice.php" method="post">
       <div class="mb-3">
         <label for="newservicename" class="form-label">New Service Name<span class="required">*</span></label>

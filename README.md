@@ -29,13 +29,16 @@ The code in this repository is licensed under the [MIT License](https://github.c
   + Apache (=2) OR
   + Nginx (1.20-1.21)
 - PHP Processors
-  + PHP (>=8) AND
+  + PHP (>=8.1) AND
   + php-mysqlnd (>=8)
+- Composer
 - SQL Database
   + MariaDB (>=10.5) OR
   + MySQL (>=8)
 
 Windows, macOS, and other types of Linux (including Ubuntu Server) are not officially supported, but you may have success with these operating systems. Future official support for these operating systems may be added in the future. Unofficial support indicates that the software may work, but it has not been officially validated.
+
+NOTE: Version >0.1.0 (Depolo) requires PHP version 8.1. Previous versions only required PHP version 8.0.
 
 ## Installation
 
@@ -44,12 +47,16 @@ Windows, macOS, and other types of Linux (including Ubuntu Server) are not offic
 ```bash
 git clone https://github.com/kim3-sudo/status-page.git
 ```
-3. In MySQL or MariaDB, create a database and a user with at least `CREATE`, `DROP`, `INSERT`, `DELETE`, `SELECT`, and `UPDATE` privileges. Remember, scoping your permissions is better for security!
-4. In a web browser, navigate to your web directory, into the `install` directory - for example, https://your-host.tld/install.
-5. Provide the necessary information on the installation page, then press *Install Now*.
-6. The installer will create the database schema and generate a config file. Place the config file into a file called `config.php` inside of the `templates` directory. An example file is provided under `templates/config.php.template`, but you don't have to use this if you copy the file over.
-7. Clean up by removing the entire `install` directory.
-8. :tada:
+3. Using Composer, install Spomky's OTPHP library. OTPHP version >=11 should be installed.
+```bash
+composer install spomky-labs/otphp
+```
+4. In MySQL or MariaDB, create a database and a user with at least `CREATE`, `DROP`, `INSERT`, `DELETE`, `SELECT`, and `UPDATE` privileges. Remember, scoping your permissions is better for security!
+5. In a web browser, navigate to your web directory, into the `install` directory - for example, https://your-host.tld/install.
+6. Provide the necessary information on the installation page, then press *Install Now*.
+7. The installer will create the database schema and generate a config file. Place the config file into a file called `config.php` inside of the `templates` directory. An example file is provided under `templates/config.php.template`, but you don't have to use this if you copy the file over.
+8. Clean up by removing the entire `install` directory.
+9. :tada:
 
 ## Configuration
 
