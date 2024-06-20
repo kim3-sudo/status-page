@@ -1,6 +1,6 @@
 <div class="container collapse notransition" id="systemsettings" data-bs-parent="#actions">
-  <p>Welcome, <?=$_SESSION['firstname']?>!</p>
-  <p>System Settings</p>
+  <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
+  <h1 class="my-3">System Settings</h1>
   <div class="rounded border p-3 my-2">
     <p>General System Settings</p>
     <form action="updatesettings.php" method="post">

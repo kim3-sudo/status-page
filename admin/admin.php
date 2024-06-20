@@ -10,16 +10,16 @@ writeToLog($link, 'Admin page accessed', $_SESSION['id']);
   <div class="d-flex flex-column flex-shrink-0 p-3 bg-light" style="width: 280px;">
     <ul class="nav nav-pills flex-column mb-auto">
       <li class="nav-item">
-        <a href="#addincident" role="button" data-bs-toggle="collapse" aria-controls="addincident" class="nav-link" aria-current="page">Add incident</a>
+        <a href="#addincident" role="button" data-bs-toggle="collapse" aria-controls="addincident" class="nav-link" aria-current="page">Add Incident</a>
       </li>
         <li class="nav-item">
-        <a href="#updateincident" role="button" data-bs-toggle="collapse" aria-controls="updateincident" class="nav-link" aria-current="page">Update incident</a>
+        <a href="#updateincident" role="button" data-bs-toggle="collapse" aria-controls="updateincident" class="nav-link" aria-current="page">Update Incident</a>
       </li>
       <li class="nav-item">
-        <a href="#manageservices" role="button" data-bs-toggle="collapse" aria-controls="manageservices" class="nav-link" aria-current="page">Manage services</a>
+        <a href="#manageservices" role="button" data-bs-toggle="collapse" aria-controls="manageservices" class="nav-link" aria-current="page">Manage Services</a>
       </li>
       <li class="nav-item">
-        <a href="#managegroups" role="button" data-bs-toggle="collapse" aria-controls="managegroups" class="nav-link" aria-current="page">Manage service groups</a>
+        <a href="#managegroups" role="button" data-bs-toggle="collapse" aria-controls="managegroups" class="nav-link" aria-current="page">Manage Service Groups</a>
       </li>
       <li class="nav-item">
         <a href="#plannedmaintenance" role="button" data-bs-toggle="collapse" aria-controls="plannedmaintenance" class="nav-link" aria-current="page">Planned Maintenance</a>
@@ -38,6 +38,9 @@ writeToLog($link, 'Admin page accessed', $_SESSION['id']);
       </li>
       <li class="nav-item">
         <a href="logout.php" class="nav-link" aria-current="page">Log out</a>
+      </li>
+      <li class="nav-item">
+        <p class="small text-muted"><em><?=strtolower($svrow['setting_value'])?>/<?=strtolower($dvrow['setting_value'])?>/<?=strtolower(gethostname())?></em></p>
       </li>
     </ul>
   </div>

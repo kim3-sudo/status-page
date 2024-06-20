@@ -86,7 +86,7 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
     writeToLog($link, 'Unable to drop users or insufficient permissions', -1, 'WARN');
     die('Unable to drop <code>users</code> or insufficient permissions<br>');
   }
-  if ($link->query("CREATE TABLE `users` ( `user_id` int(8) NOT NULL AUTO_INCREMENT, `user_first_name` varchar(64) DEFAULT NULL, `user_last_name` varchar(64) DEFAULT NULL, `user_email` varchar(100) DEFAULT NULL, `user_password` varchar(255) DEFAULT NULL, PRIMARY KEY (`user_id`)) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci")) {
+  if ($link->query("CREATE TABLE `users` ( `user_id` int(8) NOT NULL AUTO_INCREMENT, `user_first_name` varchar(64) DEFAULT NULL, `user_last_name` varchar(64) DEFAULT NULL, `user_email` varchar(100) DEFAULT NULL, `user_password` varchar(255) DEFAULT NULL, `user_issuperuser` BOOL DEFAULT 0, `user_totpenabled` BOOL DEFAULT 0, user_totpsecret VARCHAR(255), PRIMARY KEY (`user_id`)) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci")) {
     echo 'Table <code>users</code> created<br>';
     writeToLog($link, 'Table users created', -1);
   } else {
@@ -219,14 +219,14 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
     writeToLog($link, 'Unable to insert initial service status codes', -1, 'WARN');
     die('Unable to insert initial service status codes<br>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('software_version', '0.0.9 (`Colwill`)')")) {
+  if ($link->query("INSERT INTO settings VALUES ('software_version', '0.1.1 (`Frampton`)')")) {
     echo 'Created and assigned <code>software_version</code> key<br>';
     writeToLog($link, 'Created an assigned software_version key', -1);
   } else {
     writeToLog($link, 'Unable to create and assign software_version key', -1, 'WARN');
     die('Unable to create and assign <code>software_version</code> key<br>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('database_version', '0.0.7')")) {
+  if ($link->query("INSERT INTO settings VALUES ('database_version', '0.0.9')")) {
     echo 'Created and assigned <code>database_version</code> key<br>';
     writeToLog($link, 'Created and assigned database_version key', -1);
   } else {

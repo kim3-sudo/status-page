@@ -6,7 +6,7 @@ if (!isset($_SESSION['id'])) {
 }
 include('../templates/_header.php');
 writeToLog($link, 'Logout called for user, session ending', $_SESSION['id']);
-echo '<p>Logged out</p>';
+echo '<div class="container"><div class="row"><div class="col"><p>Logged out</p></div></div></div>';
 include('../templates/_footer.php');
 session_destroy();
 header('Location: ../index.php');

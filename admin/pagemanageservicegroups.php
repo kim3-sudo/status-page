@@ -1,6 +1,6 @@
   <div class="container collapse notransition" id="managegroups" data-bs-parent="#actions">
-    <p>Welcome, <?=$_SESSION['firstname']?>!</p>
-    <p>Manage groups</p>
+    <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
+    <h1 class="my-3">Manage service groups</h1>
     <form action="addservicegroup.php" method="post">
       <div class="mb-3">
         <label for="newservicegroupname" class="form-label">New Service Group Name<span class="required">*</span></label>

@@ -1,6 +1,7 @@
   <div class="container collapse notransition" id="adminuser" data-bs-parent="#actions">
-    <p>Welcome, <?=$_SESSION['firstname']?>!</p>
-    <p>Add Admin Users</p>
+    <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
+    <h1 class="my-3">Admin Users</h1>
+    <h2 class="my-3">Add Users</h2>
     <form action="adduser.php" method="post">
       <div class="mb-3">
         <label for="adduserlast" class="form-label">User Last<span class="required">*</span></label>
@@ -20,7 +21,7 @@
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
     <hr class="mt-3 mb-3">
-    <p>Modify Admin Users</p>
+    <h2 class="my-3">Modify Admin Users</h2>
     <table class="table table-striped table-hover">
       <tbody>
 <?php
