@@ -2,3 +2,5 @@
 .htaccess
 config.php
 
+composer.phar
+/vendor/
