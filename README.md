@@ -38,6 +38,8 @@ The code in this repository is licensed under the [MIT License](https://github.c
 
 Windows, macOS, and other types of Linux (including Ubuntu Server) are not officially supported, but you may have success with these operating systems. Future official support for these operating systems may be added in the future. Unofficial support indicates that the software may work, but it has not been officially validated.
 
+NOTE: Version >0.1.0 (Depolo) requires PHP version 8.1. Previous versions only required PHP version 8.0.
+
 ## Installation
 
 1. Install the prerequisites.
@@ -45,7 +47,7 @@ Windows, macOS, and other types of Linux (including Ubuntu Server) are not offic
 ```bash
 git clone https://github.com/kim3-sudo/status-page.git
 ```
-3. Using Composer, install Spomky's OTPHP library.
+3. Using Composer, install Spomky's OTPHP library. OTPHP version >=11 should be installed.
 ```bash
 composer install spomky-labs/otphp
 ```
