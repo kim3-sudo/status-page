@@ -306,3 +306,19 @@ include('_pesstyleguide.php');
     </div>
   </div>
 </div>
+<div class="modal fade" id="twofactorwarning" tabindex="-1" aria-labelledby="twofactorwarninglabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="twofactorwarninglabel">Two-Factor Warning</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-3">This account is not enrolled in two-factor authentication. Enroll on the <b>Update Password</b> page, then log out and back in.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Acknowledge</button>
+      </div>
+    </div>
+  </div>
+</div>

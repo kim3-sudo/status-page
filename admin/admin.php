@@ -5,7 +5,10 @@ if (!isset($_SESSION['id'])) {
 }
 include('../templates/_header.php');
 writeToLog($link, 'Admin page accessed', $_SESSION['id']);
+require_once('../vendor/autoload.php');
+use OTPHP\TOTP;
 ?>
+<script src="../vendor/tinymce/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
 <div class="d-flex flex-row" style="margin-bottom: 40px;" id="actions">
   <div class="d-flex flex-column flex-shrink-0 p-3 bg-light" style="width: 280px;">
     <ul class="nav nav-pills flex-column mb-auto">
@@ -57,6 +60,20 @@ include('pageownpassword.php');
 include('pagemodals.php');
 ?>
 </div>
+<script>
+  tinymce.init({
+    selector: 'textarea.tinymce',
+    block_formats: 'Paragraph=p',
+    paste_as_text: true,
+    plugins: 'link autolink preview',
+    promotion: false
+  });
+</script>
 <?php
 include('../templates/_footer.php');
+?>
+<?php
+if (isset($_SESSION['twofactornotenrolled']) && $_SESSION['twofactornotenrolled'] == 1) {
+  echo '<script>new bootstrap.Modal("#twofactorwarning").show();</script>';
+}
 ?>

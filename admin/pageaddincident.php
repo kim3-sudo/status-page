@@ -10,7 +10,7 @@
       </div>
       <div class="mb-3">
         <label for="addincidentupdatedescription" class="form-label">Incident Update<span class="required">*</span></label>
-        <textarea class="form-control" id="addincidentupdatedescription" name="addincidentupdatedescription" aria-describedby="addincidentupdatehelp" maxlength="2000" required placeholder="We have identified an issue with..."></textarea>
+        <textarea class="form-control tinymce" id="addincidentupdatedescription" name="addincidentupdatedescription" aria-describedby="addincidentupdatehelp" maxlength="2000" required placeholder="We have identified an issue with...">We have identified an issue with [what?]. When trying to [action], users may experience [symptoms]. We are working to identify and recify the issue as quickly as possible. We have not identified a workaround yet but are working to diagnose the issue. We will leave updates here when we learn more information and as we implement fixes.</textarea>
         <p id="addincidentupdatehelp" class="form-text">This is a description of symptoms and resolutions.</p>
       </div>
       <div class="mb-3">
