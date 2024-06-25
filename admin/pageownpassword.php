@@ -17,7 +17,7 @@
       <button type="submit" class="btn btn-primary">Submit Password Change</button>
     </form>
     <hr class="my-3">
-    <form action="updatetotp.php" method="post" class="mt-3">
+    <form action="verifytotpenrollment.php" method="post" class="mt-3">
       <div class="mb-3">
         <h1 class="my-3">Time-Based One Time Passcode 2FA</h1>
 <?php

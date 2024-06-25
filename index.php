@@ -289,7 +289,7 @@ $row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM setting
 $plannedfuturedays = (int)$row['setting_value'];
 echo '<script>console.log("Showing maintenance windows in the next ' . $plannedfuturedays . ' days")</script>';
 // Admin preview future incidents beyond public limit
-if (isset($_SESSION['firstname'])) {
+if ($_SESSION['id'] != '') {
   $incidentsql = 'SELECT incident_id, incident_date, incident_description, incident_status_short, incident_status.incident_status_description FROM incident INNER JOIN incident_status ON incident_status.incident_status_code = incident.incident_status_short WHERE incident.incident_date >= DATE_ADD(CURDATE(), INTERVAL ' . $plannedfuturedays . ' DAY) ORDER BY incident_date DESC';
   $incidentresult = mysqli_query($link, $incidentsql);
   if (mysqli_num_rows($incidentresult) > 0) {
@@ -375,8 +375,10 @@ if (isset($_SESSION['firstname'])) {
 // All other public incidents
 $row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'incident_to_show_timerange'"));
 $incident_to_show_timerange = (int)$row['setting_value'];
+$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'plannedfuturedays'"));
+$plannedfuturedays = (int)$row['setting_value'];
 echo '<script>console.log("Showing incidents from the last ' . $incident_to_show_timerange . ' days")</script>';
-$incidentsql = 'SELECT incident_id, incident_date, incident_description, incident_status_short, incident_status.incident_status_description FROM incident INNER JOIN incident_status ON incident_status.incident_status_code = incident.incident_status_short WHERE incident.incident_date >= DATE_ADD(CURDATE(), INTERVAL -' . $incident_to_show_timerange . ' DAY) AND incident.incident_date <= DATE_ADD(CURDATE(), INTERVAL ' . $incident_to_show_timerange . ' DAY) ORDER BY incident_date DESC';
+$incidentsql = 'SELECT incident_id, incident_date, incident_description, incident_status_short, incident_status.incident_status_description FROM incident INNER JOIN incident_status ON incident_status.incident_status_code = incident.incident_status_short WHERE incident.incident_date >= DATE_ADD(CURDATE(), INTERVAL -' . $incident_to_show_timerange . ' DAY) AND incident.incident_date <= DATE_ADD(CURDATE(), INTERVAL ' . $plannedfuturedays . ' DAY) ORDER BY incident_date DESC';
 $incidentresult = mysqli_query($link, $incidentsql);
 if (mysqli_num_rows($incidentresult) > 0) {
   while ($incident = mysqli_fetch_assoc($incidentresult)) {

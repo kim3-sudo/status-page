@@ -22,7 +22,7 @@ if (mysqli_num_rows($incidentresult) > 0) {
       </div>
       <div class="mb-3">
         <label for="existingincidentupdate" class="form-label">Incident Update<span class="required">*</span></label>
-        <textarea maxlength="2000" class="form-control" id="existingincidentupdate" name="existingincidentupdate" placeholder="We are investigating the issue with..."></textarea>
+        <textarea maxlength="2000" class="form-control tinymce" id="existingincidentupdate" name="existingincidentupdate" placeholder="We are investigating the issue with...">We have implemented a fix and have determined that the [issue] has been resolved. Users who continue to have issues should contact the help desk for further assistance. We apologize for this disruption in service, and we appreciate your patience and understanding. We will continue to work and improve to make sure this doesn't happen again.</textarea>
       </div>
       <div class="mb-3">
         <label for="existingincidentstatus" class="form-label">Incident Status<span class="required">*</span></label>

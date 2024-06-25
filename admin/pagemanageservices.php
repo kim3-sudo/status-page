@@ -45,7 +45,7 @@ if (mysqli_num_rows($serviceresult) > 0) {
 <tr>
   <td><button class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#servicemodal<?=$servicerow['service_id']?>"><?=$servicerow['service_name']?></button></td>
   <td><?=$servicerow['servicegroup_name']?></td>
-  <td><button type="button" class="link" data-bs-toggle="modal" data-bs-target="#servicemodal<?=$servicerow['service_id']?>delete"><i class="fa-solid fa-xmark text-danger"></i></button></td>
+  <td><button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#servicemodal<?=$servicerow['service_id']?>delete"><i class="fa-solid fa-xmark text-danger"></i></button></td>
 </tr>
 <?php
   }

@@ -16,12 +16,12 @@
       </div>
       <div class="mb-3">
         <label for="addpessummary" class="form-label">Issue Summary<span class="required">*</span></label>
-        <textarea class="form-control" id="addpessummary" name="pessummary" maxlength="5000" rows="8" required></textarea>
+        <textarea class="form-control tinymce" id="addpessummary" name="pessummary" maxlength="5000" rows="8" required></textarea>
         <p class="text-muted"><small>Provide a synopsis of the issue here.<br>Maximum character count: 5000</small></p>
       </div>
       <div class="mb-3">
         <label for="addpesimpact" class="form-label">Issue Service Impact<span class="required">*</span></label>
-        <textarea class="form-control" id="addpesimpact" name="pesimpact" maxlength="5000" rows="8" required></textarea>
+        <textarea class="form-control tinymce" id="addpesimpact" name="pesimpact" maxlength="5000" rows="8" required></textarea>
         <p class="text-muted"><small>Provide a summary of the impact that the issue had on services and on adjuct services.<br>Maximum character count: 5000</small></p>
       </div>
       <button type="submit" class="btn btn-primary">Submit</button>

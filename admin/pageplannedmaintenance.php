@@ -17,7 +17,7 @@
       </div>
       <div class="mb-3">
         <label for="plannedmaintenancemessage" class="form-label">Planned Maintenance Message<span class="required">*</span></label>
-        <textarea id="plannedmaintenancemessage" name="plannedmaintenancemessage" maxlength="2000" class="form-control" placeholder="A maintenance window has been scheduled for..." required></textarea>
+        <textarea id="plannedmaintenancemessage" name="plannedmaintenancemessage" maxlength="2000" class="form-control tinymce" required>A maintenance window has been planned for [Month] DAY, YEAR between HH:MM AM/PM and HH:MM AM/PM. During this time, [some] services may be unavailable as we [do what?]. If you have any questions about this maintenance, please contact <a href="mailto:">[who?]</a>.</textarea>
       </div>
       <div class="mb-3">
         <label for="plannedmaintenanceaffected" class="form-label">Affected Services<span class="required">*</span></label>

@@ -26,6 +26,10 @@ if (isset($_POST['affectedservices'])) {
   writeToLog($link, 'Missing affected services', $_SESSION['id'], 'WARN');
   exit('Missing affected services');
 }
+if ($_POST['addincidentstatus'] == '') {
+  writeToLog($link, 'Missing incident status', $_SESSION['id'], 'WARN');
+  exit('Missing incident status');
+}
 if ($_POST['starttimestamp'] != '') {
   writeToLog($link, 'Start timestamp is set to ' . mysqli_real_escape_string($link, $_POST['starttimestamp']), $_SESSION['id']);
   $starttimestamp = mysqli_real_escape_string($link, $_POST['starttimestamp']);

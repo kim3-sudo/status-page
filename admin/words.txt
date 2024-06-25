@@ -2337,8 +2337,6 @@ dealt
 dealtime
 dean
 dear
-death
-deaths
 debate
 debian
 deborah
@@ -4909,11 +4907,6 @@ kid
 kidney
 kids
 kijiji
-kill
-killed
-killer
-killing
-kills
 kilometers
 kim
 kinase
@@ -8646,7 +8639,6 @@ suggesting
 suggestion
 suggestions
 suggests
-suicide
 suit
 suitable
 suite

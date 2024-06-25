@@ -47,9 +47,9 @@ NOTE: Version >0.1.0 (Depolo) requires PHP version 8.1. Previous versions only r
 ```bash
 git clone https://github.com/kim3-sudo/status-page.git
 ```
-3. Using Composer, install Spomky's OTPHP library. OTPHP version >=11 should be installed.
+3. Use Composer to install all of the external package dependencies.
 ```bash
-composer install spomky-labs/otphp
+composer update
 ```
 4. In MySQL or MariaDB, create a database and a user with at least `CREATE`, `DROP`, `INSERT`, `DELETE`, `SELECT`, and `UPDATE` privileges. Remember, scoping your permissions is better for security!
 5. In a web browser, navigate to your web directory, into the `install` directory - for example, https://your-host.tld/install.

@@ -46,6 +46,7 @@ if ($stmt = $link->prepare('SELECT user_id, user_first_name, user_last_name, use
         $_SESSION['firstname'] = $firstname;
         $_SESSION['lastname'] = $lastname;
         $_SESSION['suflag'] = $suflag;
+        $_SESSION['twofactornotenrolled'] = 1;
         writeToLog($link, 'Redirecting user to admin', -1);
         header('Location: admin/admin.php');
       }
@@ -53,6 +54,9 @@ if ($stmt = $link->prepare('SELECT user_id, user_first_name, user_last_name, use
       writeToLog($link, 'Authentication failed on password!', -1, 'WARN');
       echo '<p>Incorrect username or password</p>';
     }
+  } else {
+    writeToLog($link, 'Authentication failed on username!', -1, 'WARN');
+    echo '<p>Incorrect username or password</p>';
   }
 } else {
   writeToLog($link, 'Authentication failed on username!', -1, 'WARN');
