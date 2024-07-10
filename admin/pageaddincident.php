@@ -35,14 +35,31 @@ if (mysqli_num_rows($statusresult) > 0) {
       <div class="mb-3">
         <label for="addincidentaffected" name="addincidentaffected" class="form-label">Affected Services<span class="required">*</span></label>
 <?php
-$servicesql = 'SELECT service_id, servicegroups.servicegroup_name, service_name FROM services INNER JOIN servicegroups ON services.servicegroup_id = servicegroups.servicegroup_id ORDER BY servicegroups.servicegroup_name ASC';
-$serviceresult = mysqli_query($link, $servicesql);
-if (mysqli_num_rows($statusresult) > 0) {
-  while($servicerow = mysqli_fetch_assoc($serviceresult)) {
-    echo '<div class="form-check"><input class="form-check-input" type="checkbox" value="' . $servicerow['service_id'] . '" id="servicecheck' . $servicerow['service_id'] . '" name="affectedservices[]"><label class="form-check-label" for="servicecheck' . $servicerow['service_id'] . '">' . $servicerow['servicegroup_name'] . ' - ' . $servicerow['service_name'] . '</label></div>';
+$servicegroupsql = 'SELECT servicegroups.servicegroup_id, servicegroups.servicegroup_name FROM servicegroups ORDER BY servicegroup_name ASC';
+$servicegroupresult = mysqli_query($link, $servicegroupsql);
+if (mysqli_num_rows($servicegroupresult) > 0) {
+  echo '<div class="accordion" id="addincidentservices">';
+  while ($servicegrouprow = mysqli_fetch_assoc($servicegroupresult)) {
+    echo '<div class="accordion-item">';
+    echo '<h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#sg' . $servicegrouprow['servicegroup_id'] . '-collapse" aria-expanded="true" aria-controls="sg' . $servicegrouprow['servicegroup_id'] . '-collapse">';
+    echo $servicegrouprow['servicegroup_name'];
+    echo '</button></h2>';
+    echo '<div id="sg' . $servicegrouprow['servicegroup_id'] . '-collapse" class="accordion-collapse collapse show">';
+    echo '<div class="accordion-body">';
+    $servicesql = 'SELECT service_id, servicegroups.servicegroup_name, service_name FROM services INNER JOIN servicegroups ON services.servicegroup_id = servicegroups.servicegroup_id WHERE servicegroups.servicegroup_id = ' . $servicegrouprow['servicegroup_id'] . ' ORDER BY servicegroups.servicegroup_name ASC';
+    $serviceresult = mysqli_query($link, $servicesql);
+    if (mysqli_num_rows($serviceresult) > 0) {
+      while($servicerow = mysqli_fetch_assoc($serviceresult)) {
+        echo '<div class="form-check"><input class="form-check-input" type="checkbox" value="' . $servicerow['service_id'] . '" id="servicecheck' . $servicerow['service_id'] . '" name="affectedservices[]"><label class="form-check-label" for="servicecheck' . $servicerow['service_id'] . '">' . $servicerow['service_name'] . '</label></div>';
+      }
+    } else {
+      echo '<div class="form-check"><input class="form-check-input" type="checkbox" value="" id="servicecheckdisabled" disabled required><label class="form-check-label" for="servicecheckdisabled"></div>';
+    }
+    echo '</div>';
+    echo '</div>';
+    echo '</div>';
   }
-} else {
-  echo '<div class="form-check"><input class="form-check-input" type="checkbox" value="" id="servicecheckdisabled" disabled required><label class="form-check-label" for="servicecheckdisabled"></div>';
+  echo '</div>';
 }
 ?>
       </div>

@@ -5,7 +5,7 @@ if (!file_exists('templates/config.php')) {
 }
 include('templates/_header.php');
 // Update planned maintenance, triggered on page load
-// This IS A REALLY SLOPPY WAY OF DOING THIS, but I'm too lazy to write a proper trigger
+// \This IS A REALLY SLOPPY WAY OF DOING THIS, but I'm too lazy to write a proper trigger
 $sql = "SELECT incident_update_incident_id FROM incident_update WHERE incident_update_timestamp < CURRENT_TIMESTAMP() AND incident_update_is_planned_maint IS NOT NULL";
 $result = mysqli_query($link, $sql);
 if (mysqli_num_rows($result) > 0) {
@@ -166,7 +166,7 @@ if (mysqli_num_rows($result) > 0) {
 <?php
         } else if ($service['service_status_short'] == 'DEG') {
 ?>
-<span class="badge text-bg-warning" data-bs-toggle="tooltip" data-bs-title="The service may be experiencing degraded performance."><i class="fa-solid fa-circle-exclamation"></i>&nbsp;Degraded Performance</span>
+<span class="badge text-bg-warning" data-bs-toggle="tooltip" data-bs-title="The service may be experiencing degraded performance."><i class="fa-solid fa-exclamation-circle"></i>&nbsp;Degraded Performance</span>
 <script>
 document.getElementById("<?=$cleangroupname?>badge").classList.remove("text-bg-success");
 document.getElementById("<?=$cleangroupname?>badge").classList.add("text-bg-warning");
@@ -185,7 +185,7 @@ document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Planned Mainte
 <?php
         } else if ($service['service_status_short'] == 'MIN') {
 ?>
-<span class="badge text-bg-warning" data-bs-toggle="tooltip" data-bs-title="The system may be experiencing a minor outage right now."><i class="text-warning fa-solid fa-circle-exclamation"></i>&nbsp;Minor Outage</span>
+<span class="badge text-bg-warning" data-bs-toggle="tooltip" data-bs-title="The system may be experiencing a minor outage right now."><i class="fa-solid fa-exclamation-circle"></i>&nbsp;Minor Outage</span>
 <script>
 document.getElementById("<?=$cleangroupname?>badge").classList.remove("text-bg-success");
 document.getElementById("<?=$cleangroupname?>badge").classList.add("text-bg-warning");
@@ -393,7 +393,7 @@ if (mysqli_num_rows($incidentresult) > 0) {
                   <div class="incident-details__header">
                     <span>
 <?php
-    if ($incident['incident_status_short'] != 'RES') {
+    if ($incident['incident_status_short'] == 'RES') {
       echo '<i class="fa-solid fa-check-circle"></i>';
     } else {
       echo '<i class="fa-solid fa-exclamation-circle"></i>';
@@ -415,7 +415,7 @@ if (mysqli_num_rows($incidentresult) > 0) {
 ?>
                   <li class="incident-update update-list-item">
                     <div class="update-list-item__inner-wrapper">
-                      <div title="<?=$update['incident_status_description']?>" class="update-list-item__status update-list-item__status--desktop first"><?=$update['incident_status_description']?><small class="text-muted">This is invisible to non-authenticated users.</small></div>
+                      <div title="<?=$update['incident_status_description']?>" class="update-list-item__status update-list-item__status--desktop first"><?=$update['incident_status_description']?></div>
                       <div class="update-list-item__message">
                         <span class="opacity-75 inline updated-list-item__date">
                           <p><?=$prettydate?></p>
