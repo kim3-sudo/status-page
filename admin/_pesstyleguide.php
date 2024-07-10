@@ -1,3 +1,22 @@
+<?php
+/*
+    Status Page
+    Copyright (C) 2024 Sejin Kim
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+?>
 <!-- Are you the system admin? Edit this text to reflect your organization's style guide. -->
 <p>For examples of post-event summaries, please refer to AWS's <a href="https://aws.amazon.com/premiumsupport/technology/pes/">post-event summary</a> page.</p>
 <ul class="mb-3">

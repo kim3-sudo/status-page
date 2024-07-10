@@ -1,3 +1,22 @@
+<?php
+/*
+    Status Page
+    Copyright (C) 2024 Sejin Kim
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+?>
   <div class="container collapse show notransition" id="addincident" data-bs-parent="#actions">
     <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
     <h1 class="my-3">Add an incident</h1>
