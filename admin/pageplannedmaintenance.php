@@ -56,7 +56,7 @@ if (mysqli_num_rows($servicegroupresult) > 0) {
     $serviceresult = mysqli_query($link, $servicesql);
     if (mysqli_num_rows($serviceresult) > 0) {
       while($servicerow = mysqli_fetch_assoc($serviceresult)) {
-        echo '<div class="form-check"><input class="form-check-input" type="checkbox" value="' . $servicerow['service_id'] . '" id="serviceupdatecheck' . $servicerow['service_id'] . '" name="affectedservices[]"><label class="form-check-label" for="servicecheck' . $servicerow['service_id'] . '">' . $servicerow['service_name'] . '</label></div>';
+        echo '<div class="form-check"><input class="form-check-input" type="checkbox" value="' . $servicerow['service_id'] . '" id="serviceupdatecheck' . $servicerow['service_id'] . '" name="plannedmaintenanceaffectedservices[]"><label class="form-check-label" for="servicecheck' . $servicerow['service_id'] . '">' . $servicerow['service_name'] . '</label></div>';
       }
     } else {
       echo '<div class="form-check"><input class="form-check-input" type="checkbox" value="" id="servicecheckdisabled" disabled required><label class="form-check-label" for="servicecheckdisabled"></div>';
