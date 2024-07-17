@@ -69,7 +69,7 @@ if (isset($_SESSION['firstname'])) {
 }
 ?>
         <div class="text-light p-2 text-center">
-          <h4><?=$row['setting_value']?> Service Status</h4>
+          <h1><?=$row['setting_value']?> Service Status</h1>
         </div>
       </div>
     </div>
@@ -302,7 +302,7 @@ document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Major Outage";
 <div class="container">
   <div class="row">
     <div class="col">
-      <h4 class="text-uppercase text-muted">Messages</h4>
+      <h2 class="text-uppercase text-muted">Messages</h2>
 <?php
 $row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'plannedfuturedays'"));
 $plannedfuturedays = (int)$row['setting_value'];
@@ -353,7 +353,17 @@ if ($_SESSION['id'] != '') {
                           <p><?=$prettydate?></p>
                         </span>
                         <div class="inline prose-sm prose dark:prose-invert">
+<?php
+            if (str_starts_with($update['incident_update_description'], '<p>')) {
+?>
+                          <?=$update['incident_update_description']?>
+<?php
+            } else {
+?>
                           <p><?=$update['incident_update_description']?></p>
+<?php
+            }
+?>
                         </div>
                       </div>
                     </div>
@@ -369,7 +379,17 @@ if ($_SESSION['id'] != '') {
                           <p><?=$prettydate?></p>
                         </span>
                         <div class="inline prose-sm prose dark:prose-invert">
+<?php
+            if (str_starts_with($update['incident_update_description'], '<p>')) {
+?>
+                          <?=$update['incident_update_description']?>
+<?php
+            } else {
+?>
                           <p><?=$update['incident_update_description']?></p>
+<?php
+            }
+?>
                         </div>
                       </div>
                     </div>
@@ -440,7 +460,17 @@ if (mysqli_num_rows($incidentresult) > 0) {
                           <p><?=$prettydate?></p>
                         </span>
                         <div class="inline prose-sm prose dark:prose-invert">
+<?php
+            if (str_starts_with($update['incident_update_description'], '<p>')) {
+?>
+                          <?=$update['incident_update_description']?>
+<?php
+            } else {
+?>
                           <p><?=$update['incident_update_description']?></p>
+<?php
+            }
+?>
                         </div>
                       </div>
                     </div>
@@ -456,7 +486,17 @@ if (mysqli_num_rows($incidentresult) > 0) {
                           <p><?=$prettydate?></p>
                         </span>
                         <div class="inline prose-sm prose dark:prose-invert">
+<?php
+            if (str_starts_with($update['incident_update_description'], '<p>')) {
+?>
+                          <?=$update['incident_update_description']?>
+<?php
+            } else {
+?>
                           <p><?=$update['incident_update_description']?></p>
+<?php
+            }
+?>
                         </div>
                       </div>
                     </div>
