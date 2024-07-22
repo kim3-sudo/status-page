@@ -24,8 +24,8 @@ if (!file_exists('templates/config.php')) {
 }
 include('templates/_header.php');
 // Update planned maintenance, triggered on page load
-// \This IS A REALLY SLOPPY WAY OF DOING THIS, but I'm too lazy to write a proper trigger
-$sql = "SELECT incident_update_incident_id FROM incident_update WHERE incident_update_timestamp < CURRENT_TIMESTAMP() AND incident_update_is_planned_maint IS NOT NULL";
+// This IS A REALLY SLOPPY WAY OF DOING THIS, but I'm too lazy to write a proper trigger
+$sql = "SELECT incident_update_incident_id FROM incident_update WHERE incident_update_timestamp < CURRENT_TIMESTAMP() AND incident_update_is_planned_maint IS NOT NULL AND incident_update_status_short = 'RES'";
 $result = mysqli_query($link, $sql);
 if (mysqli_num_rows($result) > 0) {
   echo '<script>console.log("Planned maintenance update triggered")</script>';
