@@ -219,7 +219,7 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
     writeToLog($link, 'Unable to insert initial service status codes', -1, 'WARN');
     die('Unable to insert initial service status codes<br>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('software_version', '0.1.6 (`Earlywine`)')")) {
+  if ($link->query("INSERT INTO settings VALUES ('software_version', '0.1.7 (`Morgan Center`)')")) {
     echo 'Created and assigned <code>software_version</code> key<br>';
     writeToLog($link, 'Created an assigned software_version key', -1);
   } else {

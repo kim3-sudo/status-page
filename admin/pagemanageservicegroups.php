@@ -29,6 +29,12 @@
     </form>
     <hr class="mt-3 mb-3">
     <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th>Service Group</th>
+          <th>Delete</th>
+        </tr>
+      </thead>
       <tbody>
 <?php
 $servicegroupsql = 'SELECT servicegroup_id, servicegroup_name FROM servicegroups ORDER BY servicegroup_name ASC';

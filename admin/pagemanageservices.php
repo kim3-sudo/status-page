@@ -54,6 +54,13 @@ if (mysqli_num_rows($servicegroupresult) > 0) {
     </form>
     <hr class="mt-3 mb-3">
     <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Service Group</th>
+          <th>Delete</th>
+        </tr>
+      </thead>
       <tbody>
 <?php
 $servicesql = 'SELECT service_id, service_name, servicegroups.servicegroup_name FROM services INNER JOIN servicegroups ON servicegroups.servicegroup_id = services.servicegroup_id ORDER BY servicegroups.servicegroup_name ASC, services.service_name ASC';
