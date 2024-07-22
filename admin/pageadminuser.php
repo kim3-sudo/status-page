@@ -42,15 +42,31 @@
     <hr class="mt-3 mb-3">
     <h2 class="my-3">Modify Admin Users</h2>
     <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>2FA Enabled</th>
+          <th>Delete</th>
+        </tr>
+      </thead>
       <tbody>
 <?php
-$usersql = 'SELECT user_id, user_first_name, user_last_name, user_email FROM users ORDER BY user_last_name ASC';
+$usersql = 'SELECT user_id, user_first_name, user_last_name, user_email, user_totpenabled FROM users ORDER BY user_last_name ASC';
 $userresult = mysqli_query($link, $usersql);
 if (mysqli_num_rows($userresult) > 0) {
   while ($userrow = mysqli_fetch_assoc($userresult)) {
 ?>
 <tr>
   <td><button class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#user<?=$userrow['user_id']?>modal"><?=$userrow['user_last_name']?>,&nbsp;<?=$userrow['user_first_name']?></button></td>
+  <td>
+<?php
+    if ($userrow['user_totpenabled'] == 1) {
+      echo 'Yes';
+    } else {
+      echo 'No';
+    }
+?>
+  </td>
   <td><button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#user<?=$userrow['user_id']?>delete"><i class="fa-solid fa-xmark text-danger"></i></button></td>
 </tr>
 <?php
