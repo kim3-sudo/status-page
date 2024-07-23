@@ -219,14 +219,36 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
     writeToLog($link, 'Unable to insert initial service status codes', -1, 'WARN');
     die('Unable to insert initial service status codes<br>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('software_version', '0.1.8 (`Blacksnake`)')")) {
+  echo 'Dropping foreign key constraints before dropping tables<br>';
+  if ($link->query("ALTER TABLE `apikeys` DROP FOREIGN KEY IF EXISTS `users_ibfk_9`")) {
+    echo 'Constraint <code>users_ibfk_9</code> dropped if exists<br>', -1);
+    writeToLog($link, 'Constraint users_ibfk_9 dropped if exists', -1);
+  } else {
+    writeToLog($link, 'Unable to drop user_ibfk_9 or insufficient permissions', -1, 'WARN');
+    echo 'Unable to drop <code>user_ibfk_9</code> or insufficient permissions<br>';
+  }
+  if ($link->query("DROP TABLE IF EXISTS apikeys")) {
+    echo 'Table <code>apikeys</code> dropped if exists<br>';
+    writeToLog($link, 'Table apikeys dropped if exists', -1);
+  } else {
+    writeToLog($link, 'Unable to drop apikeys or insufficient permissions', -1, 'WARN');
+    die('Unable to drop <code>apikeys</code> or insufficient permissions<br>');
+  }
+  if ($link->query("CREATE TABLE apikeys (`apikeys_id` INT(8) NOT NULL AUTO_INCREMENT, `apikeys_user_id` INT(8), `apikeys_authkey` varchar(128), `apikeys_nickname` varchar(128), `apikeys_is_personal` BOOL, PRIMARY KEY (`apikeys_id`), CONSTRAINT `users_ibfk_9` FOREIGN KEY (`apikeys_user_id`) REFERENCES `users` (`user_id`)) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci")) {
+    echo 'Table <code>apikeys</code> created</br>';
+    writeToLog($link, 'Table apikeys created', -1);
+  } else {
+    writeToLog($link, 'Unable to create apikeys');
+    die($link, 'Unable to create <code>apikeys</code>');
+  }
+  if ($link->query("INSERT INTO settings VALUES ('software_version', '0.2.0 (`Dog Hollow`)')")) {
     echo 'Created and assigned <code>software_version</code> key<br>';
     writeToLog($link, 'Created an assigned software_version key', -1);
   } else {
     writeToLog($link, 'Unable to create and assign software_version key', -1, 'WARN');
     die('Unable to create and assign <code>software_version</code> key<br>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('database_version', '0.0.9')")) {
+  if ($link->query("INSERT INTO settings VALUES ('database_version', '0.1.0')")) {
     echo 'Created and assigned <code>database_version</code> key<br>';
     writeToLog($link, 'Created and assigned database_version key', -1);
   } else {
