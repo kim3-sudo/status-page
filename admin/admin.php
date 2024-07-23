@@ -64,15 +64,17 @@ use OTPHP\TOTP;
           <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
             <li><a href="#systemsettings" role="button" data-bs-toggle="collapse" aria-controls="systemsettings" class="link-body-emphasis d-inline-flex text-decoration-none rounded" aria-current="page">System Settings</a></li>
             <li><a href="#adminuser" role="button" data-bs-toggle="collapse" aria-controls="adminuser" class="link-body-emphasis d-inline-flex text-decoration-none rounded" aria-current="page">Admin Users</a></li>
+            <li><a href="#serviceapikeys" role="button" data-bs-toggle="collapse" aria-controls="serviceapikeys" class="link-body-emphasis d-inline-flex text-decoration-none rounded" aria-current="page">Service API Keys</a></li>
           </ul>
         </div>
       </li>
       <li class="border-top my-3"></li>
       <li class="mb-1">
         <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0" data-bs-toggle="collapse" data-bs-target="#account-collapse" aria-expanded="false">Account</button>
-        <div class="collapse" id="account-collapse">
+        <div class="collapse show" id="account-collapse">
           <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
             <li><a href="#updatepassword" role="button" data-bs-toggle="collapse" aria-controls="updatepassword" class="link-body-emphasis d-inline-flex text-decoration-none rounded" aria-current="page">Update Password</a></li>
+            <li><a href="#apikeys" role="button" data-bs-toggle="collapse" aria-controls="apikeys" class="link-body-emphasis d-inline-flex text-decoration-none rounded" aria-current="page">API Keys</a></li>
             <li><a href="logout.php" class="link-body-emphasis d-inline-flex text-decoration-none rounded" aria-current="page">Log out</a>
           </ul>
         </div>
@@ -92,6 +94,8 @@ include('pageplannedmaintenance.php');
 include('pagesystemsettings.php');
 include('pageadminuser.php');
 include('pageownpassword.php');
+include('pageadminapikeys.php');
+include('pageapikeys.php');
 include('pagemodals.php');
 ?>
 </div>

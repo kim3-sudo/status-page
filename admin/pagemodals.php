@@ -264,6 +264,36 @@ if ($_SESSION['suflag'] == '1') {
     </div>
   </div>
 </div>
+<?php
+$sql = 'SELECT apikeys_id, apikeys_nickname FROM apikeys WHERE apikeys_user_id = ' . $_SESSION['id'];
+$result = mysqli_query($link, $sql);
+if (mysqli_num_rows($result) > 0) {
+  while ($row = mysqli_fetch_assoc($result)) {
+?>
+<div class="modal fade" id="serviceapi<?=$row['apikeys_id']?>delete" tabindex="-1" aria-labelledby="serviceapi<?=$row['apikeys_id']?>deletelabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-label" id="serviceapi<?=$row['apikeys_id']?>deletelabel">Delete Confirmation</h5>
+        <button type="button" class="btn-close" data-bs-disimss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form action="deleteserviceapikey.php" method="post">
+          <input type="hidden" name="keyid" value="<?=$row['apikeys_id']?>">
+          <label class="form-label">Delete service API key with ID <?=$row['apikeys_id']?>?</label>
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<?php
+  }
+}
+?>
 <div class="modal fade" id="user<?=$userrow['user_id']?>delete" tabindex="-1" aria-labelledby="user<?=$userrow['user_id']?>deletelabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -337,6 +367,60 @@ include('_pesstyleguide.php');
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Acknowledge</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="apiguide" tabindex="-1" aria-labelledby="apiguidelabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="apiguidelabel">API Programming Guide</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-3">This RESTful API programming guide will go over the endpoints and their uses. All API endpoints return JSON data.</p>
+        <hr class="my-3">
+        <h5>Authentication</h5>
+        <p>To start using any API endpoints, you'll need to generate an API key for your account or a service account. API keys are widely scoped and cannot be fine-grained (yet).</p>
+        <p>To authenticate to an endpoint, use the <code>authkey</code> parameter to pass in your API key as a string. Include the entire API key and nothing more.</p>
+        <p>API keys are 128 characters long and consist of uppercase letters, lowercase letters, and numbers. The API key is case-sensitive, and should not contain any ambiguous letters or numbers.</p>
+        <hr class="my-3">
+        <h5>Service Endpoint&nbsp;<span class="badge" style="background-color: violet; color: white;">GET</span></h5>
+        <code>/api/service</code>
+        <h6 class="mt-3">Service Status Overview</h6>
+        <p>Place a <span class="badge" style="background-color: violet;color: white;">GET</span> request to the endpoint with only the authentication parameter. The returned JSON object looks like:</p>
+        <code>
+{
+  "service_status_short": A three-character code for overall service status,
+  "service_status_brief": A one or two word description for overall service status,
+  "service_status_description": An English sentence for overall service status
+}
+        </code>
+        <h6 class="mt-3">Specific Service Status</h6>
+        <p>Place a <span class="badge" style="background-color: violet;color: white;">GET</span> request to the endpoint with authentication (<code>authkey</code>) and a specific service ID (<code>service_id</code>) as parameters. The returned JSON object looks like:</p>
+        <code>
+{
+  "service_id": The ID of the service, which can be safely typecast to int,
+  "service_name": The name of the service,
+  "service_description": An optional service description,
+  "service_link": An optional link that goes to the service,
+  "service_status_short": The three-character code for the service's status,
+  "service_status": A one or two word description for the service's status
+}
+        </code>
+        <hr class="my-3">
+        <h5>Incident Endpoint&nbsp;<span class="badge" style="background-color: violet;color: white;">GET</span>&nbsp;<span class="badge" style="background-color: lightseagreen; color: white;">POST</span></h5>
+        <code>/api/incident</code>
+        <h6 class="mt-3">Get Incidents</h6>
+        <p>Place a <span class="badge" style="background-color: violet;color: white;">GET</span> request to the endpoint with only the authentication parameter. The returned JSON object contains incident information.
+        <h6 class="mt-3">Get Incident Updates</h6>
+        <p>Place a <span class="badge" style="background-color: violet;color: white;">GET</span> request to the endpoint with authentication (<code>authkey</code>) and an incident ID (<code>incident_id</code>). The returned JSON object contains all incident updates for the incident ID provided.</p>
+        <h6 class="mt-3">Post New Incident</h6>
+        <p>Place a <span class="badge" style="background-color: lightseagreen;color: white;">POST</span> request to the endpoint with authentication (<code>authkey</code>), the <code>type</code> set to <code>incident</code>, an incident description (<code>incident_description</code>), incident update HTML text (<code>incident_update</code>), the three-character coded incident status (<code>IDE</code> for identified, <code>INV</code> for investigating, <code>MON</code> for monitoring, and <code>RES</code> for resolved in <code>incident_status</code>), a comma-separated list of affected service IDs (<code>affected_services</code>), and the three-character coded outage severity (<code>MAJ</code> for major outage, <code>MIN</code> for minor outage, <code>DEG</code> for degraded performance in <code>outage_severity</code>). The returned JSON object contains the inserted information, along with the incident ID.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
