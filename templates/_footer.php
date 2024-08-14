@@ -71,4 +71,6 @@ $prow = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settin
       }
     </script>
   </body>
+  <!-- Well hello there. If you're reading this, perhaps you want a copy of this software? -->
+  <!-- Find it on GitHub at https://github.com/kim3-sudo/status-page -->
 </html>
