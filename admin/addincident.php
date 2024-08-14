@@ -33,6 +33,7 @@ writeToLog($link, 'Adding a new incident', $_SESSION['id']);
 $addincidentdescription = mysqli_real_escape_string($link, $_POST['addincidentdescription']);
 writeToLog($link, $addincidentdescription, $_SESSION['id']);
 $addincidentupdatedescription = mysqli_real_escape_string($link, $_POST['addincidentupdatedescription']);
+$addincidentupdatedescription = str_replace("<p>&nbsp;</p>", "", $addincidentupdatedescription);
 writeToLog($link, $addincidentupdatedescription, $_SESSION['id']);
 $addincidentstatus = mysqli_real_escape_string($link, $_POST['addincidentstatus']);
 writeToLog($link, $addincidentstatus, $_SESSION['id']);

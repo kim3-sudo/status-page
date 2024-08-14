@@ -241,7 +241,7 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
     writeToLog($link, 'Unable to create apikeys');
     die($link, 'Unable to create <code>apikeys</code>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('software_version', '0.2.0 (`Dog Hollow`)')")) {
+  if ($link->query("INSERT INTO settings VALUES ('software_version', '0.2.1 (`Simmons Church`)')")) {
     echo 'Created and assigned <code>software_version</code> key<br>';
     writeToLog($link, 'Created an assigned software_version key', -1);
   } else {
