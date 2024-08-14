@@ -15,6 +15,7 @@ $addmaintstarttimestamp = strval($addmaintstart);
 $addmaintend = mysqli_real_escape_string($link, $_POST['plannedmaintenanceend']);
 $addmaintendtimestamp = strval($addmaintend);
 $addmaintdescription = mysqli_real_escape_string($link, $_POST['plannedmaintenancedescription']);
+$addmaintdescription = str_replace("<p>&nbsp;</p>", "", $addmaintdescription);
 $addmaintmessage = mysqli_real_escape_string($link, $_POST['plannedmaintenancemessage']);
 if (isset($_POST['plannedmaintenanceaffectedservices'])) {
   $affectedservicesarray = $_POST['plannedmaintenanceaffectedservices'];

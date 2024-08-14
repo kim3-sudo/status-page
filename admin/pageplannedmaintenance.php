@@ -32,7 +32,7 @@
       </div>
       <div class="mb-3">
         <label for="plannedmaintenancedescription" class="form-label">Planned Maintenance Description<span class="required">*</span></label>
-        <input type="text" id="plannedmaintenancedescription" name="plannedmaintenancedescription" maxlength="255" class="form-control" placeholder="Planned Maintenance: Network Maintenance...">
+        <input type="text" id="plannedmaintenancedescription" name="plannedmaintenancedescription" maxlength="255" class="form-control" placeholder="Planned Maintenance: Network Maintenance..." required>
       </div>
       <div class="mb-3">
         <label for="plannedmaintenancemessage" class="form-label">Planned Maintenance Message<span class="required">*</span></label>
