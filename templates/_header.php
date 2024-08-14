@@ -33,6 +33,8 @@ function writeToLog($link, $entry, $uid, $type = 'INFO') {
 <!doctype html>
 <html lang="en">
 <head>
+<!-- Well hello there. If you're reading this, perhaps you want a copy of this software? -->
+<!-- Find it on GitHub at https://github.com/kim3-sudo/status-page -->
 <!-- Made with <3 in Gambier, Ohio -->
 <?php
 $svrow = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'software_version'"));
