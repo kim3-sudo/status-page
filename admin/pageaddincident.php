@@ -29,27 +29,11 @@
       </div>
       <div class="mb-3">
         <label for="addincidentupdatedescription" class="form-label">Incident Update<span class="required">*</span></label>
-        <textarea class="form-control tinymce" id="addincidentupdatedescription" name="addincidentupdatedescription" aria-describedby="addincidentupdatehelp" maxlength="2000" required placeholder="We have identified an issue with...">We have identified an issue with [what?]. When trying to [action], users may experience [symptoms]. We are working to identify and recify the issue as quickly as possible. We have not identified a workaround yet but are working to diagnose the issue. We will leave updates here when we learn more information and as we implement fixes.</textarea>
+        <textarea onchange="addincidentwarn()" class="form-control tinymce" id="addincidentupdatedescription" name="addincidentupdatedescription" aria-describedby="addincidentupdatehelp" maxlength="2000" required placeholder="We have identified an issue with...">We have identified an issue with [what?]. When trying to [action?], users may experience [symptoms?]. We are working to identify and recify the issue as quickly as possible. We have not identified a workaround yet but are working to diagnose the issue. We will leave updates here when we learn more information and as we implement fixes.</textarea>
         <p id="addincidentupdatehelp" class="form-text">This is a description of symptoms and resolutions.</p>
-      </div>
-      <div class="mb-3">
-        <label for="addincidentstatus" class="form-label">Incident Status<span class="required">*</span></label>
-        <select id="addincidentstatus" name="addincidentstatus" class="form-control" required>
-          <option disabled selected>Select one...</option>
-<?php
-$statussql = 'SELECT incident_status_code, incident_status_description FROM incident_status';
-$statusresult = mysqli_query($link, $statussql);
-if (mysqli_num_rows($statusresult) > 0) {
-  while($statusrow = mysqli_fetch_assoc($statusresult)) {
-    if ($statusrow['incident_status_code'] != 'PLA') {
-      echo '<option value="' . $statusrow['incident_status_code'] . '">' . $statusrow['incident_status_description'] . '</option>';
-    }
-  }
-} else {
-  echo '<option disabled>No status codes fetched</option>';
-}
-?>
-        </select>
+        <div class="alert alert-warning d-none" role="alert" id="addincidentplaceholderwarning">
+          <b>WARNING: It appears you might have a placeholder in your incident description.</b><br>Placeholders are marked with square brackets and question marks, like [this?]. Did you replace all of the placeholders yet?
+        </div>
       </div>
       <div class="mb-3">
         <label for="addincidentaffected" name="addincidentaffected" class="form-label">Affected Services<span class="required">*</span></label>
@@ -97,6 +81,25 @@ if (mysqli_num_rows($severityresult) > 0) {
   }
 } else {
   echo '<option disabled>No severity status codes fetched</option>';
+}
+?>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="addincidentstatus" class="form-label">Incident Status<span class="required">*</span></label>
+        <select id="addincidentstatus" name="addincidentstatus" class="form-control" required>
+          <option disabled selected>Select one...</option>
+<?php
+$statussql = 'SELECT incident_status_code, incident_status_description FROM incident_status';
+$statusresult = mysqli_query($link, $statussql);
+if (mysqli_num_rows($statusresult) > 0) {
+  while($statusrow = mysqli_fetch_assoc($statusresult)) {
+    if ($statusrow['incident_status_code'] != 'PLA') {
+      echo '<option value="' . $statusrow['incident_status_code'] . '">' . $statusrow['incident_status_description'] . '</option>';
+    }
+  }
+} else {
+  echo '<option disabled>No status codes fetched</option>';
 }
 ?>
         </select>

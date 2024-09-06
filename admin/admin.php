@@ -101,12 +101,67 @@ include('pagemodals.php');
 </div>
 <script>
   tinymce.init({
-    selector: 'textarea.tinymce',
+    selector: '#addincidentupdatedescription',
     block_formats: 'Paragraph=p',
     paste_as_text: true,
     plugins: 'link autolink preview',
     promotion: false,
-    license_key: 'gpl'
+    license_key: 'gpl',
+    setup: (editor) => {
+      editor.on("change", (e) => {
+        const pattern = /\[[a-z/ ]*\?\]/;
+        var content = tinymce.activeEditor.getContent("addincidentupdatedescription");
+        if (pattern.test(content)) {
+          document.getElementById("addincidentplaceholderwarning").classList.add("d-block");
+          document.getElementById("addincidentplaceholderwarning").classList.remove("d-none");
+        } else {
+          document.getElementById("addincidentplaceholderwarning").classList.add("d-none");
+          document.getElementById("addincidentplaceholderwarning").classList.remove("d-block");
+        }
+      });
+    }
+  });
+  tinymce.init({
+    selector: '#existingincidentupdate',
+    block_formats: 'Paragraph=p',
+    paste_as_text: true,
+    plugins: 'link autolink preview',
+    promotion: false,
+    license_key: 'gpl',
+    setup: (editor) => {
+      editor.on("change", (e) => {
+        const pattern = /\[[a-z/ ]*\?\]/;
+        var content = tinymce.activeEditor.getContent("existingincidentupdate");
+        if (pattern.test(content)) {
+          document.getElementById("existingincidentplaceholderwarning").classList.add("d-block");
+          document.getElementById("existingincidentplaceholderwarning").classList.remove("d-none");
+        } else {
+          document.getElementById("existingincidentplaceholderwarning").classList.add("d-none");
+          document.getElementById("existingincidentplaceholderwarning").classList.remove("d-block");
+        }
+      });
+    }
+  });
+  tinymce.init({
+    selector: '#plannedmaintenancemessage',
+    block_formats: 'Paragraph=p',
+    paste_as_text: true,
+    plugins: 'link autolink preview',
+    promotion: false,
+    license_key: 'gpl',
+    setup: (editor) => {
+      editor.on("change", (e) => {
+        const pattern = /\[[a-z/ ]*\?\]/;
+        var content = tinymce.activeEditor.getContent("plannedmaintenancemessage");
+        if (pattern.test(content)) {
+          document.getElementById("plannedmaintenanceplaceholderwarning").classList.add("d-block");
+          document.getElementById("plannedmaintenanceplaceholderwarning").classList.remove("d-none");
+        } else {
+          document.getElementById("plannedmaintenanceplaceholderwarning").classList.add("d-none");
+          document.getElementById("plannedmaintenanceplaceholderwarning").classList.remove("d-block");
+        }
+      });
+    }
   });
 </script>
 <style>
