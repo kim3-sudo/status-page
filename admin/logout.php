@@ -16,17 +16,31 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-?>
-<?php
 session_start();
 if (!isset($_SESSION['id'])) {
-  http_response_code(403);
-  die('Forbidden');
+    http_response_code(403);
+    die('Forbidden');
 }
 include('../templates/_header.php');
-writeToLog($link, 'Logout called for user, session ending', $_SESSION['id']);
+writeToLog($link, 'Logout called for user', $_SESSION['id']);
+
+if (isset($_SESSION['saml_authenticated']) && $_SESSION['saml_authenticated'] === true) {
+    // SAML SSO session: hand off to the SAML Single Logout handler.
+    // The session must NOT be destroyed here — the SLO handler (saml/index.php?sls)
+    // needs the samlNameId / samlSessionIndex / etc. still in the session so it can
+    // build the correct LogoutRequest for the IdP. The SLS callback will call
+    // session_destroy() after the IdP confirms the logout.
+    writeToLog($link, 'SAML SLO initiated for SSO user', $_SESSION['id']);
+    echo '<div class="container"><div class="row"><div class="col"><p>Signing you out&hellip;</p></div></div></div>';
+    include('../templates/_footer.php');
+    header('Location: ../saml/index.php?slo');
+    exit();
+}
+
+// Standard username/password session logout
+writeToLog($link, 'Session ended', $_SESSION['id']);
 echo '<div class="container"><div class="row"><div class="col"><p>Logged out</p></div></div></div>';
 include('../templates/_footer.php');
 session_destroy();
 header('Location: ../index.php');
-?>
+exit();

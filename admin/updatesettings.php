@@ -32,7 +32,14 @@ writeToLog($link, 'Updating setting value', $_SESSION['id']);
 <?php
 writeToLog($link, 'Updating setting key ' . mysqli_real_escape_string($link, $_POST['setting_key']), $_SESSION['id']);
 writeToLog($link, 'Updating setting value to ' . mysqli_real_escape_string($link, $_POST['setting_value']), $_SESSION['id']);
-$sql = "UPDATE settings SET setting_value = '" . mysqli_real_escape_string($link, $_POST['setting_value']) . "' WHERE setting_key = '" . mysqli_real_escape_string($link, $_POST['setting_key']) . "'";
+// Use INSERT … ON DUPLICATE KEY UPDATE so this works correctly for both:
+//  (a) existing rows (standard update), and
+//  (b) keys that were added after install (e.g. saml_email_attribute on older installs).
+$sql = "INSERT INTO settings (setting_key, setting_value)
+        VALUES ('" . mysqli_real_escape_string($link, $_POST['setting_key']) . "',
+                '" . mysqli_real_escape_string($link, $_POST['setting_value']) . "')
+        ON DUPLICATE KEY UPDATE
+        setting_value = '" . mysqli_real_escape_string($link, $_POST['setting_value']) . "'";
 if ($link->query($sql) === TRUE) {
   writeToLog($link, 'Updated setting', $_SESSION['id']);
   echo '<p>Updated setting</p>';
@@ -42,7 +49,7 @@ if ($link->query($sql) === TRUE) {
 }
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
-      <button class="btn btn-secondary" onclick="history.back()">Go Back</a>
+      <button class="btn btn-secondary" onclick="history.back()">Go Back</button>
       </div>
     </div>
   </div>

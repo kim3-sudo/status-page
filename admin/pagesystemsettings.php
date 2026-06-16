@@ -254,6 +254,18 @@ foreach (array(30, 60, 90, 120) as $dayrange) {
   </div>
   <div class="rounded border p-3 my-2">
     <p>Single Sign-On Settings</p>
+<?php
+$spMetaBaseUrl = getSetting($link, 'service_provider_base_url');
+if (!empty($spMetaBaseUrl)):
+?>
+    <div class="alert alert-info py-2 mb-3">
+      <strong>SP Metadata URL:</strong>
+      <a href="<?=htmlspecialchars(rtrim($spMetaBaseUrl, '/') . '/saml/metadata.php')?>" target="_blank" rel="noopener noreferrer">
+        <?=htmlspecialchars(rtrim($spMetaBaseUrl, '/') . '/saml/metadata.php')?>
+      </a><br>
+      <small class="text-muted">Provide this URL to your Identity Provider (IdP) to register this application as a Service Provider.</small>
+    </div>
+<?php endif; ?>
     <form action="updatesettings.php" method="post">
       <input type="hidden" name="setting_key" id="systemkey-enable_sso" value="enable_sso">
       <label for="enablessoupdate" class="form-label">Enable SAML Single Sign-On</label>
@@ -358,16 +370,38 @@ $sloservice = $row['setting_value'];
     <form action="updatesettings.php" method="post">
       <input type="hidden" name="setting_key" id="systemkey-x509cert" value="x509cert">
       <label for="x509certificateupdate" class="form-label">X509 Certificate</label>
-      <div class="input-group mb-3">
 <?php
 $sql = "SELECT setting_value FROM settings WHERE setting_key = 'x509cert'";
 $result = mysqli_query($link, $sql);
 $row = mysqli_fetch_assoc($result);
 $x509certificate = $row['setting_value'];
 ?>
-        <input type="text" id="x509certificateupdate" name="setting_value" class="form-control" placeholder="X509 Certificate" aria-label="X509 Certificate" aria-describedby="X509 Certificate" value="<?=$x509certificate?>" required>
+      <textarea id="x509certificateupdate" name="setting_value" class="form-control font-monospace mb-2" rows="4"
+        placeholder="Paste the base64-encoded certificate content here (without -----BEGIN/END CERTIFICATE----- headers)"
+        aria-label="X509 Certificate" required><?=htmlspecialchars($x509certificate ?? '')?></textarea>
+      <p class="text-muted mb-2"><small>Paste the raw base64-encoded certificate body provided by your IdP. Do <strong>not</strong> include the <code>-----BEGIN CERTIFICATE-----</code> / <code>-----END CERTIFICATE-----</code> header and footer lines.</small></p>
+      <button class="btn btn-primary" type="submit">Submit</button>
+    </form>
+    <form action="updatesettings.php" method="post">
+      <input type="hidden" name="setting_key" id="systemkey-saml_email_attribute" value="saml_email_attribute">
+      <label for="samlemailattributeupdate" class="form-label">SAML Email Attribute</label>
+      <div class="input-group mb-2">
+<?php
+$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'saml_email_attribute'"));
+$samlemailattr = isset($row['setting_value']) ? $row['setting_value'] : '';
+?>
+        <input type="text" id="samlemailattributeupdate" name="setting_value" class="form-control"
+          placeholder="e.g. email, mail, or a full URN attribute name (optional)"
+          aria-label="SAML Email Attribute" value="<?=htmlspecialchars($samlemailattr)?>">
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
+      <p class="text-muted mb-3"><small>
+        The name of the SAML attribute whose value holds the user's email address
+        (e.g. <code>email</code>, <code>mail</code>, or
+        <code>http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress</code>).
+        Leave blank to use the SAML NameID as the email address.
+        The resolved email must match a user account in the Admin Users list.
+      </small></p>
     </form>
   </div>
 </div>

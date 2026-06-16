@@ -42,7 +42,7 @@ $srow = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settin
 if ($srow['setting_value'] == 'true') {
 ?>
   <br>
-  <a class="w-100 btn btn-lg btn-success" href="saml">Sign in with SSO</a>
+  <a class="w-100 btn btn-lg btn-success" href="saml/index.php?sso2">Sign in with SSO</a>
 <?php
 }
 ?>

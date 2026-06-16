@@ -221,7 +221,7 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
   }
   echo 'Dropping foreign key constraints before dropping tables<br>';
   if ($link->query("ALTER TABLE `apikeys` DROP FOREIGN KEY IF EXISTS `users_ibfk_9`")) {
-    echo 'Constraint <code>users_ibfk_9</code> dropped if exists<br>', -1);
+    echo 'Constraint <code>users_ibfk_9</code> dropped if exists<br>';
     writeToLog($link, 'Constraint users_ibfk_9 dropped if exists', -1);
   } else {
     writeToLog($link, 'Unable to drop user_ibfk_9 or insufficient permissions', -1, 'WARN');
@@ -238,8 +238,8 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
     echo 'Table <code>apikeys</code> created</br>';
     writeToLog($link, 'Table apikeys created', -1);
   } else {
-    writeToLog($link, 'Unable to create apikeys');
-    die($link, 'Unable to create <code>apikeys</code>');
+    writeToLog($link, 'Unable to create apikeys', -1, 'WARN');
+    die('Unable to create <code>apikeys</code>');
   }
   if ($link->query("INSERT INTO settings VALUES ('software_version', '0.2.2 (`Croton`)')")) {
     echo 'Created and assigned <code>software_version</code> key<br>';
@@ -311,21 +311,21 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
     writeToLog($link, 'Unable to create and assign timezone key', -1, 'WARN');
     die('Unable to create and assign <code>timezone</code> key<br>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('plannedfuturedays', '7')") {
+  if ($link->query("INSERT INTO settings VALUES ('plannedfuturedays', '7')")) {
     echo 'Created and assigned <code>plannedfuturedays</code> key</br>';
     writeToLog($link, 'Created and assigned plannedfuturedays key', -1);
   } else {
     writeToLog($link, 'Unable to create and assign plannedfuturedays key', -1, 'WARN');
     die('Unable to create and assign <code>plannedfuturedays</code> key<br>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('incident_to_show_timerange', '90')") {
+  if ($link->query("INSERT INTO settings VALUES ('incident_to_show_timerange', '90')")) {
     echo 'Created and assigned <code>incident_to_show_timerange</code> key</br>';
     writeToLog($link, 'Created and assigned incident_to_show_timerange key', -1);
   } else {
     writeToLog($link, 'Unable to create and assign incident_to_show_timerange key', -1, 'WARN');
     die('Unable to create and assign <code>incident_to_show_timerange</code> key</br>');
   }
-  if ($link->query("INSERT INTO settings (setting_key) VALUES ('about_this_site'), ('enable_sso'), ('entity_id'), ('ga_measurement_id'), ('name_id_format'), ('pes_description'), ('service_provider_base_url'), ('slo_service'), ('sso_service'), ('x509cert'), ('welcome_message'), ('meta_description')")) {
+  if ($link->query("INSERT INTO settings (setting_key) VALUES ('about_this_site'), ('enable_sso'), ('entity_id'), ('ga_measurement_id'), ('name_id_format'), ('pes_description'), ('saml_email_attribute'), ('service_provider_base_url'), ('slo_service'), ('sso_service'), ('x509cert'), ('welcome_message'), ('meta_description')")) {
     echo 'Created additional setting keys<br>';
     writeToLog($link, 'Created additional setting keys', -1);
   } else {
