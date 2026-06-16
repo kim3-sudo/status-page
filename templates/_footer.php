@@ -23,19 +23,19 @@
         <div class="row">
           <div class="col-sm-6">
 <?php
-$orow = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'footer_org'"));
-$lrow = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'org_link'"));
-$frow = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'feedback_link'"));
-$prow = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'privacy_policy_link'"));
+$footer_org  = getSetting($link, 'footer_org');
+$org_link    = getSetting($link, 'org_link');
+$feedback    = getSetting($link, 'feedback_link');
+$privacy     = getSetting($link, 'privacy_policy_link');
 ?>
-            <p class="mb-0"><small class="text-light">&copy; <?=date("Y")?> <a class="link-light" style="text-decoration: none;" href="<?=$lrow['setting_value']?>"><?=$orow['setting_value']?></a></small></p>
+            <p class="mb-0"><small class="text-light">&copy; <?=date("Y")?> <a class="link-light" style="text-decoration: none;" href="<?=$org_link?>"><?=$footer_org?></a></small></p>
           </div>
           <div class="col-sm-6 d-none d-sm-block">
             <p class="mb-0" style="text-align: right;">
               <small class="text-muted">
                 <a class="link-light" style="text-decoration: underline;" href="/admin">Admin Login</a>
-                <a class="ml-3 link-light" style="text-decoration: underline;" href="<?=$prow['setting_value']?>">Privacy Policy</a>
-                <a class="ml-3 link-light" style="text-decoration: underline;" href="<?=$frow['setting_value']?>">Feedback</a>
+                <a class="ml-3 link-light" style="text-decoration: underline;" href="<?=$privacy?>">Privacy Policy</a>
+                <a class="ml-3 link-light" style="text-decoration: underline;" href="<?=$feedback?>">Feedback</a>
               </small>
             </p>
           </div>

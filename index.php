@@ -16,104 +16,82 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-?>
-<?php
-session_start();
 if (!file_exists('templates/config.php')) {
   header('Location: /install');
 }
 include('templates/_header.php');
-// Update planned maintenance, triggered on page load
-// This IS A REALLY SLOPPY WAY OF DOING THIS, but I'm too lazy to write a proper trigger
+
+// Update planned maintenance statuses on page load.
+// Services with a resolved planned maintenance update that is now in the past
+// are flipped back to Operational.
 $sql = "SELECT incident_update_incident_id FROM incident_update WHERE incident_update_timestamp < CURRENT_TIMESTAMP() AND incident_update_is_planned_maint IS NOT NULL AND incident_update_status_short = 'RES'";
 $result = mysqli_query($link, $sql);
 if (mysqli_num_rows($result) > 0) {
-  echo '<script>console.log("Planned maintenance update triggered")</script>';
   while ($xincidentupdate = mysqli_fetch_assoc($result)) {
-    echo '<script>console.log("' . $xincidentupdate['incident_update_incident_id'] . '")</script>';
     $sql = "SELECT incident_describes_ids FROM incident WHERE incident_id = " . $xincidentupdate['incident_update_incident_id'] . " AND incident_date < CURRENT_TIMESTAMP()";
-    $result = mysqli_query($link, $sql);
-    if (mysqli_num_rows($result) > 0) {
-      while ($xincident = mysqli_fetch_assoc($result)) {
-        $xaffectedservices = explode(',', $xincident['incident_describes_ids']);
-        foreach ($xaffectedservices as &$value) {
-          $sql = "UPDATE services SET service_status_short = 'OPE' WHERE service_id = " . $value . " AND service_status_short = 'PLA'";
-          if ($link->query($sql) === TRUE) {
-            echo '<script>console.log("Changed status of ' . $value . ' from PLA to OPE")</script>';
-            if ($link->query("UPDATE incident_update SET incident_update_is_planned_maint = NULL WHERE incident_update_timestamp < CURRENT_DATE()") === TRUE) {
-              echo '<script>console.log("Removed planned future flag from this incident")</script>';
-            }
-          } else {
-            echo '<script>console.log("Failed to change status of ' . $value . ' to OPE from PLA")</script>';
-          }
+    $inner = mysqli_query($link, $sql);
+    if (mysqli_num_rows($inner) > 0) {
+      while ($xincident = mysqli_fetch_assoc($inner)) {
+        foreach (explode(',', $xincident['incident_describes_ids']) as $value) {
+          $link->query("UPDATE services SET service_status_short = 'OPE' WHERE service_id = " . $value . " AND service_status_short = 'PLA'");
+          $link->query("UPDATE incident_update SET incident_update_is_planned_maint = NULL WHERE incident_update_timestamp < CURRENT_DATE()");
         }
       }
     }
   }
 }
 ?>
-<?php
-$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'footer_org'"));
-?>
 <div class="bg-dark">
   <div class="container-sm">
     <div class="row">
       <div class="col">
-<?php
-if (isset($_SESSION['firstname'])) {
-?>
+<?php if (isset($_SESSION['firstname'])): ?>
         <div class="text-muted p-2 text-center">
           <p>You are authenticated as an admin. You may see elements that are not ordinarily visible.</p>
         </div>
-<?php
-}
-?>
+<?php endif; ?>
         <div class="text-light p-2 text-center">
-          <h1><?=$row['setting_value']?> Service Status</h1>
+          <h1><?=getSetting($link, 'footer_org')?> Service Status</h1>
         </div>
       </div>
     </div>
   </div>
 </div>
+
 <div class="bg-dark">
   <div class="container-sm">
     <div class="row">
       <div class="col bg-secondary rounded-4 m-5">
         <div class="text-light p-4 text-center">
 <?php
-$overallsql = "SELECT service_status_short, COUNT(*) FROM services GROUP BY service_status_short";
-$result = mysqli_query($link, $overallsql);
-$statusarray = array();
-if (mysqli_num_rows($result) > 0) {
-  while ($servicecount = mysqli_fetch_assoc($result)) {
-    $statusarray[$servicecount['service_status_short']] = $servicecount['COUNT(*)'];
-  }
+// Build a map of status code => count across all services
+$statusarray = [];
+$result = mysqli_query($link, "SELECT service_status_short, COUNT(*) FROM services GROUP BY service_status_short");
+while ($servicecount = mysqli_fetch_assoc($result)) {
+  $statusarray[$servicecount['service_status_short']] = $servicecount['COUNT(*)'];
 }
+
 if (array_key_exists('MAJ', $statusarray)) {
   echo '<h2><i class="text-danger fa-solid fa-triangle-exclamation"></i>&nbsp;Some systems experiencing major outages</h2>';
-} else if (array_key_exists('MIN', $statusarray)) {
+} elseif (array_key_exists('MIN', $statusarray)) {
   echo '<h2><i class="text-warning fa-solid fa-exclamation-circle"></i>&nbsp;Some systems experiencing minor outages</h2>';
-} else if (array_key_exists('DEG', $statusarray)) {
+} elseif (array_key_exists('DEG', $statusarray)) {
   echo '<h2><i class="text-warning fa-solid fa-exclamation-circle"></i>&nbsp;Some systems experiencing degraded performance</h2>';
-} else if (array_key_exists('PLA', $statusarray)) {
-  // Need a subquery here to detect if the planned maintenance window is now
-  $sql = "SELECT incident_update_incident_id, incident_update_timestamp FROM incident_update WHERE incident_update_status_short = 'PLA' AND incident_update_timestamp <= NOW()";
-  $result = mysqli_query($link, $sql);
-  $inmaintenancewindow = array();
+} elseif (array_key_exists('PLA', $statusarray)) {
+  // Check whether any maintenance window is currently active
+  $inmaintenancewindow = false;
+  $result = mysqli_query($link, "SELECT incident_update_incident_id FROM incident_update WHERE incident_update_status_short = 'PLA' AND incident_update_timestamp <= NOW()");
   while ($maintenancewindow = mysqli_fetch_assoc($result)) {
-    $sql = "SELECT incident_update_timestamp FROM incident_update WHERE incident_update_incident_id = " . $maintenancewindow['incident_update_incident_id'] . " AND incident_update_status_short = 'PLA' OR incident_update_status_short = 'RES' ORDER BY incident_update_timestamp ASC";
-    $maintresult = mysqli_query($link, $sql);
-    $maintenancetimearray = array();
+    $maintresult = mysqli_query($link, "SELECT incident_update_timestamp FROM incident_update WHERE incident_update_incident_id = " . $maintenancewindow['incident_update_incident_id'] . " AND incident_update_status_short = 'PLA' OR incident_update_status_short = 'RES' ORDER BY incident_update_timestamp ASC");
+    $maintenancetimearray = [];
     while ($maintenancetimes = mysqli_fetch_assoc($maintresult)) {
-      echo '<script>console.log("' . strtotime($maintenancetimes['incident_update_timestamp']) . '")</script>';
-      array_push($maintenancetimearray, strtotime($maintenancetimes['incident_update_timestamp']));
+      $maintenancetimearray[] = strtotime($maintenancetimes['incident_update_timestamp']);
     }
-    echo '<script>console.log("'.time().' between '.$maintenancetimearray[7].' and '.$maintenancetimearray[8].'")</script>';
-    if ($maintenancetimearray[7] < time() && time() < $maintenancetimearray[8]) {
+    if (isset($maintenancetimearray[7], $maintenancetimearray[8]) && $maintenancetimearray[7] < time() && time() < $maintenancetimearray[8]) {
       $inmaintenancewindow = true;
     }
   }
-  if ($inmaintenancewindow == true) {
+  if ($inmaintenancewindow) {
     echo '<h2><i class="text-info fa-solid fa-info-circle"></i>&nbsp;Some systems under planned maintenance</h2>';
   } else {
     echo '<h2><i class="fa-regular fa-check-circle"></i>&nbsp;All systems operational</h2>';
@@ -127,21 +105,21 @@ if (array_key_exists('MAJ', $statusarray)) {
     </div>
   </div>
 </div>
+
 <?php
-$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'about_this_site'"));
-if ($row['setting_value'] != '') {
+$about = getSetting($link, 'about_this_site');
+if ($about != ''):
 ?>
 <div class="container pt-5">
   <div class="row">
     <div class="col">
       <h2 class="text-muted pb-2">About This Site</h2>
-      <p class="text-muted"><?=$row['setting_value']?></p>
+      <p class="text-muted"><?=$about?></p>
     </div>
   </div>
 </div>
-<?php
-}
-?>
+<?php endif; ?>
+
 <div class="">
   <div class="container-sm">
     <div class="row">
@@ -151,13 +129,12 @@ if ($row['setting_value'] != '') {
         </div>
         <div class="accordion py-4 m-2" id="statusparent">
 <?php
-$sql = 'SELECT servicegroup_id, servicegroup_name FROM servicegroups ORDER BY servicegroup_name ASC';
-$result = mysqli_query($link, $sql);
+$result = mysqli_query($link, 'SELECT servicegroup_id, servicegroup_name FROM servicegroups ORDER BY servicegroup_name ASC');
 $cleangroupnames = [];
 if (mysqli_num_rows($result) > 0) {
   while ($row = mysqli_fetch_assoc($result)) {
     $cleangroupname = strtolower(preg_replace('/\W/', '', $row['servicegroup_name']));
-    array_push($cleangroupnames, $cleangroupname);
+    $cleangroupnames[] = $cleangroupname;
 ?>
           <div class="accordion-item">
             <h2 class="accordion-header" id="<?=$cleangroupname?>Heading">
@@ -172,103 +149,69 @@ if (mysqli_num_rows($result) > 0) {
     $serviceresult = mysqli_query($link, $servicesql);
     if (mysqli_num_rows($serviceresult) > 0) {
       while ($service = mysqli_fetch_assoc($serviceresult)) {
+        $cleanname = strtolower(preg_replace('/\W/', '', $service['service_name']));
+        // Determine badge/icon and group badge update script based on status
+        $statusBadges = [
+          'OPE' => ['class' => 'text-bg-success', 'icon' => 'fa-check-circle',         'label' => 'Operational',          'tooltip' => 'The service is working normally and as expected.'],
+          'DEG' => ['class' => 'text-bg-warning', 'icon' => 'fa-exclamation-circle',    'label' => 'Degraded Performance', 'tooltip' => 'The service may be experiencing degraded performance.'],
+          'PLA' => ['class' => 'text-bg-info',    'icon' => 'fa-circle-info',           'label' => 'Planned Maintenance',  'tooltip' => 'There is planned maintenance for this system soon.'],
+          'MIN' => ['class' => 'text-bg-warning', 'icon' => 'fa-exclamation-circle',    'label' => 'Minor Outage',         'tooltip' => 'The system may be experiencing a minor outage right now.'],
+          'MAJ' => ['class' => 'text-bg-danger',  'icon' => 'fa-triangle-exclamation',  'label' => 'Major Outage',         'tooltip' => 'The system may be experiencing a major outage right now.'],
+        ];
+        $s = $statusBadges[$service['service_status_short']] ?? $statusBadges['OPE'];
 ?>
                 <div class="container px-4 py-2">
                   <div class="row">
                     <div class="col-8">
-                      <?php $cleanname = strtolower(preg_replace('/\W/', '', $service['service_name'])); ?>
                       <h6 id="<?=$cleanname?>heading" class="servicehead">
-<?php
-        if ($service['service_status_short'] == 'OPE') {
-?>
-<span class="badge text-bg-success" data-bs-toggle="tooltip" data-bs-title="The service is working normally and as expected."><i class="fa-solid fa-check-circle"></i>&nbsp;Operational</span>
-<?php
-        } else if ($service['service_status_short'] == 'DEG') {
-?>
-<span class="badge text-bg-warning" data-bs-toggle="tooltip" data-bs-title="The service may be experiencing degraded performance."><i class="fa-solid fa-exclamation-circle"></i>&nbsp;Degraded Performance</span>
-<script>
-document.getElementById("<?=$cleangroupname?>badge").classList.remove("text-bg-success");
-document.getElementById("<?=$cleangroupname?>badge").classList.add("text-bg-warning");
-document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Degraded";
-</script>
-<?php
-        } else if ($service['service_status_short'] == 'PLA') {
-          // Need a subquery here to detect if the maintenance window is now
-?>
-<span class="badge text-bg-info" data-bs-toggle="tooltip" data-bs-title="There is planned maintenance for this system soon."><i class="fa-solid fa-circle-info"></i>&nbsp;Planned Maintenance</span>
-<script>
-document.getElementById("<?=$cleangroupname?>badge").classList.remove("text-bg-success");
-document.getElementById("<?=$cleangroupname?>badge").classList.add("text-bg-info");
-document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Planned Maintenance";
-</script>
-<?php
-        } else if ($service['service_status_short'] == 'MIN') {
-?>
-<span class="badge text-bg-warning" data-bs-toggle="tooltip" data-bs-title="The system may be experiencing a minor outage right now."><i class="fa-solid fa-exclamation-circle"></i>&nbsp;Minor Outage</span>
-<script>
-document.getElementById("<?=$cleangroupname?>badge").classList.remove("text-bg-success");
-document.getElementById("<?=$cleangroupname?>badge").classList.add("text-bg-warning");
-document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Minor Outage";
-</script>
-<?php
-        } else if ($service['service_status_short'] == 'MAJ') {
-?>
-<span class="badge text-bg-danger" data-bs-toggle="tooltip" data-bs-title="The system may be experiencing a major outage right now."><i class="fa-solid fa-triangle-exclamation"></i>&nbsp;Major Outage</span>
-<script>
-document.getElementById("<?=$cleangroupname?>badge").classList.remove("text-bg-success");
-document.getElementById("<?=$cleangroupname?>badge").classList.add("text-bg-danger");
-document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Major Outage";
-</script>
-<?php
-        }
-?>
+                        <span class="badge <?=$s['class']?>" data-bs-toggle="tooltip" data-bs-title="<?=$s['tooltip']?>"><i class="fa-solid <?=$s['icon']?>"></i>&nbsp;<?=$s['label']?></span>
+<?php if ($service['service_status_short'] !== 'OPE'): ?>
+                        <script>
+                          (function() {
+                            var b = document.getElementById("<?=$cleangroupname?>badge");
+                            b.className = b.className.replace(/text-bg-\S+/, "<?=$s['class']?>");
+                            b.innerHTML = "<?=$s['label']?>";
+                          })();
+                        </script>
+<?php endif; ?>
                         &nbsp;<?=$service['service_name']?>
-<?php
-        if ($service['service_description'] != '') {
-?>
-&nbsp;<i class="text-muted fa-solid fa-question-circle" data-bs-toggle="tooltip" data-bs-title="<?=$service['service_description']?>"></i>
-<?php
-        }
-        if ($service['service_link'] != '') {
-?>
-&nbsp;<a href="<?=$service['service_link']?>"><i class="text-muted fa fa-external-link"></i></a>
-<?php
-        }
-?>
+<?php if ($service['service_description'] != ''): ?>
+                        &nbsp;<i class="text-muted fa-solid fa-question-circle" data-bs-toggle="tooltip" data-bs-title="<?=$service['service_description']?>"></i>
+<?php endif; ?>
+<?php if ($service['service_link'] != ''): ?>
+                        &nbsp;<a href="<?=$service['service_link']?>"><i class="text-muted fa fa-external-link"></i></a>
+<?php endif; ?>
                       </h6>
                     </div>
                     <div class="col-4 text-end">
                       <h6 class="text-muted">
 <?php
-        $uptimesql = "SELECT DISTINCT incident_update_incident_id FROM incident_update INNER JOIN incident ON incident_update.incident_update_incident_id = incident.incident_id WHERE incident_update_timestamp > DATE_SUB(CURRENT_TIMESTAMP, INTERVAL (SELECT setting_value FROM settings WHERE setting_key = 'incident_to_show_timerange') DAY) AND incident_update_timestamp <= NOW() AND instr(concat(',', incident.incident_describes_ids, ','), '," . $service['service_id'] . ",') <> 0";
+        // Calculate uptime percentage over the configured timerange
+        $itst = (int)getSetting($link, 'incident_to_show_timerange');
+        $uptimesql = "SELECT DISTINCT incident_update_incident_id FROM incident_update INNER JOIN incident ON incident_update.incident_update_incident_id = incident.incident_id WHERE incident_update_timestamp > DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $itst . " DAY) AND incident_update_timestamp <= NOW() AND instr(concat(',', incident.incident_describes_ids, ','), '," . $service['service_id'] . ",') <> 0";
         $uptimeresult = mysqli_query($link, $uptimesql);
         if (mysqli_num_rows($uptimeresult) == 0) {
           echo '100.00';
         } else {
           $accumulatedtime = 0;
-          $incidentidarray = array(); // an array of unique incident IDs
+          $incidentidarray = [];
           while ($uptimerow = mysqli_fetch_assoc($uptimeresult)) {
-            array_push($incidentidarray, $uptimerow['incident_update_incident_id']);
+            $incidentidarray[] = $uptimerow['incident_update_incident_id'];
           }
           foreach ($incidentidarray as $incidentid) {
-            $incidentaccumsql = "SELECT incident_update_timestamp, incident_update_status_short FROM incident_update WHERE incident_update_incident_id = " . $incidentid;
-            $incidentaccumresult = mysqli_query($link, $incidentaccumsql);
-            $incidenttimes = []; // an array of times in the incident
+            $incidentaccumresult = mysqli_query($link, "SELECT incident_update_timestamp, incident_update_status_short FROM incident_update WHERE incident_update_incident_id = " . $incidentid);
+            $incidenttimes = [];
             $resolved = idate('U');
             while ($incidentaccumrow = mysqli_fetch_assoc($incidentaccumresult)) {
               if ($incidentaccumrow['incident_update_status_short'] == 'RES') {
                 $resolved = strtotime($incidentaccumrow['incident_update_timestamp']);
               } else {
-                array_push($incidenttimes, strtotime($incidentaccumrow['incident_update_timestamp']));
+                $incidenttimes[] = strtotime($incidentaccumrow['incident_update_timestamp']);
               }
             }
-            $started = min($incidenttimes);
-            $accumulatedtime = $accumulatedtime + abs($resolved - $started);
+            $accumulatedtime += abs($resolved - min($incidenttimes));
           }
-          $itstassoc = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'incident_to_show_timerange'"));
-          $itst = (int)$itstassoc['setting_value'];
-          $percentage = 100 - round(($accumulatedtime/($itst * 24 * 60 * 60)) * 100, 2);
-          echo $percentage;
+          echo 100 - round(($accumulatedtime / ($itst * 24 * 60 * 60)) * 100, 2);
         }
 ?>% Uptime
                       </h6>
@@ -293,27 +236,27 @@ document.getElementById("<?=$cleangroupname?>badge").innerHTML = "Major Outage";
         </div>
         <div class="text-center">
           <p><small class="text-muted"><em>Uptime is calculated as the percentage of time services were fully operational over the last <?=$itst?> days.</em></small></p>
-          <button class="btn btn-primary m-4 btn-sm" type="button" data-bs-toggle="collapse" data-bs-target=".multi-collapse" aria-expanded="false" aria-controls="<?php foreach ($cleangroupnames as $cleangroupname) {echo $cleangroupname . "panel ";} ?>">Expand/Collapse All</button>
+          <button class="btn btn-primary m-4 btn-sm" type="button" data-bs-toggle="collapse" data-bs-target=".multi-collapse" aria-expanded="false" aria-controls="<?php foreach ($cleangroupnames as $cgn) { echo $cgn . 'panel '; } ?>">Expand/Collapse All</button>
         </div>
       </div>
     </div>
   </div>
 </div>
+
 <div class="container">
   <div class="row">
     <div class="col">
       <h2 class="text-uppercase text-muted">Messages</h2>
 <?php
-$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'plannedfuturedays'"));
-$plannedfuturedays = (int)$row['setting_value'];
-echo '<script>console.log("Showing maintenance windows in the next ' . $plannedfuturedays . ' days")</script>';
-// Admin preview future incidents beyond public limit
+$plannedfuturedays     = (int)getSetting($link, 'plannedfuturedays');
+$incident_to_show_timerange = (int)getSetting($link, 'incident_to_show_timerange');
+
+// Admin-only: show incidents further in the future than the public limit
 if ($_SESSION['id'] != '') {
   $incidentsql = 'SELECT incident_id, incident_date, incident_description, incident_status_short, incident_status.incident_status_description FROM incident INNER JOIN incident_status ON incident_status.incident_status_code = incident.incident_status_short WHERE incident.incident_date >= DATE_ADD(CURDATE(), INTERVAL ' . $plannedfuturedays . ' DAY) ORDER BY incident_date DESC';
   $incidentresult = mysqli_query($link, $incidentsql);
-  if (mysqli_num_rows($incidentresult) > 0) {
-    while ($incident = mysqli_fetch_assoc($incidentresult)) {
-      $prettydate = date_format(date_create($incident['incident_date']), 'M. jS, Y');
+  while ($incident = mysqli_fetch_assoc($incidentresult)) {
+    $prettydate = date_format(date_create($incident['incident_date']), 'M. jS, Y');
 ?>
           <div class="relative incidents-monthly__item pt-2 pb-3 line">
             <p class="incidents-monthly__item__month text-black dark:text-white group-hover:opacity-100 ">
@@ -321,102 +264,51 @@ if ($_SESSION['id'] != '') {
             </p>
             <div class="incident-details incident-item">
               <div class="flex items-start justify-between">
-                  <div class="incident-details__header">
-                    <span>
-<?php
-      if ($incident['incident_status_short'] != 'RES') {
-        echo '<i class="fa-solid fa-check-circle"></i>';
-      } else {
-        echo '<i class="fa-solid fa-exclamation-circle"></i>';
-      }
-?>
-                    </span>
-                    <span class="incident-name"><?=$incident['incident_description']?></span>
-                  </div>
+                <div class="incident-details__header">
+                  <span>
+                    <?= $incident['incident_status_short'] != 'RES' ? '<i class="fa-solid fa-check-circle"></i>' : '<i class="fa-solid fa-exclamation-circle"></i>' ?>
+                  </span>
+                  <span class="incident-name"><?=$incident['incident_description']?></span>
                 </div>
-                <p><small class="text-muted">This element is not visible unless you are logged in because the event is more than <?=$plannedfuturedays?> days in the future.</small></p>
-                <ul class="incident-details__updates">
+              </div>
+              <p><small class="text-muted">This element is not visible unless you are logged in because the event is more than <?=$plannedfuturedays?> days in the future.</small></p>
+              <ul class="incident-details__updates">
 <?php
-      $updatesql = 'SELECT incident_update_timestamp, incident_update_description, incident_status.incident_status_description FROM incident_update INNER JOIN incident_status ON incident_update.incident_update_status_short = incident_status.incident_status_code WHERE incident_update_incident_id = ' . $incident['incident_id'] . ' ORDER BY incident_update_timestamp DESC';
-      $updateresult = mysqli_query($link, $updatesql);
-      if (mysqli_num_rows($updateresult) > 0) {
-        $updatecount = 0;
-        while ($update = mysqli_fetch_assoc($updateresult)) {
-          $prettydate = date_format(date_create($update['incident_update_timestamp']), 'M jS, Y') . ' at ' . date_format(date_create($update['incident_update_timestamp']), 'g:i A');
-          if ($updatecount == 0) {
+    $updatesql = 'SELECT incident_update_timestamp, incident_update_description, incident_status.incident_status_description FROM incident_update INNER JOIN incident_status ON incident_update.incident_update_status_short = incident_status.incident_status_code WHERE incident_update_incident_id = ' . $incident['incident_id'] . ' ORDER BY incident_update_timestamp DESC';
+    $updateresult = mysqli_query($link, $updatesql);
+    if (mysqli_num_rows($updateresult) > 0) {
+      $updatecount = 0;
+      while ($update = mysqli_fetch_assoc($updateresult)) {
+        $prettydate = date_format(date_create($update['incident_update_timestamp']), 'M jS, Y') . ' at ' . date_format(date_create($update['incident_update_timestamp']), 'g:i A');
+        $statusClass = $updatecount === 0 ? 'update-list-item__status--desktop first' : 'update-list-item__status--desktop default stormtrooper';
+        $adminNote   = $updatecount === 0 ? '<small class="text-muted">This is invisible to non-authenticated users.</small>' : '';
 ?>
-                  <li class="incident-update update-list-item">
-                    <div class="update-list-item__inner-wrapper">
-                      <div title="<?=$update['incident_status_description']?>" class="update-list-item__status update-list-item__status--desktop first"><?=$update['incident_status_description']?><small class="text-muted">This is invisible to non-authenticated users.</small></div>
-                      <div class="update-list-item__message">
-                        <span class="opacity-75 inline updated-list-item__date">
-                          <p><?=$prettydate?></p>
-                        </span>
-                        <div class="inline prose-sm prose dark:prose-invert">
-<?php
-            if (str_starts_with($update['incident_update_description'], '<p>')) {
-?>
-                          <?=$update['incident_update_description']?>
-<?php
-            } else {
-?>
-                          <p><?=$update['incident_update_description']?></p>
-<?php
-            }
-?>
-                        </div>
+                <li class="incident-update update-list-item">
+                  <div class="update-list-item__inner-wrapper">
+                    <div title="<?=$update['incident_status_description']?>" class="update-list-item__status <?=$statusClass?>"><?=$update['incident_status_description']?><?=$adminNote?></div>
+                    <div class="update-list-item__message">
+                      <span class="opacity-75 inline updated-list-item__date"><p><?=$prettydate?></p></span>
+                      <div class="inline prose-sm prose dark:prose-invert">
+                        <?php renderUpdateContent($update['incident_update_description']); ?>
                       </div>
                     </div>
-                  </li>
+                  </div>
+                </li>
 <?php
-          } else {
-?>
-                  <li class="incident-update update-list-item">
-                    <div class="update-list-item__inner-wrapper">
-                      <div title="<?=$update['incident_status_description']?>" class="update-list-item__status update-list-item__status--desktop default stormtrooper"><?=$update['incident_status_description']?></div>
-                      <div class="update-list-item__message">
-                        <span class="opacity-75 inline updated-list-item__date">
-                          <p><?=$prettydate?></p>
-                        </span>
-                        <div class="inline prose-sm prose dark:prose-invert">
-<?php
-            if (str_starts_with($update['incident_update_description'], '<p>')) {
-?>
-                          <?=$update['incident_update_description']?>
-<?php
-            } else {
-?>
-                          <p><?=$update['incident_update_description']?></p>
-<?php
-            }
-?>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-<?php
-          }
-          $updatecount++;
-        }
-      } else {
-?>
-                  <li><p>No updates</p></li>
-<?php
+        $updatecount++;
       }
+    } else {
+      echo '<li><p>No updates</p></li>';
+    }
 ?>
-                </ul>
+              </ul>
             </div>
           </div>
 <?php
-    }
   }
 }
-// All other public incidents
-$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'incident_to_show_timerange'"));
-$incident_to_show_timerange = (int)$row['setting_value'];
-$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'plannedfuturedays'"));
-$plannedfuturedays = (int)$row['setting_value'];
-echo '<script>console.log("Showing incidents from the last ' . $incident_to_show_timerange . ' days")</script>';
+
+// Public incidents within the configured time range
 $incidentsql = 'SELECT incident_id, incident_date, incident_description, incident_status_short, incident_status.incident_status_description FROM incident INNER JOIN incident_status ON incident_status.incident_status_code = incident.incident_status_short WHERE incident.incident_date >= DATE_ADD(CURDATE(), INTERVAL -' . $incident_to_show_timerange . ' DAY) AND incident.incident_date <= DATE_ADD(CURDATE(), INTERVAL ' . $plannedfuturedays . ' DAY) ORDER BY incident_date DESC';
 $incidentresult = mysqli_query($link, $incidentsql);
 if (mysqli_num_rows($incidentresult) > 0) {
@@ -429,20 +321,14 @@ if (mysqli_num_rows($incidentresult) > 0) {
             </p>
             <div class="incident-details incident-item">
               <div class="flex items-start justify-between">
-                  <div class="incident-details__header">
-                    <span>
-<?php
-    if ($incident['incident_status_short'] == 'RES') {
-      echo '<i class="fa-solid fa-check-circle"></i>';
-    } else {
-      echo '<i class="fa-solid fa-exclamation-circle"></i>';
-    }
-?>
-                    </span>
-                    <span class="incident-name"><?=$incident['incident_description']?></span>
-                  </div>
+                <div class="incident-details__header">
+                  <span>
+                    <?= $incident['incident_status_short'] === 'RES' ? '<i class="fa-solid fa-check-circle"></i>' : '<i class="fa-solid fa-exclamation-circle"></i>' ?>
+                  </span>
+                  <span class="incident-name"><?=$incident['incident_description']?></span>
                 </div>
-                <ul class="incident-details__updates">
+              </div>
+              <ul class="incident-details__updates">
 <?php
     $updatesql = 'SELECT incident_update_timestamp, incident_update_description, incident_status.incident_status_description FROM incident_update INNER JOIN incident_status ON incident_update.incident_update_status_short = incident_status.incident_status_code WHERE incident_update_incident_id = ' . $incident['incident_id'] . ' ORDER BY incident_update_timestamp DESC';
     $updateresult = mysqli_query($link, $updatesql);
@@ -450,68 +336,27 @@ if (mysqli_num_rows($incidentresult) > 0) {
       $updatecount = 0;
       while ($update = mysqli_fetch_assoc($updateresult)) {
         $prettydate = date_format(date_create($update['incident_update_timestamp']), 'M jS, Y') . ' at ' . date_format(date_create($update['incident_update_timestamp']), 'g:i A');
-        if ($updatecount == 0) {
+        $statusClass = $updatecount === 0 ? 'update-list-item__status--desktop first' : 'update-list-item__status--desktop default stormtrooper';
 ?>
-                  <li class="incident-update update-list-item">
-                    <div class="update-list-item__inner-wrapper">
-                      <div title="<?=$update['incident_status_description']?>" class="update-list-item__status update-list-item__status--desktop first"><?=$update['incident_status_description']?></div>
-                      <div class="update-list-item__message">
-                        <span class="opacity-75 inline updated-list-item__date">
-                          <p><?=$prettydate?></p>
-                        </span>
-                        <div class="inline prose-sm prose dark:prose-invert">
-<?php
-            if (str_starts_with($update['incident_update_description'], '<p>')) {
-?>
-                          <?=$update['incident_update_description']?>
-<?php
-            } else {
-?>
-                          <p><?=$update['incident_update_description']?></p>
-<?php
-            }
-?>
-                        </div>
+                <li class="incident-update update-list-item">
+                  <div class="update-list-item__inner-wrapper">
+                    <div title="<?=$update['incident_status_description']?>" class="update-list-item__status <?=$statusClass?>"><?=$update['incident_status_description']?></div>
+                    <div class="update-list-item__message">
+                      <span class="opacity-75 inline updated-list-item__date"><p><?=$prettydate?></p></span>
+                      <div class="inline prose-sm prose dark:prose-invert">
+                        <?php renderUpdateContent($update['incident_update_description']); ?>
                       </div>
                     </div>
-                  </li>
+                  </div>
+                </li>
 <?php
-        } else {
-?>
-                  <li class="incident-update update-list-item">
-                    <div class="update-list-item__inner-wrapper">
-                      <div title="<?=$update['incident_status_description']?>" class="update-list-item__status update-list-item__status--desktop default stormtrooper"><?=$update['incident_status_description']?></div>
-                      <div class="update-list-item__message">
-                        <span class="opacity-75 inline updated-list-item__date">
-                          <p><?=$prettydate?></p>
-                        </span>
-                        <div class="inline prose-sm prose dark:prose-invert">
-<?php
-            if (str_starts_with($update['incident_update_description'], '<p>')) {
-?>
-                          <?=$update['incident_update_description']?>
-<?php
-            } else {
-?>
-                          <p><?=$update['incident_update_description']?></p>
-<?php
-            }
-?>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-<?php
-        }
         $updatecount++;
       }
     } else {
-?>
-                  <li><p>No updates</p></li>
-<?php
+      echo '<li><p>No updates</p></li>';
     }
 ?>
-                </ul>
+              </ul>
             </div>
           </div>
 <?php
@@ -523,6 +368,7 @@ if (mysqli_num_rows($incidentresult) > 0) {
     </div>
   </div>
 </div>
+
 <div class="container mb-5">
   <div class="row">
     <div class="col pb-3">
@@ -530,9 +376,10 @@ if (mysqli_num_rows($incidentresult) > 0) {
     </div>
   </div>
 </div>
+
 <?php
-$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'welcome_message'"));
-if ($row['setting_value'] != '') {
+$welcome_message = getSetting($link, 'welcome_message');
+if ($welcome_message != ''):
 ?>
 <div class="modal fade" id="welcomemodal" tabindex="-1" aria-labelledby="welcomemodallabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -542,7 +389,7 @@ if ($row['setting_value'] != '') {
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close"></button>
       </div>
       <div class="modal-body">
-        <p><?=$row['setting_value']?></p>
+        <p><?=$welcome_message?></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -557,11 +404,8 @@ if ($row['setting_value'] != '') {
     let decodedCookie = decodeURIComponent(document.cookie);
     let ca = decodedCookie.split(';');
     for (let i = 0; i < ca.length; i++) {
-      let c = ca[i];
-      while (c.charAt(0) == ' ') {
-        c = c.substring(1)
-      }
-      if (c.indexOf(name) == 0) {
+      let c = ca[i].trimStart();
+      if (c.indexOf(name) === 0) {
         return c.substring(name.length, c.length);
       }
     }
@@ -569,28 +413,19 @@ if ($row['setting_value'] != '') {
   }
   window.onload = () => {
     const welcomemodal = new bootstrap.Modal('#welcomemodal');
-    if (getCookie('hidewelcomemodal') == 'true') {
+    if (getCookie('hidewelcomemodal') === 'true') {
       welcomemodal.hide();
     } else {
       welcomemodal.show();
     }
-  }
+  };
   function dontshowmessageagain() {
-    console.log('Hiding welcome modal');
-    var welcomemodalel = document.getElementById('welcomemodal');
-    var modal = bootstrap.Modal.getInstance(welcomemodalel);
+    const modal = bootstrap.Modal.getInstance(document.getElementById('welcomemodal'));
     modal.hide();
-    console.log('Setting expiration for one day from now');
     const d = new Date();
-    d.setTime(d.getTime() + (24*60*60*1000));
-    let expires = "expires="+ d.toUTCString();
-    document.cookie = "hidewelcomemodal=true;" + expires + ";path=/";
-    console.log('Expiration set');
+    d.setTime(d.getTime() + (24 * 60 * 60 * 1000));
+    document.cookie = "hidewelcomemodal=true;expires=" + d.toUTCString() + ";path=/";
   }
 </script>
-<?php
-}
-?>
-<?php
-include('templates/_footer.php');
-?>
+<?php endif; ?>
+<?php include('templates/_footer.php'); ?>

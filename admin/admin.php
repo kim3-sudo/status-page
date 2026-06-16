@@ -16,8 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-?>
-<?php
 session_start();
 if (!isset($_SESSION['id'])) {
   header('Location: ../login.php');
@@ -80,7 +78,7 @@ use OTPHP\TOTP;
         </div>
       </li>
       <li class="nav-item">
-        <p class="small text-muted"><em><?=strtolower($svrow['setting_value'])?>/<?=strtolower($dvrow['setting_value'])?>/<?=strtolower(gethostname())?></em></p>
+        <p class="small text-muted"><em><?=strtolower(getSetting($link, 'software_version'))?>/<?=strtolower(getSetting($link, 'database_version'))?>/<?=strtolower(gethostname())?></em></p>
       </li>
     </ul>
   </div>
@@ -100,68 +98,28 @@ include('pagemodals.php');
 ?>
 </div>
 <script>
-  tinymce.init({
-    selector: '#addincidentupdatedescription',
-    block_formats: 'Paragraph=p',
-    paste_as_text: true,
-    plugins: 'link autolink preview',
-    promotion: false,
-    license_key: 'gpl',
-    setup: (editor) => {
-      editor.on("change", (e) => {
-        const pattern = /\[[a-z/ ]*\?\]/;
-        var content = tinymce.activeEditor.getContent("addincidentupdatedescription");
-        if (pattern.test(content)) {
-          document.getElementById("addincidentplaceholderwarning").classList.add("d-block");
-          document.getElementById("addincidentplaceholderwarning").classList.remove("d-none");
-        } else {
-          document.getElementById("addincidentplaceholderwarning").classList.add("d-none");
-          document.getElementById("addincidentplaceholderwarning").classList.remove("d-block");
-        }
-      });
-    }
-  });
-  tinymce.init({
-    selector: '#existingincidentupdate',
-    block_formats: 'Paragraph=p',
-    paste_as_text: true,
-    plugins: 'link autolink preview',
-    promotion: false,
-    license_key: 'gpl',
-    setup: (editor) => {
-      editor.on("change", (e) => {
-        const pattern = /\[[a-z/ ]*\?\]/;
-        var content = tinymce.activeEditor.getContent("existingincidentupdate");
-        if (pattern.test(content)) {
-          document.getElementById("existingincidentplaceholderwarning").classList.add("d-block");
-          document.getElementById("existingincidentplaceholderwarning").classList.remove("d-none");
-        } else {
-          document.getElementById("existingincidentplaceholderwarning").classList.add("d-none");
-          document.getElementById("existingincidentplaceholderwarning").classList.remove("d-block");
-        }
-      });
-    }
-  });
-  tinymce.init({
-    selector: '#plannedmaintenancemessage',
-    block_formats: 'Paragraph=p',
-    paste_as_text: true,
-    plugins: 'link autolink preview',
-    promotion: false,
-    license_key: 'gpl',
-    setup: (editor) => {
-      editor.on("change", (e) => {
-        const pattern = /\[[a-z/ ]*\?\]/;
-        var content = tinymce.activeEditor.getContent("plannedmaintenancemessage");
-        if (pattern.test(content)) {
-          document.getElementById("plannedmaintenanceplaceholderwarning").classList.add("d-block");
-          document.getElementById("plannedmaintenanceplaceholderwarning").classList.remove("d-none");
-        } else {
-          document.getElementById("plannedmaintenanceplaceholderwarning").classList.add("d-none");
-          document.getElementById("plannedmaintenanceplaceholderwarning").classList.remove("d-block");
-        }
-      });
-    }
+  const editors = [
+    { selector: 'addincidentupdatedescription',  warning: 'addincidentplaceholderwarning' },
+    { selector: 'existingincidentupdate',         warning: 'existingincidentplaceholderwarning' },
+    { selector: 'plannedmaintenancemessage',      warning: 'plannedmaintenanceplaceholderwarning' },
+  ];
+  const placeholderPattern = /\[[a-z/ ]*\?\]/;
+  editors.forEach(({ selector, warning }) => {
+    tinymce.init({
+      selector: '#' + selector,
+      block_formats: 'Paragraph=p',
+      paste_as_text: true,
+      plugins: 'link autolink preview',
+      promotion: false,
+      license_key: 'gpl',
+      setup: (editor) => {
+        editor.on('change', () => {
+          const hasPlaceholder = placeholderPattern.test(tinymce.get(selector).getContent());
+          document.getElementById(warning).classList.toggle('d-block', hasPlaceholder);
+          document.getElementById(warning).classList.toggle('d-none', !hasPlaceholder);
+        });
+      }
+    });
   });
 </script>
 <style>
@@ -215,8 +173,6 @@ include('pagemodals.php');
 </style>
 <?php
 include('../templates/_footer.php');
-?>
-<?php
 if (isset($_SESSION['twofactornotenrolled']) && $_SESSION['twofactornotenrolled'] == 1) {
   echo '<script>new bootstrap.Modal("#twofactorwarning").show();</script>';
 }
