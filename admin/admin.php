@@ -16,10 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-session_start();
-if (!isset($_SESSION['id'])) {
-  header('Location: ../login.php');
-}
+require('_guard.php');
 include('../templates/_header.php');
 writeToLog($link, 'Admin page accessed', $_SESSION['id']);
 require_once('../vendor/autoload.php');

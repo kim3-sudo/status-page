@@ -18,10 +18,7 @@
 */
 ?>
 <?php
-session_start();
-if (!isset($_SESSION['id'])) {
-  header('Location: ../login.php');
-}
+require('_guard.php');
 include('../templates/_header.php');
 writeToLog($link, 'Updating service group', $_SESSION['id']);
 ?>
@@ -30,15 +27,19 @@ writeToLog($link, 'Updating service group', $_SESSION['id']);
     <div class="row">
       <div class="col">
 <?php
-writeToLog($link, 'Updating service group ' . mysqli_real_escape_string($link, $_POST['updateservicegroupid']), $_SESSION['id']);
-$sql = "UPDATE servicegroups SET servicegroup_name = '" . mysqli_real_escape_string($link, $_POST['updateservicegroupname']) . "' WHERE servicegroup_id = " . mysqli_real_escape_string($link, $_POST['updateservicegroupid']);
-if ($link->query($sql) === TRUE) {
-  writeToLog($link, 'Updated service group name to ' . mysqli_real_escape_string($link, $_POST['updateservicegroupname']), $_SESSION['id']);
+$updateservicegroupid = $_POST['updateservicegroupid'];
+$updateservicegroupname = $_POST['updateservicegroupname'];
+writeToLog($link, 'Updating service group ' . $updateservicegroupid, $_SESSION['id']);
+$stmt = $link->prepare('UPDATE servicegroups SET servicegroup_name = ? WHERE servicegroup_id = ?');
+$stmt->bind_param('si', $updateservicegroupname, $updateservicegroupid);
+if ($stmt->execute()) {
+  writeToLog($link, 'Updated service group name to ' . $updateservicegroupname, $_SESSION['id']);
   echo '<p>Updated service group</p>';
 } else {
   writeToLog($link, 'Failed to update service group name', $_SESSION['id'], 'NERR');
-  echo '<p>Error: ' . $sql . '<br>' . $link->error . '</p>';
+  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
 }
+$stmt->close();
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
       <button class="btn btn-secondary" onclick="history.back()">Go Back</a>

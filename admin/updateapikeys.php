@@ -18,10 +18,7 @@
 */
 ?>
 <?php
-session_start();
-if (!isset($_SESSION['id'])) {
-  header('Location: ../login.php');
-}
+require('_guard.php');
 include('../templates/_header.php');
 writeToLog($link, 'API keys are being rotated', $_SESSION['id']);
 ?>
@@ -37,22 +34,26 @@ if ($_POST['confirmation'] == 'ROTATE MY KEYS') {
   for ($i = 0; $i < 128; $i++) {
     $randomString .= $characters[random_int(0, $charactersLength - 1)];
   }
-  $sql = "DELETE FROM apikeys WHERE apikeys_is_personal = 1 AND apikeys_user_id = " . $_SESSION['id'];
-  if ($link->query($sql)) {
+  $stmt = $link->prepare('DELETE FROM apikeys WHERE apikeys_is_personal = 1 AND apikeys_user_id = ?');
+  $stmt->bind_param('i', $_SESSION['id']);
+  if ($stmt->execute()) {
     writeToLog($link, 'Old API keys were removed', $_SESSION['id']);
   } else {
     writeToLog($link, 'Failed to remove old API keys', $_SESSION['id'], 'FERR');
     die('Failed to remove old API keys!');
   }
-  $sql = "INSERT INTO apikeys (apikeys_user_id, apikeys_authkey, apikeys_is_personal) VALUE (" . $_SESSION['id'] . ", '" . mysqli_real_escape_string($link, $randomString) . "', 1)";
-  if ($link->query($sql)) {
+  $stmt->close();
+  $stmt = $link->prepare('INSERT INTO apikeys (apikeys_user_id, apikeys_authkey, apikeys_is_personal) VALUES (?, ?, 1)');
+  $stmt->bind_param('is', $_SESSION['id'], $randomString);
+  if ($stmt->execute()) {
     writeToLog($link, 'API keys were rotated, new key starts with', $_SESSION['id']);
     writeToLog($link, substr($randomString, 0, 8), $_SESSION['id']);
-    echo '<p>Your API keys were rotated. Your new API key is <code>' . $randomString . '</code>. Save this key now, as you will not be able to see it again later.</p>';
+    echo '<p>Your API keys were rotated. Your new API key is <code>' . htmlspecialchars($randomString) . '</code>. Save this key now, as you will not be able to see it again later.</p>';
   } else {
     writeToLog($link, 'Failed to generate and save new API key', $_SESSION['id'], 'WARN');
     echo '<p>Failed to generate and save new API key!</p>';
   }
+  $stmt->close();
 } else {
   writeToLog($link, 'Failed to confirm API key rotation phrase', $_SESSION['id']);
   echo '<p>Failed to confirm API key rotation phrase! Your old key (if set) is still active.</p>';

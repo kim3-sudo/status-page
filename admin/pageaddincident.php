@@ -17,6 +17,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 ?>
+<?php require('_guard.php'); ?>
   <div class="container collapse show notransition" id="addincident" data-bs-parent="#actions">
     <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
     <h1 class="my-3">Add an incident</h1>

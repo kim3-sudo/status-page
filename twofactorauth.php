@@ -21,7 +21,7 @@
 session_start();
 include('templates/_header.php');
 writeToLog($link, 'Two-factor authentication TOTP code request', -1);
-writeToLog($link, mysqli_real_escape_string($link, $_POST['email']), -1);
+writeToLog($link, $_POST['email'], -1);
 require_once('vendor/autoload.php');
 use OTPHP\TOTP;
 ?>
@@ -29,15 +29,17 @@ use OTPHP\TOTP;
   <div class="row">
     <div class="col">
 <?php
-if (!isset($_POST['email'], $_POST['id'], $_POST['firstname'], $_POST['lastname'], $_POST['suflag'], $_POST['totpcode']) ) {
+if (!isset($_POST['email'], $_POST['id'], $_POST['totpcode']) ) {
   writeToLog($link, 'Missing field information', -1);
   exit('Missing field information');
 }
-writeToLog($link, 'Querying for TOTP token for user ID ' . mysqli_real_escape_string($link, $_POST['id']), -1);
-$sql = "SELECT user_id, user_totpsecret FROM users WHERE user_totpsecret IS NOT NULL AND user_id = " . mysqli_real_escape_string($link, $_POST['id']);
-$result = mysqli_query($link, $sql);
-if (mysqli_num_rows($result) == 1) {
-  $row = mysqli_fetch_assoc($result);
+writeToLog($link, 'Querying for TOTP token for user ID ' . $_POST['id'], -1);
+$stmt = $link->prepare('SELECT user_id, user_first_name, user_last_name, user_issuperuser, user_totpsecret FROM users WHERE user_totpsecret IS NOT NULL AND user_id = ?');
+$stmt->bind_param('i', $_POST['id']);
+$stmt->execute();
+$result = $stmt->get_result();
+if ($result->num_rows == 1) {
+  $row = $result->fetch_assoc();
   $totpsecret = $row['user_totpsecret'];
   writeToLog($link, 'Verifying TOTP token starting with ' . substr($totpsecret, 0, 14), -1);
   if ($totpsecret) {
@@ -45,13 +47,17 @@ if (mysqli_num_rows($result) == 1) {
     if (TOTP::createFromSecret($totpsecret)->verify($_POST['totpcode'])) {
       writeToLog($link, 'TOTP code was verified against secret', -1);
       writeToLog($link, 'Password hashes are good, two-factor passed, generating session tokens', -1);
-      session_regenerate_id();
+      session_regenerate_id(true);
       $_SESSION['loggedin'] = true;
       $_SESSION['email'] = $_POST['email'];
-      $_SESSION['id'] = $_POST['id'];
-      $_SESSION['firstname'] = $_POST['firstname'];
-      $_SESSION['lastname'] = $_POST['lastname'];
-      $_SESSION['suflag'] = $_POST['suflag'];
+      // The user's identity and privilege level come from the row we just
+      // verified the TOTP secret against, not from the client-POSTed form
+      // fields — trusting the POSTed suflag would let anyone self-promote
+      // to superuser by tampering with their own login request.
+      $_SESSION['id'] = $row['user_id'];
+      $_SESSION['firstname'] = $row['user_first_name'];
+      $_SESSION['lastname'] = $row['user_last_name'];
+      $_SESSION['suflag'] = $row['user_issuperuser'];
       writeToLog($link, 'Redirecting user to admin', -1);
       header('Location: admin/admin.php');
     } else {
@@ -63,7 +69,7 @@ if (mysqli_num_rows($result) == 1) {
     echo '<p>Something went wrong, check logs</p>';
   }
 } else {
-  writeToLog($link, mysqli_num_rows($result) . ' rows were matched when querying for TOTP tokens', -1);
+  writeToLog($link, $result->num_rows . ' rows were matched when querying for TOTP tokens', -1);
 }
 $stmt->close();
 ?>

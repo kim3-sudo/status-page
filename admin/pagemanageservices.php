@@ -17,6 +17,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 ?>
+<?php require('_guard.php'); ?>
   <div class="container collapse notransition" id="manageservices" data-bs-parent="#actions">
     <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
     <h1 class="my-3">Manage services</h1>

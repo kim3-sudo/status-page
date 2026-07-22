@@ -18,10 +18,7 @@
 */
 ?>
 <?php
-session_start();
-if (!isset($_SESSION['id'])) {
-  header('Location: ../login.php');
-}
+require('_guard.php');
 include('../templates/_header.php');
 writeToLog($link, 'Updating setting value', $_SESSION['id']);
 ?>
@@ -30,23 +27,26 @@ writeToLog($link, 'Updating setting value', $_SESSION['id']);
     <div class="row">
       <div class="col">
 <?php
-writeToLog($link, 'Updating setting key ' . mysqli_real_escape_string($link, $_POST['setting_key']), $_SESSION['id']);
-writeToLog($link, 'Updating setting value to ' . mysqli_real_escape_string($link, $_POST['setting_value']), $_SESSION['id']);
+$setting_key = $_POST['setting_key'];
+$setting_value = $_POST['setting_value'];
+writeToLog($link, 'Updating setting key ' . $setting_key, $_SESSION['id']);
+writeToLog($link, 'Updating setting value to ' . $setting_value, $_SESSION['id']);
 // Use INSERT … ON DUPLICATE KEY UPDATE so this works correctly for both:
 //  (a) existing rows (standard update), and
 //  (b) keys that were added after install (e.g. saml_email_attribute on older installs).
-$sql = "INSERT INTO settings (setting_key, setting_value)
-        VALUES ('" . mysqli_real_escape_string($link, $_POST['setting_key']) . "',
-                '" . mysqli_real_escape_string($link, $_POST['setting_value']) . "')
+$stmt = $link->prepare('INSERT INTO settings (setting_key, setting_value)
+        VALUES (?, ?)
         ON DUPLICATE KEY UPDATE
-        setting_value = '" . mysqli_real_escape_string($link, $_POST['setting_value']) . "'";
-if ($link->query($sql) === TRUE) {
+        setting_value = ?');
+$stmt->bind_param('sss', $setting_key, $setting_value, $setting_value);
+if ($stmt->execute()) {
   writeToLog($link, 'Updated setting', $_SESSION['id']);
   echo '<p>Updated setting</p>';
 } else {
   writeToLog($link, 'Failed to update setting', $_SESSION['id'], 'WARN');
-  echo '<p>Error: ' . $sql . '<br>' . $link->error . '</p>';
+  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
 }
+$stmt->close();
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
       <button class="btn btn-secondary" onclick="history.back()">Go Back</button>

@@ -18,10 +18,7 @@
 */
 ?>
 <?php
-session_start();
-if (!isset($_SESSION['id'])) {
-  header('Location: ../login.php');
-}
+require('_guard.php');
 include('../templates/_header.php');
 writeToLog($link, 'New service API keys are being generated', $_SESSION['id']);
 ?>
@@ -37,15 +34,18 @@ if (isset($_POST['newapikeyname'])) {
   for ($i = 0; $i < 128; $i++) {
     $randomString .= $characters[random_int(0, $charactersLength - 1)];
   }
-  $sql = "INSERT INTO apikeys (apikeys_user_id, apikeys_authkey, apikeys_is_personal, apikeys_nickname) VALUE (" . $_SESSION['id'] . ", '" . mysqli_real_escape_string($link, $randomString) . "', 0, '" . mysqli_real_escape_string($link, $_POST['newapikeyname']) . "')";
-  if ($link->query($sql)) {
+  $newapikeyname = $_POST['newapikeyname'];
+  $stmt = $link->prepare('INSERT INTO apikeys (apikeys_user_id, apikeys_authkey, apikeys_is_personal, apikeys_nickname) VALUES (?, ?, 0, ?)');
+  $stmt->bind_param('iss', $_SESSION['id'], $randomString, $newapikeyname);
+  if ($stmt->execute()) {
     writeToLog($link, 'New service API key was generated, new key starts with', $_SESSION['id']);
     writeToLog($link, substr($randomString, 0, 8), $_SESSION['id']);
-    echo '<p>Your new service API key is ready. Your new API key is <code>' . $randomString . '</code>. Save this key now, as you will not be able to see it again later.</p>';
+    echo '<p>Your new service API key is ready. Your new API key is <code>' . htmlspecialchars($randomString) . '</code>. Save this key now, as you will not be able to see it again later.</p>';
   } else {
     writeToLog($link, 'Failed to generate and save new API key', $_SESSION['id'], 'WARN');
     echo '<p>Failed to generate and save new API key!</p>';
   }
+  $stmt->close();
 } else {
   writeToLog($link, 'No API key nickname', $_SESSION['id']);
   echo '<p>No API key nickname.</p>';

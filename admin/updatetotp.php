@@ -18,10 +18,7 @@
 */
 ?>
 <?php
-session_start();
-if (!isset($_SESSION['id'])) {
-  header('Location: ../login.php');
-}
+require('_guard.php');
 include('../templates/_header.php');
 require_once('../vendor/autoload.php');
 use OTPHP\TOTP;
@@ -35,23 +32,28 @@ writeToLog($link, 'TOTP settings were changed', $_SESSION['id']);
 if ($_POST['verifytotp'] && TOTP::createFromSecret($_POST['otpsecret'])->verify($_POST['verifytotp'])) {
   writeToLog($link, 'TOTP enrollment event, TOTP verified', $_SESSION['id']);
   writeToLog($link, 'Setting the TOTP flag true in the user ledger', $_SESSION['id']);
-  $sql = "UPDATE users SET user_totpenabled = 1 WHERE user_id = " . $_SESSION['id'];
-  if ($link->query($sql)) {
+  $stmt = $link->prepare('UPDATE users SET user_totpenabled = 1 WHERE user_id = ?');
+  $stmt->bind_param('i', $_SESSION['id']);
+  if ($stmt->execute()) {
     writeToLog($link, 'TOTP flag was set', $_SESSION['id']);
     echo '<p>TOTP was enabled.</p>';
   } else {
     writeToLog($link, 'Failed to set TOTP flag', $_SESSION['id'], 'WARN');
     echo '<p>Failed to enable TOTP!</p>';
   }
+  $stmt->close();
   writeToLog($link, 'Writing the TOTP client secret to the user ledger', $_SESSION['id']);
-  $sql = "UPDATE users SET user_totpsecret = '" . mysqli_real_escape_string($link, $_POST['otpsecret']) . "' WHERE user_id = " . $_SESSION['id'];
-  if ($link->query($sql)) {
+  $otpsecret = $_POST['otpsecret'];
+  $stmt = $link->prepare('UPDATE users SET user_totpsecret = ? WHERE user_id = ?');
+  $stmt->bind_param('si', $otpsecret, $_SESSION['id']);
+  if ($stmt->execute()) {
     writeToLog($link, 'TOTP client secret was written', $_SESSION['id']);
     echo '<p>TOTP verification was successful, you are now enrolled in two-factor authentication.</p>';
   } else {
     writeToLog($link, 'Failed to write the TOTP client secret', $_SESSION['id'], 'WARN');
     echo '<p>Failed to save your TOTP client secret!</p>';
   }
+  $stmt->close();
 } else {
   echo '<p>TOTP was not enabled, code could not be verified.</p>';
 }

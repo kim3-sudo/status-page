@@ -17,6 +17,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 ?>
+<?php require('_guard.php'); ?>
 <div class="container collapse notransition" id="systemsettings" data-bs-parent="#actions">
   <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
   <h1 class="my-3">System Settings</h1>
@@ -27,10 +28,7 @@
       <label for="organizationupdate" class="form-label">Organization</label>
       <div class="input-group">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'footer_org'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$organization = $row['setting_value'];
+$organization = getSetting($link, 'footer_org');
 ?>
         <input type="text" id="organizationupdate" name="setting_value" class="form-control" placeholder="Organization" aria-label="Organization" aria-describedby="Organization" value="<?=$organization?>">
         <button class="btn btn-primary" type="submit">Submit</button>
@@ -42,10 +40,7 @@ $organization = $row['setting_value'];
       <label for="orglinkupdate" class="form-label">Organization Webpage/Link</label>
       <div class="input-group">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'org_link'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$orglink = $row['setting_value'];
+$orglink = getSetting($link, 'org_link');
 ?>
         <input type="text" id="orglinkupdate" name="setting_value" class="form-control" placeholder="Organization Link" aria-label="Organization Link" aria-describedby="Organization Link" value="<?=$orglink?>">
         <button class="btn btn-primary" type="submit">Submit</button>
@@ -57,10 +52,7 @@ $orglink = $row['setting_value'];
       <label for="feedbacklinkupdate" class="form-label">Feedback Webpage/Link</label>
       <div class="input-group">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'feedback_link'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$feedbacklink = $row['setting_value'];
+$feedbacklink = getSetting($link, 'feedback_link');
 ?>
         <input type="text" id="feedbacklinkupdate" name="setting_value" class="form-control" placeholder="Feedback Link" aria-label="Feedback Link" aria-describedby="Feedback Link" value="<?=$feedbacklink?>">
         <button class="btn btn-primary" type="submit">Submit</button>
@@ -72,10 +64,7 @@ $feedbacklink = $row['setting_value'];
       <label for="privacypolicylinkupdate" class="form-label">Privacy Policy Webpage/Link</label>
       <div class="input-group">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'privacy_policy_link'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$privacypolicylink = $row['setting_value'];
+$privacypolicylink = getSetting($link, 'privacy_policy_link');
 ?>
         <input type="text" id="privacypolicylinkupdate" name="setting_value" class="form-control" placeholder="Privacy Policy Link" aria-label="Privacy Policy Link" aria-describedby="Privacy Policy Link" value="<?=$privacypolicylink?>">
         <button class="btn btn-primary" type="submit">Submit</button>
@@ -87,10 +76,7 @@ $privacypolicylink = $row['setting_value'];
       <label for="headerimageupdate" class="form-label">Header Image URL</label>
       <div class="input-group">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'header_image_location'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$headerimage = $row['setting_value'];
+$headerimage = getSetting($link, 'header_image_location');
 ?>
         <input type="text" id="headerimageupdate" name="setting_value" class="form-control" placeholder="Header Image URL" aria-label="Header Image URL" aria-describedby="Header Image URL" value="<?=$headerimage?>">
         <button class="btn btn-primary" type="submit">Submit</button>
@@ -102,10 +88,7 @@ $headerimage = $row['setting_value'];
       <label for="gethelpupdate" class="form-label">Get Help Destination</label>
       <div class="input-group">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'get_help_destination'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$gethelpdestination = $row['setting_value'];
+$gethelpdestination = getSetting($link, 'get_help_destination');
 ?>
         <input type="text" id="gethelpupdate" name="setting_value" class="form-control" placeholder="Get Help Destination" aria-label="Get Help Destination" aria-describedby="Get Help Destination" value="<?=$gethelpdestination?>">
         <button class="btn btn-primary" type="submit">Submit</button>
@@ -117,10 +100,7 @@ $gethelpdestination = $row['setting_value'];
       <label for="pesdescriptionupdate" class="form-label">PES Description</label>
       <div class="input-group">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'pes_description'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$pesdescription = $row['setting_value'];
+$pesdescription = getSetting($link, 'pes_description');
 ?>
         <input type="text" id="pesdescriptionupdate" name="setting_value" class="form-control" placeholder="PES Description" aria-label="PES Description" aria-describedby="PES Description" value="<?=$pesdescription?>">
         <button class="btn btn-primary" type="submit">Submit</button>
@@ -132,10 +112,7 @@ $pesdescription = $row['setting_value'];
       <label for="aboutthissiteupdate" class="form-label">About This Site</label>
       <div class="input-group">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'about_this_site'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$aboutthissite = $row['setting_value'];
+$aboutthissite = getSetting($link, 'about_this_site');
 ?>
         <input type="text" id="aboutthissiteupdate" name="setting_value" class="form-control" placeholder="About this site" aria-label="About this site" aria-describedby="About this site" value="<?=$aboutthissite?>">
         <button class="btn btn-primary" type="submit">Submit</button>
@@ -147,10 +124,7 @@ $aboutthissite = $row['setting_value'];
       <label for="metadescriptionupdate" class="form-label">Meta Description</label>
       <div class="input-group">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'meta_description'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$metadescription = $row['setting_value'];
+$metadescription = getSetting($link, 'meta_description');
 ?>
         <input type="text" id="metadescriptionupdate" name="setting_value" class="form-control" placeholder="Meta Description" aria-label="Meta Description" aria-describedby="Meta description" value="<?=$metadescription?>">
         <button class="btn btn-primary" type="submit">Submit</button>
@@ -162,10 +136,7 @@ $metadescription = $row['setting_value'];
       <label for="gameasurementidupdate" class="form-label">Google Analytics Measurement ID</label>
       <div class="input-group">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'ga_measurement_id'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$gameasurementid = $row['setting_value'];
+$gameasurementid = getSetting($link, 'ga_measurement_id');
 ?>
         <input type="text" id="gameasurementidupdate" name="setting_value" class="form-control" placeholder="GA Measurement ID" aria-label="GA Measurement ID" aria-describedby="Google Analytics Measurement ID" value="<?=$gameasurementid?>">
         <button class="btn btn-primary" type="submit">Submit</button>
@@ -177,10 +148,7 @@ $gameasurementid = $row['setting_value'];
       <label for="welcomemessageupdate" class="form-label">Welcome Message</label>
       <div class="input-group">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'welcome_message'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$welcomemessage = $row['setting_value'];
+$welcomemessage = getSetting($link, 'welcome_message');
 ?>
         <input type="text" id="welcomemessageupdate" name="setting_value" class="form-control" placeholder="Welcome Message" aria-label="Welcome Message" aria-describedby="Welcome Message" value="<?=$welcomemessage?>">
         <button class="btn btn-primary" type="submit">Submit</button>
@@ -193,10 +161,7 @@ $welcomemessage = $row['setting_value'];
       <div class="input-group">
         <select class="form-control" name="setting_value" id="timezoneupdate">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'timezone'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$activetimezone = $row['setting_value'];
+$activetimezone = getSetting($link, 'timezone');
 foreach (timezone_identifiers_list() as $timezonerow) {
   if ($activetimezone == $timezonerow) {
     echo '<option value="' . $timezonerow . '" selected>' . $timezonerow . '</option>';
@@ -215,8 +180,7 @@ foreach (timezone_identifiers_list() as $timezonerow) {
       <div class="input-group">
         <select class="form-control" name="setting_value" id="plannedfuturedaysupdate">
 <?php
-$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'plannedfuturedays'"));
-$activeplannedfutureday = $row['setting_value'];
+$activeplannedfutureday = getSetting($link, 'plannedfuturedays');
 foreach (array(1, 3, 7, 14, 30, 60) as $dayrange) {
   if ($dayrange == $activeplannedfutureday) {
     echo '<option value="' . $dayrange . '" selected>' . $dayrange . ' days</option>';
@@ -236,8 +200,7 @@ foreach (array(1, 3, 7, 14, 30, 60) as $dayrange) {
       <div class="input-group">
         <select class="form-control" name="setting_value" id="incidenttoshowtimerangeupdate">
 <?php
-$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'incident_to_show_timerange'"));
-$activetimerange = $row['setting_value'];
+$activetimerange = getSetting($link, 'incident_to_show_timerange');
 foreach (array(30, 60, 90, 120) as $dayrange) {
   if ($dayrange == $activetimerange) {
     echo '<option value="' . $dayrange . '" selected>' . $dayrange . ' days</option>';
@@ -271,10 +234,7 @@ if (!empty($spMetaBaseUrl)):
       <label for="enablessoupdate" class="form-label">Enable SAML Single Sign-On</label>
       <div class="input-group">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'enable_sso'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$enablesso = $row['setting_value'];
+$enablesso = getSetting($link, 'enable_sso');
 if ($enablesso == 'true') {
 ?>
 <select id="enablessoupdate" name="setting_value" class="form-control">
@@ -300,10 +260,7 @@ if ($enablesso == 'true') {
       <label for="baseurlupdate" class="form-label">Service Provider Base URL</label>
       <div class="input-group">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'service_provider_base_url'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$spBaseUrl = $row['setting_value'];
+$spBaseUrl = getSetting($link, 'service_provider_base_url');
 ?>
         <input type="text" id="baseurlupdate" name="setting_value" class="form-control" placeholder="Service Provider Base URL" aria-label="Service Provider Base URL" aria-describedby="Service Provider Base URL" value="<?=$spBaseUrl?>" required>
         <button class="btn btn-primary" type="submit">Submit</button>
@@ -315,10 +272,7 @@ $spBaseUrl = $row['setting_value'];
       <label for="nameidformatupdate" class="form-label">Name ID Format</label>
       <div class="input-group">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'name_id_format'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$NameIDFormat = $row['setting_value'];
+$NameIDFormat = getSetting($link, 'name_id_format');
 ?>
         <input type="text" id="nameidformatupdate" name="setting_value" class="form-control" placeholder="Name ID Format" aria-label="Name ID Format" aria-describedby="Name ID Format" value="<?=$NameIDFormat?>" required>
         <button class="btn btn-primary" type="submit">Submit</button>
@@ -330,10 +284,7 @@ $NameIDFormat = $row['setting_value'];
       <label for="entityidupdate" class="form-label">Entity ID</label>
       <div class="input-group mb-3">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'entity_id'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$entityid = $row['setting_value'];
+$entityid = getSetting($link, 'entity_id');
 ?>
         <input type="text" id="entityidupdate" name="setting_value" class="form-control" placeholder="Entity ID" aria-label="Entity ID" aria-describedby="Entity ID" value="<?=$entityid?>" required>
         <button class="btn btn-primary" type="submit">Submit</button>
@@ -344,10 +295,7 @@ $entityid = $row['setting_value'];
       <label for="ssoserviceupdate" class="form-label">SSO Service</label>
       <div class="input-group mb-3">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'sso_service'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$ssoservice = $row['setting_value'];
+$ssoservice = getSetting($link, 'sso_service');
 ?>
         <input type="text" id="ssoserviceupdate" name="setting_value" class="form-control" placeholder="SSO Service" aria-label="SSO Service" aria-describedby="SSO Service" value="<?=$ssoservice?>" required>
         <button class="btn btn-primary" type="submit">Submit</button>
@@ -358,10 +306,7 @@ $ssoservice = $row['setting_value'];
       <label for="sloserviceupdate" class="form-label">SLO Service</label>
       <div class="input-group mb-3">
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'slo_service'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$sloservice = $row['setting_value'];
+$sloservice = getSetting($link, 'slo_service');
 ?>
         <input type="text" id="sloserviceupdate" name="setting_value" class="form-control" placeholder="SLO Service" aria-label="SLO Service" aria-describedby="SLO Service" value="<?=$sloservice?>" required>
         <button class="btn btn-primary" type="submit">Submit</button>
@@ -371,10 +316,7 @@ $sloservice = $row['setting_value'];
       <input type="hidden" name="setting_key" id="systemkey-x509cert" value="x509cert">
       <label for="x509certificateupdate" class="form-label">X509 Certificate</label>
 <?php
-$sql = "SELECT setting_value FROM settings WHERE setting_key = 'x509cert'";
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
-$x509certificate = $row['setting_value'];
+$x509certificate = getSetting($link, 'x509cert');
 ?>
       <textarea id="x509certificateupdate" name="setting_value" class="form-control font-monospace mb-2" rows="4"
         placeholder="Paste the base64-encoded certificate content here (without -----BEGIN/END CERTIFICATE----- headers)"
@@ -387,8 +329,7 @@ $x509certificate = $row['setting_value'];
       <label for="samlemailattributeupdate" class="form-label">SAML Email Attribute</label>
       <div class="input-group mb-2">
 <?php
-$row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'saml_email_attribute'"));
-$samlemailattr = isset($row['setting_value']) ? $row['setting_value'] : '';
+$samlemailattr = getSetting($link, 'saml_email_attribute');
 ?>
         <input type="text" id="samlemailattributeupdate" name="setting_value" class="form-control"
           placeholder="e.g. email, mail, or a full URN attribute name (optional)"

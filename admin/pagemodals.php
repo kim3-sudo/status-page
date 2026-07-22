@@ -17,6 +17,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 ?>
+<?php require('_guard.php'); ?>
 <?php
 $servicesql = 'SELECT service_id FROM services';
 $serviceresult = mysqli_query($link, $servicesql);
@@ -242,8 +243,11 @@ if ($_SESSION['suflag'] == '1') {
         </form>
 <?php
 if ($_SESSION['suflag'] == '1') {
-  $sql = "SELECT user_totpenabled FROM users WHERE user_id = " . $userrow['user_id'];
-  $enrollment = mysqli_fetch_assoc(mysqli_query($link, $sql))['user_totpenabled'];
+  $stmt = $link->prepare('SELECT user_totpenabled FROM users WHERE user_id = ?');
+  $stmt->bind_param('i', $userrow['user_id']);
+  $stmt->execute();
+  $enrollment = $stmt->get_result()->fetch_assoc()['user_totpenabled'];
+  $stmt->close();
   if ($enrollment == 1) {
 ?>
         <form action="updatetotpadmin.php" method="post" class="mt-3">
@@ -265,8 +269,10 @@ if ($_SESSION['suflag'] == '1') {
   </div>
 </div>
 <?php
-$sql = 'SELECT apikeys_id, apikeys_nickname FROM apikeys WHERE apikeys_user_id = ' . $_SESSION['id'];
-$result = mysqli_query($link, $sql);
+$stmt = $link->prepare('SELECT apikeys_id, apikeys_nickname FROM apikeys WHERE apikeys_user_id = ?');
+$stmt->bind_param('i', $_SESSION['id']);
+$stmt->execute();
+$result = $stmt->get_result();
 if (mysqli_num_rows($result) > 0) {
   while ($row = mysqli_fetch_assoc($result)) {
 ?>

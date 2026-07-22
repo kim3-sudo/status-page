@@ -58,6 +58,24 @@ composer update
 8. Clean up by removing the entire `install` directory.
 9. :tada:
 
+## Upgrading
+
+To upgrade an existing install in place:
+
+1. Back up your database first — migrations are written to be safe to re-run, but back up anyway.
+2. Pull the new version into your web directory.
+```bash
+git pull
+```
+3. Update Composer dependencies.
+```bash
+composer install
+```
+4. Run the upgrade script from the command line on the server. This applies any pending database migrations and updates the recorded software/database version — it is safe to re-run if it's interrupted partway through.
+```bash
+php upgrade.php
+```
+
 ## Configuration
 
 By in large, configuration is handled in the software itself, rather than in local configuration files. When you installed the software, you should have set a **root password**. This password is different from the root of the server that the software is running on. Use this, along with the `root@localhost` **username** to log into the **admin portal**. Then, on the left-side, go to **System Settings**. Here, you can set individual system settings by entering the parameter, then clicking on **Submit** to save the setting.

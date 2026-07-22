@@ -18,10 +18,7 @@
 */
 ?>
 <?php
-session_start();
-if (!isset($_SESSION['id'])) {
-  header('Location: ../login.php');
-}
+require('_guard.php');
 include('../templates/_header.php');
 writeToLog($link, 'Adding a new user by admin', $_SESSION['id']);
 ?>
@@ -47,16 +44,22 @@ while ($counter < 4) {
     $counter++;
   }
 }
-writeToLog($link, 'Inserting the new user with email ' . mysqli_real_escape_string($link, $_POST['adduseremail']) . ' to user ledger', $_SESSION['id']);
-$sql = "INSERT INTO users (user_first_name, user_last_name, user_email, user_password) VALUE ('" . mysqli_real_escape_string($link, $_POST['adduserfirst']) . "', '" . mysqli_real_escape_string($link, $_POST['adduserlast']) . "', '" . mysqli_real_escape_string($link, $_POST['adduseremail']) . "', '" . password_hash($autogenpassword, PASSWORD_DEFAULT) . "')";
-if ($link->query($sql) === TRUE) {
-  writeToLog($link, 'Created new user ' . mysqli_real_escape_string($link, $_POST['adduseremail']), $_SESSION['id']);
-  echo '<p>Created new user: ' . mysqli_real_escape_string($link, $_POST['adduserfirst']) . '&nbsp;' . mysqli_real_escape_string($link, $_POST['adduserlast']) . '</p>';
-  echo '<p>' . mysqli_real_escape_string($link, $_POST['adduserfirst']) . "'s temporary password is <code>" . $autogenpassword . "</code>. Make sure you record this temporary password now, as you cannot get it later.</p>";
+$adduserfirst = $_POST['adduserfirst'];
+$adduserlast = $_POST['adduserlast'];
+$adduseremail = $_POST['adduseremail'];
+$hashedpassword = password_hash($autogenpassword, PASSWORD_DEFAULT);
+writeToLog($link, 'Inserting the new user with email ' . $adduseremail . ' to user ledger', $_SESSION['id']);
+$stmt = $link->prepare('INSERT INTO users (user_first_name, user_last_name, user_email, user_password) VALUES (?, ?, ?, ?)');
+$stmt->bind_param('ssss', $adduserfirst, $adduserlast, $adduseremail, $hashedpassword);
+if ($stmt->execute()) {
+  writeToLog($link, 'Created new user ' . $adduseremail, $_SESSION['id']);
+  echo '<p>Created new user: ' . htmlspecialchars($adduserfirst) . '&nbsp;' . htmlspecialchars($adduserlast) . '</p>';
+  echo '<p>' . htmlspecialchars($adduserfirst) . "'s temporary password is <code>" . htmlspecialchars($autogenpassword) . "</code>. Make sure you record this temporary password now, as you cannot get it later.</p>";
 } else {
   writeToLog($link, 'Failed to create new user', $_SESSION['id']);
-  echo '<p>Error: ' . $sql . '<br>' . $link->error . '</p>';
+  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
 }
+$stmt->close();
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
       <button class="btn btn-secondary" onclick="history.back()">Go Back</a>

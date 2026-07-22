@@ -1,8 +1,5 @@
 <?php
-session_start();
-if (!isset($_SESSION['id'])) {
-  header('Location: ../login.php');
-}
+require('_guard.php');
 include('../templates/_header.php');
 ?>
 <div class="d-flex flex-row">
@@ -10,70 +7,70 @@ include('../templates/_header.php');
     <div class="row">
       <div class="col">
 <?php
-$addmaintstart = mysqli_real_escape_string($link, $_POST['plannedmaintenancestart']);
-$addmaintstarttimestamp = strval($addmaintstart);
-$addmaintend = mysqli_real_escape_string($link, $_POST['plannedmaintenanceend']);
-$addmaintendtimestamp = strval($addmaintend);
-$addmaintdescription = mysqli_real_escape_string($link, $_POST['plannedmaintenancedescription']);
-$addmaintdescription = str_replace("<p>&nbsp;</p>", "", $addmaintdescription);
-$addmaintmessage = mysqli_real_escape_string($link, $_POST['plannedmaintenancemessage']);
+$addmaintstarttimestamp = $_POST['plannedmaintenancestart'];
+$addmaintendtimestamp = $_POST['plannedmaintenanceend'];
+$addmaintdescription = str_replace("<p>&nbsp;</p>", "", $_POST['plannedmaintenancedescription']);
+$addmaintmessage = $_POST['plannedmaintenancemessage'];
 if (isset($_POST['plannedmaintenanceaffectedservices'])) {
   $affectedservicesarray = $_POST['plannedmaintenanceaffectedservices'];
   $affectedservicesstr = implode(',', $affectedservicesarray);
 } else {
   exit('Missing affected services');
 }
-$sql = "INSERT INTO incident (incident_date, incident_description, incident_status_short, incident_describes_ids) VALUES ('" . $addmaintstarttimestamp . "', '" . $addmaintdescription . "', 'RES', '" . $affectedservicesstr . "')";
-if ($link->query($sql) === TRUE) {
+$stmt = $link->prepare("INSERT INTO incident (incident_date, incident_description, incident_status_short, incident_describes_ids) VALUES (?, ?, 'RES', ?)");
+$stmt->bind_param('sss', $addmaintstarttimestamp, $addmaintdescription, $affectedservicesstr);
+if ($stmt->execute()) {
   $incidentid = $link->insert_id;
-  $subsql = "INSERT INTO incident_update (incident_update_timestamp, incident_update_status_short, incident_update_description, incident_update_incident_id, incident_update_is_planned_maint) VALUES ('" . $addmaintstarttimestamp . "', 'PLA', 'Planned maintenance begins', '" . $incidentid . "', 'Y')";
-  if ($link->query($subsql) === TRUE) {
-    $subsubsql = "INSERT INTO incident_update (incident_update_timestamp, incident_update_status_short, incident_update_description, incident_update_incident_id, incident_update_is_planned_maint) VALUES ('" . $addmaintendtimestamp . "', 'RES', '" . $addmaintmessage . "', '" . $incidentid . "', 'Y')";
-    if ($link->query($subsubsql) === TRUE) {
+  $stmt->close();
+  $substmt = $link->prepare("INSERT INTO incident_update (incident_update_timestamp, incident_update_status_short, incident_update_description, incident_update_incident_id, incident_update_is_planned_maint) VALUES (?, 'PLA', 'Planned maintenance begins', ?, 'Y')");
+  $substmt->bind_param('si', $addmaintstarttimestamp, $incidentid);
+  if ($substmt->execute()) {
+    $substmt->close();
+    $subsubstmt = $link->prepare("INSERT INTO incident_update (incident_update_timestamp, incident_update_status_short, incident_update_description, incident_update_incident_id, incident_update_is_planned_maint) VALUES (?, 'RES', ?, ?, 'Y')");
+    $subsubstmt->bind_param('ssi', $addmaintendtimestamp, $addmaintmessage, $incidentid);
+    if ($subsubstmt->execute()) {
+      $subsubstmt->close();
       foreach ($affectedservicesarray as &$serviceid) {
-        $subsubsubsql = "UPDATE services SET service_status_short = 'PLA' WHERE service_id = " . $serviceid;
-        echo 'Updating service ID ' . $serviceid;
-        if ($link->query($subsubsubsql) === TRUE) {
+        $svcstmt = $link->prepare("UPDATE services SET service_status_short = 'PLA' WHERE service_id = ?");
+        $svcstmt->bind_param('i', $serviceid);
+        echo 'Updating service ID ' . htmlspecialchars($serviceid);
+        if ($svcstmt->execute()) {
 ?>
-<p>Updated service <?=$serviceid?>.</p>
+<p>Updated service <?=htmlspecialchars($serviceid)?>.</p>
 <?php
         } else {
 ?>
 <p>
-  Error applying maintenance window to services: <?=$subsubsubsql?>
-  <br>
-  <?=$link->error?>
+  Error applying maintenance window to services: <?=htmlspecialchars($link->error)?>
 </p>
 <?php
         }
+        $svcstmt->close();
       }
     } else {
 ?>
 <p>
-  Error adding maintenance window end: <?=$subsubsql?>
-  <br>
-  <?=$link->error?>
+  Error adding maintenance window end: <?=htmlspecialchars($link->error)?>
 <?php
+      $subsubstmt->close();
     }
   } else {
 ?>
 <p>
-  Error adding maintenance window start: <?=$subsql?>
-  <br>
-  <?=$link->error?>
+  Error adding maintenance window start: <?=htmlspecialchars($link->error)?>
 </p>
 <?php
+    $substmt->close();
   }
 ?>
 <?php
 } else {
 ?>
 <p>
-  Error while creating the incident: <?=$sql?>
-  <br>
-  <?=$link->error?>
+  Error while creating the incident: <?=htmlspecialchars($link->error)?>
 </p>
 <?php
+  $stmt->close();
 }
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>

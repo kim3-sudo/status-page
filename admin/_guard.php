@@ -16,15 +16,20 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-?>
-<?php
+
+// Every admin/*.php entry point must include this before doing anything else.
+// Unlike the old per-file "header('Location: ...')" checks, this actually
+// halts execution — PHP does not stop running just because header() was
+// called, so the old pattern let unauthenticated requests execute the full
+// privileged body beneath it.
+
+require_once __DIR__ . '/_guard_functions.php';
+
 if (session_status() === PHP_SESSION_NONE) {
   session_start();
 }
-if (!isset($_SESSION['id'])) {
+
+if (!isAdminSessionValid($_SESSION)) {
   header('Location: ../login.php');
-} else {
-  header('Location: admin.php');
+  exit;
 }
-exit;
-?>

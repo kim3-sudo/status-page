@@ -118,7 +118,8 @@ foreach (timezone_identifiers_list() as $row) {
         <input type="checkbox" id="installconfirm" name="installconfirm" value="true" required>
         <label for="installconfirm">Confirm?</label>
       </fieldset>
-      <p>This installer will prepare software version 0.2.2 ("Croton") and database version 0.1.0 for use.</p>
+      <?php require_once __DIR__ . '/../templates/_version.php'; ?>
+      <p>This installer will prepare software version <?=htmlspecialchars(SOFTWARE_VERSION)?> and database version <?=htmlspecialchars(DATABASE_VERSION)?> for use.</p>
       <button type="submit">Install Now</button>
     </form>
   </body>

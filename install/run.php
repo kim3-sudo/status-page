@@ -25,12 +25,8 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
 ======== END CONFIG FILE ========<br>
 ======== BEGIN INSTALLATION LOG ========<br>
 <?php
-  function writeToLog($link, $entry, $uid, $type = 'INFO') {
-    if ($link->query("INSERT INTO log (log_entry, log_user_id, log_type) VALUES ('" . mysqli_real_escape_string($link, substr($entry, 0, 139)) . "', '" . mysqli_real_escape_string($link, $uid) . "', '" . mysqli_real_escape_string($link, $type) . "')")) {
-    } else {
-      die('Unable to write to log! Auditability violated.');
-    }
-  }
+  require_once(__DIR__ . '/../templates/_db_helpers.php');
+  require_once(__DIR__ . '/../templates/_version.php');
   echo 'Creating database schema<br>';
   if ($link->query("DROP TABLE IF EXISTS log")) {
     echo 'Table <code>log</code> dropped if exists<br>';
@@ -241,14 +237,14 @@ $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
     writeToLog($link, 'Unable to create apikeys', -1, 'WARN');
     die('Unable to create <code>apikeys</code>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('software_version', '0.2.2 (`Croton`)')")) {
+  if ($link->query("INSERT INTO settings VALUES ('software_version', '" . mysqli_real_escape_string($link, SOFTWARE_VERSION) . "')")) {
     echo 'Created and assigned <code>software_version</code> key<br>';
     writeToLog($link, 'Created an assigned software_version key', -1);
   } else {
     writeToLog($link, 'Unable to create and assign software_version key', -1, 'WARN');
     die('Unable to create and assign <code>software_version</code> key<br>');
   }
-  if ($link->query("INSERT INTO settings VALUES ('database_version', '0.1.0')")) {
+  if ($link->query("INSERT INTO settings VALUES ('database_version', '" . mysqli_real_escape_string($link, DATABASE_VERSION) . "')")) {
     echo 'Created and assigned <code>database_version</code> key<br>';
     writeToLog($link, 'Created and assigned database_version key', -1);
   } else {

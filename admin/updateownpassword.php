@@ -18,10 +18,7 @@
 */
 ?>
 <?php
-session_start();
-if (!isset($_SESSION['id'])) {
-  header('Location: ../login.php');
-}
+require('_guard.php');
 include('../templates/_header.php');
 ?>
 <div class="d-flex flex-row">
@@ -30,23 +27,27 @@ include('../templates/_header.php');
       <div class="col">
 <?php
 writeToLog($link, 'Querying users for old password', $_SESSION['id']);
-$sql = "SELECT user_password FROM users WHERE user_id = " . $_SESSION['id'];
-$result = mysqli_query($link, $sql);
-$row = mysqli_fetch_assoc($result);
+$stmt = $link->prepare('SELECT user_password FROM users WHERE user_id = ?');
+$stmt->bind_param('i', $_SESSION['id']);
+$stmt->execute();
+$row = $stmt->get_result()->fetch_assoc();
+$stmt->close();
 $oldhash = $row['user_password'];
 writeToLog($link, 'Fetched old password hash', $_SESSION['id']);
 if (strlen($_POST['updateownpassword']) >= 14 && password_verify($_POST['oldpassword'], $oldhash) && $_POST['updateownpassword'] == $_POST['updateownpasswordconfirm']) {
   writeToLog($link, 'All conditions satisfied for self-initiated password update', $_SESSION['id']);
-  $sql = "UPDATE users SET user_password = '" . password_hash(mysqli_real_escape_string($link, $_POST['updateownpassword']), PASSWORD_DEFAULT) . "' WHERE user_id = " . $_SESSION['id'];
-  if ($link->query($sql) === TRUE) {
+  $newhash = password_hash($_POST['updateownpassword'], PASSWORD_DEFAULT);
+  $stmt = $link->prepare('UPDATE users SET user_password = ? WHERE user_id = ?');
+  $stmt->bind_param('si', $newhash, $_SESSION['id']);
+  if ($stmt->execute()) {
     writeToLog($link, 'Updated own password', $_SESSION['id']);
     echo '<p>Updated own password</p>';
   } else {
     writeToLog($link, 'Error when updating own password', $_SESSION['id'], 'NERR');
-    writeToLog($link, $sql, $_SESSION['id'], 'NERR');
     writeToLog($link, $link->error, $_SESSION['id'], 'NERR');
-    echo '<p>Error: ' . $sql . '<br>' . $link->error . '</p>';
+    echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
   }
+  $stmt->close();
 } elseif ($_POST['updateuserpassword'] != $_POST['updateuserpasswordconfirm']) {
   writeToLog($link, 'Failed password confirmation on password change attempt', $_SESSION['id'], 'WARN');
   echo '<p>Passwords do not match.</p>';

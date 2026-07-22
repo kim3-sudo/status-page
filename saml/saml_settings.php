@@ -21,24 +21,14 @@
 // Do NOT call session_start() or output any HTML here — it is included by
 // both the SAML handler (which outputs XML) and the metadata endpoint.
 require_once __DIR__ . '/../templates/config.php';
+require_once __DIR__ . '/../templates/_db_helpers.php';
 
-if (!function_exists('samlGetSetting')) {
-    function samlGetSetting($link, $key) {
-        $row = mysqli_fetch_assoc(mysqli_query(
-            $link,
-            "SELECT setting_value FROM settings WHERE setting_key = '"
-                . mysqli_real_escape_string($link, $key) . "'"
-        ));
-        return isset($row['setting_value']) ? $row['setting_value'] : '';
-    }
-}
-
-$spBaseUrl           = samlGetSetting($link, 'service_provider_base_url');
-$NameIDFormat        = samlGetSetting($link, 'name_id_format');
-$entityId            = samlGetSetting($link, 'entity_id');
-$singleSignOnService = samlGetSetting($link, 'sso_service');
-$singleLogoutService = samlGetSetting($link, 'slo_service');
-$x509cert            = samlGetSetting($link, 'x509cert');
+$spBaseUrl           = getSetting($link, 'service_provider_base_url');
+$NameIDFormat        = getSetting($link, 'name_id_format');
+$entityId            = getSetting($link, 'entity_id');
+$singleSignOnService = getSetting($link, 'sso_service');
+$singleLogoutService = getSetting($link, 'slo_service');
+$x509cert            = getSetting($link, 'x509cert');
 
 $settingsInfo = array(
     'sp' => array(

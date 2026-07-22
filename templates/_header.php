@@ -18,21 +18,11 @@
 */
 session_start();
 include_once('config.php');
+require_once(__DIR__ . '/_db_helpers.php');
 $static_base_url = $_SERVER['DOCUMENT_ROOT'];
 
 $timezonerow = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'timezone'"));
 date_default_timezone_set($timezonerow['setting_value']);
-
-function getSetting($link, $key) {
-  $row = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = '" . mysqli_real_escape_string($link, $key) . "'"));
-  return $row['setting_value'] ?? '';
-}
-
-function writeToLog($link, $entry, $uid, $type = 'INFO') {
-  if (!$link->query("INSERT INTO log (log_entry, log_user_id, log_type) VALUES ('" . mysqli_real_escape_string($link, substr($entry, 0, 139)) . "', '" . mysqli_real_escape_string($link, $uid) . "', '" . mysqli_real_escape_string($link, $type) . "')")) {
-    die('Unable to write to log! Auditability violated.');
-  }
-}
 
 function renderUpdateContent($description) {
   if (str_starts_with($description, '<p>')) {

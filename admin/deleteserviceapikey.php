@@ -18,10 +18,7 @@
 */
 ?>
 <?php
-session_start();
-if (!isset($_SESSION['id'])) {
-  header('Location: ../login.php');
-}
+require('_guard.php');
 include('../templates/_header.php');
 writeToLog($link, 'Existing service API key is being deleted', $_SESSION['id']);
 ?>
@@ -31,14 +28,17 @@ writeToLog($link, 'Existing service API key is being deleted', $_SESSION['id']);
       <div class="col">
 <?php
 if (isset($_POST['keyid'])) {
-  $sql = "DELETE FROM apikeys WHERE apikeys_id = " . mysqli_real_escape_string($link, $_POST['keyid']);
-  if ($link->query($sql)) {
+  $keyid = $_POST['keyid'];
+  $stmt = $link->prepare('DELETE FROM apikeys WHERE apikeys_id = ?');
+  $stmt->bind_param('i', $keyid);
+  if ($stmt->execute()) {
     writeToLog($link, 'Old service API key was deleted', $_SESSION['id']);
     echo '<p>The old service API key was deleted.</p>';
   } else {
     writeToLog($link, 'Failed to delete existing API key', $_SESSION['id'], 'WARN');
     echo '<p>Failed to delete existing API key!</p>';
   }
+  $stmt->close();
 } else {
   writeToLog($link, 'No API key nickname', $_SESSION['id']);
   echo '<p>No API key nickname.</p>';

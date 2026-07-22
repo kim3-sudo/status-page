@@ -18,10 +18,7 @@
 */
 ?>
 <?php
-session_start();
-if (!isset($_SESSION['id'])) {
-  header('Location: ../login.php');
-}
+require('_guard.php');
 include('../templates/_header.php');
 writeToLog($link, 'Deleting user', $_SESSION['id']);
 ?>
@@ -30,15 +27,18 @@ writeToLog($link, 'Deleting user', $_SESSION['id']);
     <div class="row">
       <div class="col">
 <?php
-writeToLog($link, 'Deleting user ' . mysqli_real_escape_string($link, $_POST['deleteuserid']), $_SESSION['id']);
-$sql = "DELETE FROM users WHERE user_id = " . mysqli_real_escape_string($link, $_POST['deleteuserid']);
-if ($link->query($sql) === TRUE) {
+$deleteuserid = $_POST['deleteuserid'];
+writeToLog($link, 'Deleting user ' . $deleteuserid, $_SESSION['id']);
+$stmt = $link->prepare('DELETE FROM users WHERE user_id = ?');
+$stmt->bind_param('i', $deleteuserid);
+if ($stmt->execute()) {
   writeToLog($link, 'Deleted the user', $_SESSION['id']);
-  echo '<p>Deleted user ' . $_POST['deleteuserid'] . '</p>';
+  echo '<p>Deleted user ' . htmlspecialchars($deleteuserid) . '</p>';
 } else {
   writeToLog($link, 'Failed to delete the user', $_SESSION['id']);
-  echo '<p>Error: ' . $sql . '<br>' . $link->error . '</p>';
+  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
 }
+$stmt->close();
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
       <button class="btn btn-secondary" onclick="history.back()">Go Back</a>

@@ -18,10 +18,7 @@
 */
 ?>
 <?php
-session_start();
-if (!isset($_SESSION['id'])) {
-  header('Location: ../login.php');
-}
+require('_guard.php');
 include('../templates/_header.php');
 writeToLog($link, 'Updating service', $_SESSION['id']);
 ?>
@@ -30,49 +27,63 @@ writeToLog($link, 'Updating service', $_SESSION['id']);
     <div class="row">
       <div class="col">
 <?php
-writeToLog($link, 'Updating service ' . mysqli_real_escape_string($link, $_POST['updateid']), $_SESSION['id']);
-writeToLog($link, 'Updating service name to ' . mysqli_real_escape_string($link, $_POST['updatename']), $_SESSION['id']);
-$sql = "UPDATE services SET service_name = '" . mysqli_real_escape_string($link, $_POST['updatename']) . "' WHERE service_id = " . mysqli_real_escape_string($link, $_POST['updateid']);
-if ($link->query($sql) === TRUE) {
+$updateid = $_POST['updateid'];
+$updatename = $_POST['updatename'];
+$updategroup = $_POST['updategroup'];
+$updatedescription = $_POST['updatedescription'];
+$updatelink = $_POST['updatelink'];
+
+writeToLog($link, 'Updating service ' . $updateid, $_SESSION['id']);
+writeToLog($link, 'Updating service name to ' . $updatename, $_SESSION['id']);
+$stmt = $link->prepare('UPDATE services SET service_name = ? WHERE service_id = ?');
+$stmt->bind_param('si', $updatename, $updateid);
+if ($stmt->execute()) {
   writeToLog($link, 'Updated service name', $_SESSION['id']);
   echo '<p>Updated service name</p>';
 } else {
   writeToLog($link, 'Failed to update service name', $_SESSION['id'], 'WARN');
-  echo '<p>Error: ' . $sql . '<br>' . $link->error . '</p>';
+  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
 }
+$stmt->close();
 ?>
 <?php
-writeToLog($link, 'Updating service group to ' . mysqli_real_escape_string($link, $_POST['updategroup']), $_SESSION['id']);
-$sql = "UPDATE services SET servicegroup_id = " . mysqli_real_escape_string($link, $_POST['updategroup']) . " WHERE service_id = " . mysqli_real_escape_string($link, $_POST['updateid']);
-if ($link->query($sql) === TRUE) {
+writeToLog($link, 'Updating service group to ' . $updategroup, $_SESSION['id']);
+$stmt = $link->prepare('UPDATE services SET servicegroup_id = ? WHERE service_id = ?');
+$stmt->bind_param('ii', $updategroup, $updateid);
+if ($stmt->execute()) {
   writeToLog($link, 'Updated service group', $_SESSION['id']);
   echo '<p>Updated service group</p>';
 } else {
   writeToLog($link, 'Failed to update service group', $_SESSION['id'], 'WARN');
-  echo '<p>Error: ' . $sql . '<br>' . $link->error . '</p>';
+  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
 }
+$stmt->close();
 ?>
 <?php
-writeToLog($link, 'Updating service description to ' . mysqli_real_escape_string($link, $_POST['updatedescription']), $_SESSION['id']);
-$sql = "UPDATE services SET service_description = '" . mysqli_real_escape_string($link, $_POST['updatedescription']) . "' WHERE service_id = " . mysqli_real_escape_string($link, $_POST['updateid']);
-if ($link->query($sql) === TRUE) {
+writeToLog($link, 'Updating service description to ' . $updatedescription, $_SESSION['id']);
+$stmt = $link->prepare('UPDATE services SET service_description = ? WHERE service_id = ?');
+$stmt->bind_param('si', $updatedescription, $updateid);
+if ($stmt->execute()) {
   writeToLog($link, 'Updated service description', $_SESSION['id']);
   echo '<p>Updated service description</p>';
 } else {
   writeToLog($link, 'Failed to update service description', $_SESSION['id'], 'WARN');
-  echo '<p>Error: ' . $sql . '<br>' . $link->error . '</p>';
+  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
 }
+$stmt->close();
 ?>
 <?php
-writeToLog($link, 'Updating service link to ' . mysqli_real_escape_string($link, $_POST['updatelink']), $_SESSION['id']);
-$sql = "UPDATE services SET service_link = '" . mysqli_real_escape_string($link, $_POST['updatelink']) . "' WHERE service_id = " . mysqli_real_escape_string($link, $_POST['updateid']);
-if ($link->query($sql) === TRUE) {
+writeToLog($link, 'Updating service link to ' . $updatelink, $_SESSION['id']);
+$stmt = $link->prepare('UPDATE services SET service_link = ? WHERE service_id = ?');
+$stmt->bind_param('si', $updatelink, $updateid);
+if ($stmt->execute()) {
   writeToLog($link, 'Updated service link', $_SESSION['id']);
   echo '<p>Updated service link</p>';
 } else {
   writeToLog($link, 'Failed to update service link', $_SESSION['id'], 'WARN');
-  echo '<p>Error: ' . $sql . '<br>' . $link->error . '</p>';
+  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
 }
+$stmt->close();
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
       <button class="btn btn-secondary" onclick="history.back()">Go Back</a>

@@ -22,20 +22,15 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Load SAML library and settings (also establishes $link and $spBaseUrl)
-require_once __DIR__ . '/../vendor/onelogin/php-saml/_toolkit_loader.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/saml_settings.php';
 
-// Lightweight log helper — avoids pulling in _header.php (which outputs HTML)
-function samlWriteToLog($link, $entry, $uid, $type = 'INFO') {
-    if ($link) {
-        $link->query(
-            "INSERT INTO log (log_entry, log_user_id, log_type) VALUES ('"
-            . mysqli_real_escape_string($link, substr($entry, 0, 139)) . "', '"
-            . mysqli_real_escape_string($link, $uid) . "', '"
-            . mysqli_real_escape_string($link, $type) . "')"
-        );
-    }
-}
+use OneLogin\Saml2\Auth;
+use OneLogin\Saml2\Utils;
+
+// samlWriteToLog() comes from _db_helpers.php — avoids pulling in _header.php
+// (which outputs HTML) while still sharing one prepared-statement implementation.
+require_once __DIR__ . '/../templates/_db_helpers.php';
 
 // Minimal error page — keeps branding out of this handler so XML responses stay clean
 function samlErrorPage($title, $message, $backUrl = '../login.php', $statusCode = 401) {
@@ -53,7 +48,7 @@ function samlErrorPage($title, $message, $backUrl = '../login.php', $statusCode 
     exit();
 }
 
-$auth = new OneLogin_Saml2_Auth($settingsInfo);
+$auth = new Auth($settingsInfo);
 
 // ── SSO: initiate login, return to referring page ──────────────────────────
 if (isset($_GET['sso'])) {
@@ -120,7 +115,7 @@ if (isset($_GET['sso'])) {
     unset($_SESSION['AuthNRequestID']);
 
     // Resolve user email: prefer configured attribute, fall back to NameID
-    $emailAttr = samlGetSetting($link, 'saml_email_attribute');
+    $emailAttr = getSetting($link, 'saml_email_attribute');
     $samlEmail = null;
     if (!empty($emailAttr) && isset($_SESSION['samlUserdata'][$emailAttr][0])) {
         $samlEmail = $_SESSION['samlUserdata'][$emailAttr][0];
@@ -175,7 +170,7 @@ if (isset($_GET['sso'])) {
 
     // Honour the RelayState (e.g. the admin portal URL set by ?sso2), otherwise
     // fall back to the admin portal root.
-    if (isset($_POST['RelayState']) && OneLogin_Saml2_Utils::getSelfURL() != $_POST['RelayState']) {
+    if (isset($_POST['RelayState']) && Utils::getSelfURL() != $_POST['RelayState']) {
         $auth->redirectTo($_POST['RelayState']);
     } else {
         header('Location: ' . rtrim($spBaseUrl, '/') . '/admin/admin.php');

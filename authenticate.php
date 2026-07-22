@@ -21,7 +21,7 @@
 session_start();
 include('templates/_header.php');
 writeToLog($link, 'Authentication request made as user', -1);
-writeToLog($link, mysqli_real_escape_string($link, $_POST['email']), -1);
+writeToLog($link, $_POST['email'], -1);
 ?>
 <div class="container">
   <div class="row">
@@ -47,18 +47,18 @@ if ($stmt = $link->prepare('SELECT user_id, user_first_name, user_last_name, use
       if ($totpflag == 1) {
         writeToLog($link, 'TOTP 2FA is enabled', -1);
         echo '<form action="twofactorauth.php" method="post" class="my-3">';
-        echo '<input type="hidden" name="email" value="' . $_POST['email'] . '">';
-        echo '<input type="hidden" name="id" value="' . $id . '">';
-        echo '<input type="hidden" name="firstname" value="' . $firstname . '">';
-        echo '<input type="hidden" name="lastname" value="' . $lastname . '">';
-        echo '<input type="hidden" name="suflag" value="' . $suflag . '">';
+        echo '<input type="hidden" name="email" value="' . htmlspecialchars($_POST['email']) . '">';
+        echo '<input type="hidden" name="id" value="' . htmlspecialchars($id) . '">';
+        echo '<input type="hidden" name="firstname" value="' . htmlspecialchars($firstname) . '">';
+        echo '<input type="hidden" name="lastname" value="' . htmlspecialchars($lastname) . '">';
+        echo '<input type="hidden" name="suflag" value="' . htmlspecialchars($suflag) . '">';
         echo '<label for="totpcode" class="form-label mt-2">Two-Factor Authentication: Enter One-Time Passcode</label>';
         echo '<input type="number" max="9999999" name="totpcode" placeholder="0000000" class="form-control mt-2">';
         echo '<button type="submit" class="btn btn-primary mt-2" role="button">Authenticate Two-Factor</button>';
         echo '</form>';
       } else {
         writeToLog($link, 'Password hashes are good, no two-factor, generating session tokens', -1);
-        session_regenerate_id();
+        session_regenerate_id(true);
         $_SESSION['loggedin'] = true;
         $_SESSION['email'] = $_POST['email'];
         $_SESSION['id'] = $id;
@@ -81,7 +81,9 @@ if ($stmt = $link->prepare('SELECT user_id, user_first_name, user_last_name, use
   writeToLog($link, 'Authentication failed on username!', -1, 'WARN');
   echo '<p>Incorrect username or password</p>';
 }
-$stmt->close();
+if ($stmt) {
+  $stmt->close();
+}
 ?>
     </div>
   </div>

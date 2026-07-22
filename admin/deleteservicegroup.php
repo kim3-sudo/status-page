@@ -18,10 +18,7 @@
 */
 ?>
 <?php
-session_start();
-if (!isset($_SESSION['id'])) {
-  header('Location: ../login.php');
-}
+require('_guard.php');
 include('../templates/_header.php');
 writeToLog($link, 'Deleting service group', $_SESSION['id']);
 ?>
@@ -30,15 +27,18 @@ writeToLog($link, 'Deleting service group', $_SESSION['id']);
     <div class="row">
       <div class="col">
 <?php
-writeToLog($link, 'Deleting service group ' . mysqli_real_escape_string($link, $_POST['deleteservicegroupid']), $_SESSION['id']);
-$sql = "DELETE FROM servicegroups WHERE servicegroup_id = " . mysqli_real_escape_string($link, $_POST['deleteservicegroupid']);
-if ($link->query($sql) === TRUE) {
+$deleteservicegroupid = $_POST['deleteservicegroupid'];
+writeToLog($link, 'Deleting service group ' . $deleteservicegroupid, $_SESSION['id']);
+$stmt = $link->prepare('DELETE FROM servicegroups WHERE servicegroup_id = ?');
+$stmt->bind_param('i', $deleteservicegroupid);
+if ($stmt->execute()) {
   writeToLog($link, 'Deleted the service group', $_SESSION['id']);
   echo '<p>Deleted service group</p>';
 } else {
   writeToLog($link, 'Failed to delete the service group', $_SESSION['id']);
-  echo '<p>Error: ' . $sql . '<br>' . $link->error . '</p>';
+  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
 }
+$stmt->close();
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
       <button class="btn btn-secondary" onclick="history.back()">Go Back</a>

@@ -16,15 +16,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-?>
-<?php
-if (session_status() === PHP_SESSION_NONE) {
-  session_start();
+
+// Pure function only — no session_start/header/exit side effects — so this
+// file is safe to require directly from tests. admin/_guard.php requires
+// this file and then applies the side-effecting part (redirect + exit).
+
+if (!function_exists('isAdminSessionValid')) {
+  function isAdminSessionValid(array $session): bool {
+    return isset($session['id']);
+  }
 }
-if (!isset($_SESSION['id'])) {
-  header('Location: ../login.php');
-} else {
-  header('Location: admin.php');
-}
-exit;
-?>

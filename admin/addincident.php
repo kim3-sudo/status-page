@@ -18,10 +18,7 @@
 */
 ?>
 <?php
-session_start();
-if (!isset($_SESSION['id'])) {
-  header('Location: ../login.php');
-}
+require('_guard.php');
 include('../templates/_header.php');
 writeToLog($link, 'Adding a new incident', $_SESSION['id']);
 ?>
@@ -30,12 +27,11 @@ writeToLog($link, 'Adding a new incident', $_SESSION['id']);
     <div class="row">
       <div class="col">
 <?php
-$addincidentdescription = mysqli_real_escape_string($link, $_POST['addincidentdescription']);
+$addincidentdescription = $_POST['addincidentdescription'];
 writeToLog($link, $addincidentdescription, $_SESSION['id']);
-$addincidentupdatedescription = mysqli_real_escape_string($link, $_POST['addincidentupdatedescription']);
-$addincidentupdatedescription = str_replace("<p>&nbsp;</p>", "", $addincidentupdatedescription);
+$addincidentupdatedescription = str_replace("<p>&nbsp;</p>", "", $_POST['addincidentupdatedescription']);
 writeToLog($link, $addincidentupdatedescription, $_SESSION['id']);
-$addincidentstatus = mysqli_real_escape_string($link, $_POST['addincidentstatus']);
+$addincidentstatus = $_POST['addincidentstatus'];
 writeToLog($link, $addincidentstatus, $_SESSION['id']);
 if (isset($_POST['affectedservices'])) {
   $affectedservicesarray = $_POST['affectedservices'];
@@ -50,67 +46,70 @@ if ($_POST['addincidentstatus'] == '') {
   writeToLog($link, 'Missing incident status', $_SESSION['id'], 'WARN');
   exit('Missing incident status');
 }
+$starttimestamp = null;
 if ($_POST['starttimestamp'] != '') {
-  writeToLog($link, 'Start timestamp is set to ' . mysqli_real_escape_string($link, $_POST['starttimestamp']), $_SESSION['id']);
-  $starttimestamp = mysqli_real_escape_string($link, $_POST['starttimestamp']);
+  writeToLog($link, 'Start timestamp is set to ' . $_POST['starttimestamp'], $_SESSION['id']);
+  $starttimestamp = $_POST['starttimestamp'];
 }
-$outageseverity = mysqli_real_escape_string($link, $_POST['outageseverity']);
-writeToLog($link, 'Outage severity is ' . mysqli_real_escape_string($link, $_POST['outageseverity']), $_SESSION['id']);
-$sql = "INSERT INTO incident (incident_description, incident_status_short, incident_describes_ids) VALUES ('" . $addincidentdescription . "', '" . $addincidentstatus . "', '" . $affectedservicesstr . "')";
+$outageseverity = $_POST['outageseverity'];
+writeToLog($link, 'Outage severity is ' . $outageseverity, $_SESSION['id']);
 writeToLog($link, 'Executing an insert to the incident table now', $_SESSION['id']);
-if ($link->query($sql) === TRUE) {
+$stmt = $link->prepare('INSERT INTO incident (incident_description, incident_status_short, incident_describes_ids) VALUES (?, ?, ?)');
+$stmt->bind_param('sss', $addincidentdescription, $addincidentstatus, $affectedservicesstr);
+if ($stmt->execute()) {
   $incidentid = $link->insert_id;
-  if ($_POST['starttimestamp'] != '') {
+  $stmt->close();
+  if ($starttimestamp !== null) {
     writeToLog($link, 'Start timestamp is set, so adding that timestamp to the query', $_SESSION['id']);
-    $subsql = "INSERT INTO incident_update (incident_update_status_short, incident_update_description, incident_update_incident_id, incident_update_timestamp) VALUES ('" . $addincidentstatus . "', '" . $addincidentupdatedescription . "', '" . $incidentid . "', '" . $starttimestamp . "')";
+    $substmt = $link->prepare('INSERT INTO incident_update (incident_update_status_short, incident_update_description, incident_update_incident_id, incident_update_timestamp) VALUES (?, ?, ?, ?)');
+    $substmt->bind_param('ssis', $addincidentstatus, $addincidentupdatedescription, $incidentid, $starttimestamp);
   } else {
     writeToLog($link, 'Start timestamp is not set', $_SESSION['id']);
-    $subsql = "INSERT INTO incident_update (incident_update_status_short, incident_update_description, incident_update_incident_id) VALUES ('" . $addincidentstatus . "', '" . $addincidentupdatedescription . "', '" . $incidentid . "')";
+    $substmt = $link->prepare('INSERT INTO incident_update (incident_update_status_short, incident_update_description, incident_update_incident_id) VALUES (?, ?, ?)');
+    $substmt->bind_param('ssi', $addincidentstatus, $addincidentupdatedescription, $incidentid);
   }
-  if ($link->query($subsql) === TRUE) {
+  if ($substmt->execute()) {
     foreach ($affectedservicesarray as &$serviceid) {
       writeToLog($link, 'Updating ' . $serviceid . ' to ' . $outageseverity, $_SESSION['id']);
-      $subsubsql = "UPDATE services SET service_status_short = '" . $outageseverity . "' WHERE service_id = " . $serviceid;
-      echo 'Updating service ID ' . $serviceid;
-      if ($link->query($subsubsql) === TRUE) {
+      echo 'Updating service ID ' . htmlspecialchars($serviceid);
+      $subsubstmt = $link->prepare('UPDATE services SET service_status_short = ? WHERE service_id = ?');
+      $subsubstmt->bind_param('si', $outageseverity, $serviceid);
+      if ($subsubstmt->execute()) {
 ?>
-<p>Updated service <?=$serviceid?>.</p>
+<p>Updated service <?=htmlspecialchars($serviceid)?>.</p>
 <?php
       } else {
         writeToLog($link, 'Error updating service outage severity level', $_SESSION['id'], 'FERR');
-        writeToLog($link, $subsubsql, $_SESSION['id'], 'FERR');
+        writeToLog($link, $link->error, $_SESSION['id'], 'FERR');
 ?>
 <p>
-  Error updating service outage severity level: <?=$subsubsql?>
-  <br>
-  <?=$link->error?>
+  Error updating service outage severity level: <?=htmlspecialchars($link->error)?>
 </p>
 <?php
       }
+      $subsubstmt->close();
     }
   } else {
     writeToLog($link, 'Error updating incident update message', $_SESSION['id'], 'FERR');
-    writeToLog($link, $subsql, $_SESSION['id'], 'FERR');
+    writeToLog($link, $link->error, $_SESSION['id'], 'FERR');
 ?>
 <p>
-  Error adding incident update message: <?=$subsql?>
-  <br>
-  <?=$link->error?>
+  Error adding incident update message: <?=htmlspecialchars($link->error)?>
 </p>
 <?php
   }
+  $substmt->close();
 ?>
 <?php
 } else {
   writeToLog($link, 'Error while creating the incident', $_SESSION['id'], 'FERR');
-  writeToLog($link, $sql, $_SESSION['id'], 'FERR');
+  writeToLog($link, $link->error, $_SESSION['id'], 'FERR');
 ?>
 <p>
-  Error while creating the incident: <?=$sql?>
-  <br>
-  <?=$link->error?>
+  Error while creating the incident: <?=htmlspecialchars($link->error)?>
 </p>
 <?php
+  $stmt->close();
 }
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
