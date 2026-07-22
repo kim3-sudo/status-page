@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1cae0fb3f3973c878239ef6f4dd2d313",
+    "content-hash": "af3413a2d0c638493edb7bdb5abcb2bf",
     "packages": [
         {
             "name": "chillerlan/php-qrcode",
@@ -537,16 +537,16 @@
         },
         {
             "name": "tinymce/tinymce",
-            "version": "8.6.0",
+            "version": "8.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tinymce/tinymce-dist.git",
-                "reference": "4ec295845c55ee20abd551c98bc42f1079c43c83"
+                "reference": "23137d1b2f95cdd68f304292685157ba090e7518"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tinymce/tinymce-dist/zipball/4ec295845c55ee20abd551c98bc42f1079c43c83",
-                "reference": "4ec295845c55ee20abd551c98bc42f1079c43c83",
+                "url": "https://api.github.com/repos/tinymce/tinymce-dist/zipball/23137d1b2f95cdd68f304292685157ba090e7518",
+                "reference": "23137d1b2f95cdd68f304292685157ba090e7518",
                 "shasum": ""
             },
             "type": "component",
@@ -590,9 +590,9 @@
                 "wysiwyg"
             ],
             "support": {
-                "source": "https://github.com/tinymce/tinymce-dist/tree/8.6.0"
+                "source": "https://github.com/tinymce/tinymce-dist/tree/8.8.0"
             },
-            "time": "2026-06-03T03:28:15+00:00"
+            "time": "2026-07-15T02:36:42+00:00"
         }
     ],
     "packages-dev": [],
