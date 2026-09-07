@@ -24,7 +24,7 @@
 // that they come from one place.
 
 if (!defined('SOFTWARE_VERSION')) {
-  define('SOFTWARE_VERSION', '1.1.0 (McCament)');
+  define('SOFTWARE_VERSION', '1.2.0 (Wilma)');
 }
 
 // DATABASE_VERSION tracks the schema/settings shape, independently of

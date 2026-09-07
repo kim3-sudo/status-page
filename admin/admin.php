@@ -22,7 +22,8 @@ writeToLog($link, 'Admin page accessed', $_SESSION['id']);
 require_once('../vendor/autoload.php');
 use OTPHP\TOTP;
 ?>
-<script src="../vendor/tinymce/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
+<link href="../assets/quill/quill.snow.css" rel="stylesheet">
+<script src="../assets/quill/quill.js"></script>
 <div class="d-flex flex-row" style="margin-bottom: 40px;" id="actions">
   <div class="d-flex flex-column flex-shrink-0 p-3 bg-light" style="width: 280px;">
     <ul class="list-unstyled ps-0">
@@ -102,20 +103,39 @@ include('pagemodals.php');
   ];
   const placeholderPattern = /\[[a-z/ ]*\?\]/;
   editors.forEach(({ selector, warning }) => {
-    tinymce.init({
-      selector: '#' + selector,
-      block_formats: 'Paragraph=p',
-      paste_as_text: true,
-      plugins: 'link autolink preview',
-      promotion: false,
-      license_key: 'gpl',
-      setup: (editor) => {
-        editor.on('change', () => {
-          const hasPlaceholder = placeholderPattern.test(tinymce.get(selector).getContent());
-          document.getElementById(warning).classList.toggle('d-block', hasPlaceholder);
-          document.getElementById(warning).classList.toggle('d-none', !hasPlaceholder);
-        });
-      }
+    const textarea = document.getElementById(selector);
+    const container = document.createElement('div');
+    textarea.insertAdjacentElement('afterend', container);
+
+    const quill = new Quill(container, {
+      theme: 'snow',
+      placeholder: textarea.placeholder || '',
+      modules: {
+        toolbar: [
+          ['bold', 'italic', 'underline'],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          [{ align: [] }],
+          ['link'],
+          ['clean'],
+        ],
+      },
+    });
+
+    // Mirrors TinyMCE's paste_as_text: true — strip formatting from pasted content.
+    quill.clipboard.addMatcher(Node.ELEMENT_NODE, (node, delta) => {
+      delta.ops = [{ insert: node.innerText || '' }];
+      return delta;
+    });
+
+    // Initial textarea value is authored as HTML (see plannedmaintenancemessage's
+    // embedded <a> tag), so parse it the same way TinyMCE would on init.
+    quill.clipboard.dangerouslyPasteHTML(textarea.value);
+
+    quill.on('text-change', () => {
+      textarea.value = quill.root.innerHTML;
+      const hasPlaceholder = placeholderPattern.test(quill.getText());
+      document.getElementById(warning).classList.toggle('d-block', hasPlaceholder);
+      document.getElementById(warning).classList.toggle('d-none', !hasPlaceholder);
     });
   });
 </script>
