@@ -1,20 +1,25 @@
 <?php
 /*
-    Status Page
-    Copyright (C) 2024 Sejin Kim
+  Status Page
+  Copyright 2026 Sejin Kim
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+  Permission is hereby granted, free of charge, to any person obtaining a copy of 
+  this software and associated documentation files (the “Software”), to deal in 
+  the Software without restriction, including without limitation the rights to 
+  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies 
+  of the Software, and to permit persons to whom the Software is furnished to do 
+  so, subject to the following conditions:
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+  The above copyright notice and this permission notice shall be included in all 
+  copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+  SOFTWARE.
 */
 ?>
 <?php require('_guard.php'); ?>
@@ -42,7 +47,7 @@ if (mysqli_num_rows($incidentresult) > 0) {
       </div>
       <div class="mb-3">
         <label for="existingincidentupdate" class="form-label">Incident Update<span class="required">*</span></label>
-        <textarea maxlength="2000" class="form-control tinymce" id="existingincidentupdate" name="existingincidentupdate" placeholder="We are investigating the issue with...">We have implemented a fix and have determined that the [issue?] has been resolved. Users who continue to have issues should contact the help desk for further assistance. We apologize for this disruption in service, and we appreciate your patience and understanding. We will continue to work and improve to make sure this doesn't happen again.</textarea>
+        <textarea maxlength="2000" class="form-control quill d-none" id="existingincidentupdate" name="existingincidentupdate" placeholder="We are investigating the issue with...">We have implemented a fix and have determined that the [issue?] has been resolved. Users who continue to have issues should contact the help desk for further assistance. We apologize for this disruption in service, and we appreciate your patience and understanding. We will continue to work and improve to make sure this doesn't happen again.</textarea>
         <div class="alert alert-warning d-none" role="alert" id="existingincidentplaceholderwarning">
           <b>WARNING: It appears you might have a placeholder in your incident description.</b><br>Placeholders are marked with square brackets and question marks, like [this?]. Did you replace all of the placeholders yet?
         </div>

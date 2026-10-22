@@ -1,20 +1,25 @@
 <?php
 /*
-    Status Page
-    Copyright (C) 2024 Sejin Kim
+  Status Page
+  Copyright 2026 Sejin Kim
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+  Permission is hereby granted, free of charge, to any person obtaining a copy of 
+  this software and associated documentation files (the “Software”), to deal in 
+  the Software without restriction, including without limitation the rights to 
+  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies 
+  of the Software, and to permit persons to whom the Software is furnished to do 
+  so, subject to the following conditions:
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+  The above copyright notice and this permission notice shall be included in all 
+  copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+  SOFTWARE.
 */
 require('_guard.php');
 include('../templates/_header.php');
@@ -22,7 +27,8 @@ writeToLog($link, 'Admin page accessed', $_SESSION['id']);
 require_once('../vendor/autoload.php');
 use OTPHP\TOTP;
 ?>
-<script src="../vendor/tinymce/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
+<link href="../assets/quill/quill.snow.css" rel="stylesheet">
+<script src="../assets/quill/quill.js"></script>
 <div class="d-flex flex-row" style="margin-bottom: 40px;" id="actions">
   <div class="d-flex flex-column flex-shrink-0 p-3 bg-light" style="width: 280px;">
     <ul class="list-unstyled ps-0">
@@ -102,20 +108,39 @@ include('pagemodals.php');
   ];
   const placeholderPattern = /\[[a-z/ ]*\?\]/;
   editors.forEach(({ selector, warning }) => {
-    tinymce.init({
-      selector: '#' + selector,
-      block_formats: 'Paragraph=p',
-      paste_as_text: true,
-      plugins: 'link autolink preview',
-      promotion: false,
-      license_key: 'gpl',
-      setup: (editor) => {
-        editor.on('change', () => {
-          const hasPlaceholder = placeholderPattern.test(tinymce.get(selector).getContent());
-          document.getElementById(warning).classList.toggle('d-block', hasPlaceholder);
-          document.getElementById(warning).classList.toggle('d-none', !hasPlaceholder);
-        });
-      }
+    const textarea = document.getElementById(selector);
+    const container = document.createElement('div');
+    textarea.insertAdjacentElement('afterend', container);
+
+    const quill = new Quill(container, {
+      theme: 'snow',
+      placeholder: textarea.placeholder || '',
+      modules: {
+        toolbar: [
+          ['bold', 'italic', 'underline'],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          [{ align: [] }],
+          ['link'],
+          ['clean'],
+        ],
+      },
+    });
+
+    // Mirrors TinyMCE's paste_as_text: true — strip formatting from pasted content.
+    quill.clipboard.addMatcher(Node.ELEMENT_NODE, (node, delta) => {
+      delta.ops = [{ insert: node.innerText || '' }];
+      return delta;
+    });
+
+    // Initial textarea value is authored as HTML (see plannedmaintenancemessage's
+    // embedded <a> tag), so parse it the same way TinyMCE would on init.
+    quill.clipboard.dangerouslyPasteHTML(textarea.value);
+
+    quill.on('text-change', () => {
+      textarea.value = quill.root.innerHTML;
+      const hasPlaceholder = placeholderPattern.test(quill.getText());
+      document.getElementById(warning).classList.toggle('d-block', hasPlaceholder);
+      document.getElementById(warning).classList.toggle('d-none', !hasPlaceholder);
     });
   });
 </script>
