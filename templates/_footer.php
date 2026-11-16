@@ -49,22 +49,7 @@ $privacy     = getSetting($db, 'privacy_policy_link');
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
-    <script>
-      // Enable tooltips for all tooltip triggers
-      let tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-      tooltipTriggerList.forEach((el) => {new bootstrap.Tooltip(el);});
-
-      // Search: a group stays open when any of its services matches the query.
-      // Every service in the group is checked, not just the first.
-      function evaluatesearch() {
-        const query = document.getElementById("accordionsearchbar").value.trim().toLowerCase();
-        document.querySelectorAll('.accordion-collapse').forEach((panel) => {
-          const headings = Array.from(panel.querySelectorAll('.servicehead'));
-          const matches = headings.some((heading) => (heading.textContent || '').toLowerCase().includes(query));
-          panel.classList.toggle('collapse', !matches);
-        });
-      }
-    </script>
+    <script src="/assets/js/script.js"></script>
   </body>
   <!-- Well hello there. If you're reading this, perhaps you want a copy of this software? -->
   <!-- Find it on GitHub at https://github.com/kim3-sudo/status-page -->

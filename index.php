@@ -38,12 +38,11 @@ $now = time();
 $windowDays = max(0, (int)getSetting($db, 'incident_to_show_timerange'));
 $futureDays = max(0, (int)getSetting($db, 'plannedfuturedays'));
 $windowStart = $now - $windowDays * 86400;
-$today = epochToSiteLocal($now, $siteZone)->format('Y-m-d');
 
 $inputs = loadStatusInputs($db, $siteZone);
 $snapshot = buildStatusSnapshot($inputs, $now, $windowStart);
-$publicIncidents = incidentsForPage($inputs['incidents'], $today, $windowDays, $futureDays);
-$futureOnlyIncidents = $isAdmin ? incidentsForPage($inputs['incidents'], $today, $windowDays, $futureDays, true) : [];
+$publicIncidents = incidentsForPage($inputs['incidents'], $now, $windowDays, $futureDays);
+$futureOnlyIncidents = $isAdmin ? incidentsForPage($inputs['incidents'], $now, $windowDays, $futureDays, true) : [];
 
 $banners = [
   'MAJ' => ['class' => 'text-danger',  'icon' => 'fa-triangle-exclamation', 'text' => 'Some systems experiencing major outages'],
@@ -57,6 +56,8 @@ $bannerIconClass = $banner['class'] === '' ? 'fa-regular' : 'fa-solid';
 
 $about = getSetting($db, 'about_this_site');
 $welcomeMessage = getSetting($db, 'welcome_message');
+// Keys the "don't show again" cookie to this exact text, so a new message shows again.
+$welcomeKey = substr(hash('sha256', $welcomeMessage), 0, 16);
 ?>
 <div class="bg-dark">
   <div class="container-sm">
@@ -103,7 +104,7 @@ $welcomeMessage = getSetting($db, 'welcome_message');
     <div class="row">
       <div class="col">
         <div id="accordionsearchbarcontainer">
-          <input type="search" id="accordionsearchbar" placeholder="Search services..." onkeyup="evaluatesearch()">
+          <input type="search" id="accordionsearchbar" placeholder="Search services...">
         </div>
         <div class="accordion py-4 m-2" id="statusparent">
 <?php
@@ -199,7 +200,7 @@ if ($publicIncidents === []) {
 </div>
 
 <?php if ($welcomeMessage !== ''): ?>
-<div class="modal fade" id="welcomemodal" tabindex="-1" aria-labelledby="welcomemodallabel" aria-hidden="true">
+<div class="modal fade" id="welcomemodal" tabindex="-1" aria-labelledby="welcomemodallabel" aria-hidden="true" data-welcome-key="<?=e($welcomeKey)?>">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -211,39 +212,10 @@ if ($publicIncidents === []) {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-secondary" onclick="dontshowmessageagain()">Close and don't show again</button>
+        <button type="button" class="btn btn-secondary" data-welcome-hide>Don't show for 24 hours</button>
       </div>
     </div>
   </div>
 </div>
-<script type="text/javascript">
-  function getCookie(cname) {
-    let name = cname + "=";
-    let decodedCookie = decodeURIComponent(document.cookie);
-    let ca = decodedCookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-      let c = ca[i].trimStart();
-      if (c.indexOf(name) === 0) {
-        return c.substring(name.length, c.length);
-      }
-    }
-    return "";
-  }
-  window.onload = () => {
-    const welcomemodal = new bootstrap.Modal('#welcomemodal');
-    if (getCookie('hidewelcomemodal') === 'true') {
-      welcomemodal.hide();
-    } else {
-      welcomemodal.show();
-    }
-  };
-  function dontshowmessageagain() {
-    const modal = bootstrap.Modal.getInstance(document.getElementById('welcomemodal'));
-    modal.hide();
-    const d = new Date();
-    d.setTime(d.getTime() + (24 * 60 * 60 * 1000));
-    document.cookie = "hidewelcomemodal=true;expires=" + d.toUTCString() + ";path=/";
-  }
-</script>
 <?php endif; ?>
 <?php include('templates/_footer.php'); ?>

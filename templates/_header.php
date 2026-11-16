@@ -43,17 +43,12 @@ function renderUpdateContent($description) {
 <!-- Software version <?=getSetting($db, 'software_version')?> -->
 <!-- Database version <?=getSetting($db, 'database_version')?> -->
 <?php
+// The tag is configured in assets/js/script.js from the data-ga-id attribute on <body>.
 $ga_id = getSetting($db, 'ga_measurement_id');
 if ($ga_id != ''):
 ?>
 <!-- Google tag (gtag.js) -->
-<script async src="https://googletagmanager.com/gtag/js?id=<?=e($ga_id)?>"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', '<?=e($ga_id)?>');
-</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=<?=e($ga_id)?>"></script>
 <?php else: ?>
 <!-- No Google tag detected in system configuration -->
 <?php endif; ?>
@@ -72,7 +67,7 @@ if ($meta_desc != ''):
   <link rel="stylesheet" href="/assets/fontawesome/css/solid.css">
   <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
-<body class="d-flex flex-column h-100 bg-light">
+<body class="d-flex flex-column h-100 bg-light"<?php if (!empty($ga_id)): ?> data-ga-id="<?=e($ga_id)?>"<?php endif; ?>>
   <header class="bg-dark p-5 d-flex flex-wrap align-items-center justify-content-center justify-content-md-between">
     <?php $org_name = getSetting($db, 'footer_org'); ?>
     <a href="/">

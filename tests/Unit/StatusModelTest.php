@@ -231,52 +231,106 @@ final class StatusModelTest extends TestCase
 
     // --- incident list ---------------------------------------------------
 
-    private function listed(int $id, string $date): array
+    private const LIST_NOW = 1_000_000_000;
+    private const DAY = 86400;
+
+    /** An incident whose start is $startDays from NOW (null for no updates). */
+    private function listed(int $id, ?float $startDays, string $status = 'INV', array $updates = []): array
     {
-        return ['id' => $id, 'date' => $date, 'description' => "i$id", 'status' => 'INV',
-                'status_name' => 'Investigating', 'updates' => []];
+        return [
+            'id' => $id,
+            'start' => $startDays === null ? null : self::LIST_NOW + (int)($startDays * self::DAY),
+            'description' => "i$id",
+            'status' => $status,
+            'status_name' => '',
+            'services' => [],
+            'updates' => $updates,
+        ];
     }
 
-    public function testPublicListUsesTheDisplayWindow(): void
+    private function ids(array $incidents): array
+    {
+        return array_column($incidents, 'id');
+    }
+
+    public function testResolvedIncidentsFollowTheDisplayWindow(): void
+    {
+        // Window: 5 days back, 2 days ahead.
+        $incidents = [
+            $this->listed(1, -6, 'RES'),  // older than the window: out
+            $this->listed(2, -5, 'RES'),  // on the oldest day: in
+            $this->listed(3, 0, 'RES'),
+            $this->listed(4, 2, 'RES'),   // on the horizon: in
+            $this->listed(5, 3, 'RES'),   // beyond the horizon: out
+        ];
+
+        $this->assertSame([4, 3, 2], $this->ids(incidentsForPage($incidents, self::LIST_NOW, 5, 2)));
+    }
+
+    public function testOpenIncidentsAreNeverHiddenByAge(): void
     {
         $incidents = [
-            $this->listed(1, '2026-07-04'), // 6 days back: outside a 5-day window
-            $this->listed(2, '2026-07-05'), // on the oldest day: in
-            $this->listed(3, '2026-07-10'),
-            $this->listed(4, '2026-07-12'), // on the newest day: in
-            $this->listed(5, '2026-07-13'), // beyond the horizon: out
+            $this->listed(1, -100, 'INV'),
+            $this->listed(2, -100, 'RES'),
         ];
-        $public = incidentsForPage($incidents, '2026-07-10', 5, 2);
 
-        $this->assertSame([4, 3, 2], array_column($public, 'id'));
+        $this->assertSame([1], $this->ids(incidentsForPage($incidents, self::LIST_NOW, 5, 2)));
+    }
+
+    public function testOpenIncidentsComeBeforeResolvedOnes(): void
+    {
+        $incidents = [
+            $this->listed(1, -1, 'RES'),
+            $this->listed(2, -3, 'INV'),
+            $this->listed(3, 0, 'RES'),
+        ];
+
+        $this->assertSame([2, 3, 1], $this->ids(incidentsForPage($incidents, self::LIST_NOW, 5, 2)));
+    }
+
+    public function testOrderIsByStartTimeNotByInsertionOrder(): void
+    {
+        $incidents = [
+            $this->listed(1, -2, 'RES'),
+            $this->listed(2, -0.5, 'RES'),
+            $this->listed(3, -1, 'RES'),
+        ];
+
+        $this->assertSame([2, 3, 1], $this->ids(incidentsForPage($incidents, self::LIST_NOW, 5, 2)));
+    }
+
+    public function testSameStartIncidentsAreNewestIdFirst(): void
+    {
+        $incidents = [$this->listed(1, 0), $this->listed(2, 0)];
+
+        $this->assertSame([2, 1], $this->ids(incidentsForPage($incidents, self::LIST_NOW, 5, 2)));
     }
 
     public function testAdminExtrasAreOnlyBeyondTheHorizon(): void
     {
-        $incidents = [$this->listed(1, '2026-07-12'), $this->listed(2, '2026-07-13'), $this->listed(3, '2026-08-01')];
-        $extras = incidentsForPage($incidents, '2026-07-10', 5, 2, true);
+        $incidents = [
+            $this->listed(1, 1, 'RES'),
+            $this->listed(2, 3, 'INV'),
+            $this->listed(3, 40, 'INV'),
+        ];
 
-        $this->assertSame([3, 2], array_column($extras, 'id'));
+        $this->assertSame([3, 2], $this->ids(incidentsForPage($incidents, self::LIST_NOW, 5, 2, true)));
+    }
+
+    public function testIncidentsWithoutUpdatesAreNotListed(): void
+    {
+        $this->assertSame([], incidentsForPage([$this->listed(1, null)], self::LIST_NOW, 5, 2));
     }
 
     public function testListedUpdatesAreNewestFirst(): void
     {
-        $incident = $this->listed(1, '2026-07-10');
-        $incident['updates'] = [
+        $incident = $this->listed(1, 0, 'INV', [
             ['ts' => 100, 'status' => 'INV', 'status_name' => '', 'description' => ''],
             ['ts' => 300, 'status' => 'RES', 'status_name' => '', 'description' => ''],
             ['ts' => 200, 'status' => 'MON', 'status_name' => '', 'description' => ''],
-        ];
-        $listed = incidentsForPage([$incident], '2026-07-10', 5, 2);
+        ]);
+        $listed = incidentsForPage([$incident], self::LIST_NOW, 5, 2);
 
         $this->assertSame([300, 200, 100], array_column($listed[0]['updates'], 'ts'));
-    }
-
-    public function testSameDayIncidentsAreNewestIdFirst(): void
-    {
-        $incidents = [$this->listed(1, '2026-07-10'), $this->listed(2, '2026-07-10')];
-        $listed = incidentsForPage($incidents, '2026-07-10', 5, 2);
-
-        $this->assertSame([2, 1], array_column($listed, 'id'));
     }
 }

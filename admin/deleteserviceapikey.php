@@ -47,7 +47,7 @@ if (isset($_POST['keyid'])) {
 }
 ?>
         <a href="./" class="btn btn-primary">Admin Portal</a>
-        <button class="btn btn-secondary" onclick="history.back()">Go Back</button>
+        <button class="btn btn-secondary" data-history-back>Go Back</button>
       </div>
     </div>
   </div>

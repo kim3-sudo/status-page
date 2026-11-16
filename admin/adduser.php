@@ -64,7 +64,7 @@ if ($db->tryExecute('INSERT INTO users (user_first_name, user_last_name, user_em
 }
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
-      <button class="btn btn-secondary" onclick="history.back()">Go Back</button>
+      <button class="btn btn-secondary" data-history-back>Go Back</button>
       </div>
     </div>
   </div>

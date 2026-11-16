@@ -45,7 +45,7 @@ if ((int)$db->value('SELECT COUNT(*) FROM incident_service WHERE service_id = ?'
 }
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
-      <button class="btn btn-secondary" onclick="history.back()">Go Back</button>
+      <button class="btn btn-secondary" data-history-back>Go Back</button>
       </div>
     </div>
   </div>

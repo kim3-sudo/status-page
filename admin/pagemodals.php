@@ -357,7 +357,7 @@ include('_pesstyleguide.php');
     </div>
   </div>
 </div>
-<div class="modal fade" id="twofactorwarning" tabindex="-1" aria-labelledby="twofactorwarninglabel" aria-hidden="true">
+<div class="modal fade" id="twofactorwarning" tabindex="-1" aria-labelledby="twofactorwarninglabel" aria-hidden="true" data-show-on-load="<?=(isset($_SESSION['twofactornotenrolled']) && $_SESSION['twofactornotenrolled'] == 1) ? 'true' : 'false'?>">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">

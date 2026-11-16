@@ -71,7 +71,7 @@ if ($_POST['totpenabled'] == 1) {
     echo '<p>Failed to remove old secrets!</p>';
   }
   echo '<a href="./" class="btn btn-primary">Admin Portal</a>';
-  echo '<button class="btn btn-secondary" onclick="history.back()">Go Back</button>';
+  echo '<button class="btn btn-secondary" data-history-back>Go Back</button>';
 }
 ?>
       </div>

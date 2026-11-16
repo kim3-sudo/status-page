@@ -44,7 +44,7 @@ if ($db->tryExecute('UPDATE servicegroups SET servicegroup_name = ? WHERE servic
 }
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
-      <button class="btn btn-secondary" onclick="history.back()">Go Back</button>
+      <button class="btn btn-secondary" data-history-back>Go Back</button>
       </div>
     </div>
   </div>

@@ -128,42 +128,65 @@ function currentServiceStates(array $incidents, int $now): array
 }
 
 /**
- * Pure. The incidents to list on the page, newest first.
+ * Pure. The incidents to list on the page, in reading order: open incidents first,
+ * then resolved ones, each by start time, newest first (ties: newer id first).
  *
- * Public list: dated from $pastDays ago through $futureDays ahead of $today.
- * Admin-only extras ($beyondHorizonOnly): dated after that horizon, so they
- * don't repeat the public list.
+ * Dates come from each incident's start (its earliest update), not from the
+ * incident_date column. An incident is listed when it starts no later than the public
+ * horizon, $futureDays after $now, and either it is still open or it started within
+ * $pastDays before $now. An open incident is never hidden because it is old.
+ * Incidents with no updates are not listed.
  *
- * @param list<array{id:int, date:string, description:string, status:string,
- *                   status_name:string, updates:list<array{ts:int, status:string,
+ * With $beyondHorizonOnly, returns only the incidents starting after the horizon.
+ * These are the admin-only extras.
+ *
+ * @param list<array{id:int, start:?int, status:string, updates:list<array{ts:int, status:string,
  *                   status_name:string, description:string}>}> $incidents
  * @return list<array<string, mixed>>  each updates list sorted newest first
  */
 function incidentsForPage(
     array $incidents,
-    string $today,
+    int $now,
     int $pastDays,
     int $futureDays,
     bool $beyondHorizonOnly = false
 ): array {
-    $base = new DateTimeImmutable($today);
-    $oldest = $base->modify('-' . $pastDays . ' days')->format('Y-m-d');
-    $newest = $base->modify('+' . $futureDays . ' days')->format('Y-m-d');
+    $horizon = $now + $futureDays * 86400;
+    $floor = $now - $pastDays * 86400;
 
-    $picked = array_filter($incidents, function (array $incident) use ($oldest, $newest, $beyondHorizonOnly): bool {
-        $date = $incident['date'];
-        return $beyondHorizonOnly
-            ? $date > $newest
-            : ($date >= $oldest && $date <= $newest);
-    });
-
-    foreach ($picked as &$incident) {
-        usort($incident['updates'], fn (array $a, array $b): int => $b['ts'] <=> $a['ts']);
+    $picked = [];
+    foreach ($incidents as $incident) {
+        $start = $incident['start'];
+        if ($start === null) {
+            continue;
+        }
+        if ($beyondHorizonOnly) {
+            if ($start > $horizon) {
+                $picked[] = $incident;
+            }
+            continue;
+        }
+        if ($start > $horizon) {
+            continue;
+        }
+        $open = $incident['status'] !== 'RES';
+        if ($open || $start >= $floor) {
+            $picked[] = $incident;
+        }
     }
-    unset($incident);
 
-    usort($picked, fn (array $a, array $b): int => [$b['date'], $b['id']] <=> [$a['date'], $a['id']]);
+    foreach ($picked as $i => $incident) {
+        usort($incident['updates'], fn (array $a, array $b): int => $b['ts'] <=> $a['ts']);
+        $picked[$i] = $incident;
+    }
+    usort($picked, fn (array $a, array $b): int => incidentListOrderKey($a) <=> incidentListOrderKey($b));
     return array_values($picked);
+}
+
+/** Sort key for incidentsForPage(): open before resolved, then newest start, then newest id. */
+function incidentListOrderKey(array $incident): array
+{
+    return [$incident['status'] === 'RES' ? 1 : 0, -$incident['start'], -$incident['id']];
 }
 
 /**
@@ -212,17 +235,18 @@ function loadStatusInputs(Db $db, DateTimeZone $siteZone): array
     }
 
     $incidents = [];
-    foreach ($db->all('SELECT incident_id, incident_date, incident_description, incident_status_short FROM incident') as $row) {
+    foreach ($db->all('SELECT incident_id, incident_description, incident_status_short FROM incident') as $row) {
         $id = (int)$row['incident_id'];
         $status = (string)$row['incident_status_short'];
+        $updates = $updatesByIncident[$id] ?? [];
         $incidents[] = [
             'id' => $id,
-            'date' => (string)$row['incident_date'],
+            'start' => $updates === [] ? null : min(array_column($updates, 'ts')),
             'description' => (string)$row['incident_description'],
             'status' => $status,
             'status_name' => $statusNames[$status] ?? '',
             'services' => $membership[$id] ?? [],
-            'updates' => $updatesByIncident[$id] ?? [],
+            'updates' => $updates,
         ];
     }
 

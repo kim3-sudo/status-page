@@ -11,14 +11,15 @@
 
 if (!function_exists('renderIncidentList')) {
   /**
-   * @param list<array<string, mixed>> $incidents from incidentsForPage()
+   * @param list<array<string, mixed>> $incidents from incidentsForPage(), in display order
    * @param bool $beyondHorizon true for the admin-only extras dated past the public horizon
    */
   function renderIncidentList(array $incidents, bool $beyondHorizon, DateTimeZone $zone): void {
     foreach ($incidents as $incident) {
       // Resolved incidents show a check; anything else shows an exclamation mark.
       $icon = $incident['status'] === 'RES' ? 'fa-check-circle' : 'fa-exclamation-circle';
-      $headingDate = (new DateTimeImmutable($incident['date']))->format('M. jS, Y');
+      // Dated by when the incident started, in the site's timezone.
+      $headingDate = epochToSiteLocal($incident['start'], $zone)->format('M. jS, Y');
 ?>
           <div class="relative incidents-monthly__item pt-2 pb-3 line">
             <p class="incidents-monthly__item__month text-black dark:text-white group-hover:opacity-100 ">
