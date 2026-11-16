@@ -1,3 +1,4 @@
+<?php if (!defined('ADMIN_PORTAL')) { http_response_code(404); exit; } ?>
 <?php
 /*
   Status Page
@@ -24,7 +25,7 @@
 ?>
 <?php require('_guard.php'); ?>
   <div class="container collapse notransition" id="manageservices" data-bs-parent="#actions">
-    <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
+    <h6 class="my-3">Welcome, <?=e($_SESSION['firstname'])?>!</h6>
     <h1 class="my-3">Manage services</h1>
     <form action="addservice.php" method="post">
       <div class="mb-3">
@@ -37,10 +38,10 @@
           <option disabled selected>Select one...</option>
 <?php
 $servicegroupsql = 'SELECT servicegroup_id, servicegroup_name FROM servicegroups ORDER BY servicegroup_name ASC';
-$servicegroupresult = mysqli_query($link, $servicegroupsql);
-if (mysqli_num_rows($servicegroupresult) > 0) {
-  while($servicegrouprow = mysqli_fetch_assoc($servicegroupresult)) {
-    echo '<option value="' . $servicegrouprow['servicegroup_id'] . '">' . $servicegrouprow['servicegroup_name'] . '</option>';
+$servicegroupresult = $db->all($servicegroupsql);
+if ($servicegroupresult !== []) {
+  foreach ($servicegroupresult as $servicegrouprow) {
+    echo '<option value="' . e($servicegrouprow['servicegroup_id']) . '">' . e($servicegrouprow['servicegroup_name']) . '</option>';
   }
 } else {
   echo '<option disabled>No service groups fetched</option>';
@@ -70,14 +71,14 @@ if (mysqli_num_rows($servicegroupresult) > 0) {
       <tbody>
 <?php
 $servicesql = 'SELECT service_id, service_name, servicegroups.servicegroup_name FROM services INNER JOIN servicegroups ON servicegroups.servicegroup_id = services.servicegroup_id ORDER BY servicegroups.servicegroup_name ASC, services.service_name ASC';
-$serviceresult = mysqli_query($link, $servicesql);
-if (mysqli_num_rows($serviceresult) > 0) {
-  while ($servicerow = mysqli_fetch_assoc($serviceresult)) {
+$serviceresult = $db->all($servicesql);
+if ($serviceresult !== []) {
+  foreach ($serviceresult as $servicerow) {
 ?>
 <tr>
-  <td><button class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#servicemodal<?=$servicerow['service_id']?>"><?=$servicerow['service_name']?></button></td>
-  <td><?=$servicerow['servicegroup_name']?></td>
-  <td><button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#servicemodal<?=$servicerow['service_id']?>delete"><i class="fa-solid fa-xmark text-danger"></i></button></td>
+  <td><button class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#servicemodal<?=e($servicerow['service_id'])?>"><?=e($servicerow['service_name'])?></button></td>
+  <td><?=e($servicerow['servicegroup_name'])?></td>
+  <td><button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#servicemodal<?=e($servicerow['service_id'])?>delete"><i class="fa-solid fa-xmark text-danger"></i></button></td>
 </tr>
 <?php
   }

@@ -27,7 +27,7 @@ require('_guard.php');
 include('../templates/_header.php');
 require_once('../vendor/autoload.php');
 use OTPHP\TOTP;
-writeToLog($link, 'TOTP settings were changed', $_SESSION['id']);
+writeToLog($db, 'TOTP settings were changed', $_SESSION['id']);
 ?>
 <div class="d-flex flex-row">
   <div class="container">
@@ -35,36 +35,30 @@ writeToLog($link, 'TOTP settings were changed', $_SESSION['id']);
       <div class="col">
 <?php
 if ($_POST['verifytotp'] && TOTP::createFromSecret($_POST['otpsecret'])->verify($_POST['verifytotp'])) {
-  writeToLog($link, 'TOTP enrollment event, TOTP verified', $_SESSION['id']);
-  writeToLog($link, 'Setting the TOTP flag true in the user ledger', $_SESSION['id']);
-  $stmt = $link->prepare('UPDATE users SET user_totpenabled = 1 WHERE user_id = ?');
-  $stmt->bind_param('i', $_SESSION['id']);
-  if ($stmt->execute()) {
-    writeToLog($link, 'TOTP flag was set', $_SESSION['id']);
+  writeToLog($db, 'TOTP enrollment event, TOTP verified', $_SESSION['id']);
+  writeToLog($db, 'Setting the TOTP flag true in the user ledger', $_SESSION['id']);
+  if ($db->tryExecute('UPDATE users SET user_totpenabled = ? WHERE user_id = ?', [1, (int)$_SESSION['id']])) {
+    writeToLog($db, 'TOTP flag was set', $_SESSION['id']);
     echo '<p>TOTP was enabled.</p>';
   } else {
-    writeToLog($link, 'Failed to set TOTP flag', $_SESSION['id'], 'WARN');
+    writeToLog($db, 'Failed to set TOTP flag', $_SESSION['id'], 'WARN');
     echo '<p>Failed to enable TOTP!</p>';
   }
-  $stmt->close();
-  writeToLog($link, 'Writing the TOTP client secret to the user ledger', $_SESSION['id']);
+  writeToLog($db, 'Writing the TOTP client secret to the user ledger', $_SESSION['id']);
   $otpsecret = $_POST['otpsecret'];
-  $stmt = $link->prepare('UPDATE users SET user_totpsecret = ? WHERE user_id = ?');
-  $stmt->bind_param('si', $otpsecret, $_SESSION['id']);
-  if ($stmt->execute()) {
-    writeToLog($link, 'TOTP client secret was written', $_SESSION['id']);
+  if ($db->tryExecute('UPDATE users SET user_totpsecret = ? WHERE user_id = ?', [$otpsecret, (int)$_SESSION['id']])) {
+    writeToLog($db, 'TOTP client secret was written', $_SESSION['id']);
     echo '<p>TOTP verification was successful, you are now enrolled in two-factor authentication.</p>';
   } else {
-    writeToLog($link, 'Failed to write the TOTP client secret', $_SESSION['id'], 'WARN');
+    writeToLog($db, 'Failed to write the TOTP client secret', $_SESSION['id'], 'WARN');
     echo '<p>Failed to save your TOTP client secret!</p>';
   }
-  $stmt->close();
 } else {
   echo '<p>TOTP was not enabled, code could not be verified.</p>';
 }
 ?>
         <a href="./" class="btn btn-primary">Admin Portal</a>
-        <button class="btn btn-secondary" onclick="history.back()">Go Back</a>
+        <button class="btn btn-secondary" data-history-back>Go Back</button>
       </div>
     </div>
   </div>

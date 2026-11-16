@@ -15,9 +15,17 @@ use PHPUnit\Framework\TestCase;
  */
 final class AdminSqlInjectionTest extends TestCase
 {
+    /**
+     * Request-handling entry points: admin pages plus the JSON API endpoints.
+     * The API is authenticated by key, not by session, so it is at least as
+     * exposed to injection as the admin pages.
+     */
     private function adminPhpFiles(): array
     {
-        return glob(PROJECT_ROOT . '/admin/*.php');
+        return array_merge(
+            glob(PROJECT_ROOT . '/admin/*.php'),
+            glob(PROJECT_ROOT . '/api/*/index.php')
+        );
     }
 
     public function testNoMysqliRealEscapeStringRemainsInAdmin(): void
@@ -29,6 +37,31 @@ final class AdminSqlInjectionTest extends TestCase
                 $contents,
                 basename($file) . ' should use a prepared statement instead of manual escaping'
             );
+        }
+    }
+
+    public function testNoMysqliOrLegacyHandleRemainsInRequestHandlers(): void
+    {
+        // Every request handler goes through the Db class. A leftover mysqli call
+        // or $link handle means a page was missed when the code moved to PDO.
+        $files = array_merge(
+            $this->adminPhpFiles(),
+            glob(PROJECT_ROOT . '/*.php'),
+            glob(PROJECT_ROOT . '/pes/*.php'),
+            glob(PROJECT_ROOT . '/saml/*.php'),
+            glob(PROJECT_ROOT . '/lib/*.php'),
+            glob(PROJECT_ROOT . '/templates/*.php')
+        );
+        $forbidden = ['/mysqli/', '/\$link\b/', '/bind_param\(/', '/get_result\(/', '/insert_id/'];
+        foreach ($files as $file) {
+            $contents = file_get_contents($file);
+            foreach ($forbidden as $pattern) {
+                $this->assertDoesNotMatchRegularExpression(
+                    $pattern,
+                    $contents,
+                    basename($file) . ' still uses the mysqli API: ' . $pattern
+                );
+            }
         }
     }
 

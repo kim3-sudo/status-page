@@ -1,3 +1,4 @@
+<?php if (!defined('ADMIN_PORTAL')) { http_response_code(404); exit; } ?>
 <?php
 /*
   Status Page
@@ -24,7 +25,7 @@
 ?>
 <?php require('_guard.php'); ?>
 <div class="container collapse notransition" id="systemsettings" data-bs-parent="#actions">
-  <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
+  <h6 class="my-3">Welcome, <?=e($_SESSION['firstname'])?>!</h6>
   <h1 class="my-3">System Settings</h1>
   <div class="rounded border p-3 my-2">
     <p>General System Settings</p>
@@ -33,9 +34,9 @@
       <label for="organizationupdate" class="form-label">Organization</label>
       <div class="input-group">
 <?php
-$organization = getSetting($link, 'footer_org');
+$organization = getSetting($db, 'footer_org');
 ?>
-        <input type="text" id="organizationupdate" name="setting_value" class="form-control" placeholder="Organization" aria-label="Organization" aria-describedby="Organization" value="<?=$organization?>">
+        <input type="text" id="organizationupdate" name="setting_value" class="form-control" placeholder="Organization" aria-label="Organization" aria-describedby="Organization" value="<?=e($organization)?>">
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
       <p class="text-muted mb-3"><small>This text is used for the copyright owner and some other filler texts.</small></p>
@@ -45,9 +46,9 @@ $organization = getSetting($link, 'footer_org');
       <label for="orglinkupdate" class="form-label">Organization Webpage/Link</label>
       <div class="input-group">
 <?php
-$orglink = getSetting($link, 'org_link');
+$orglink = getSetting($db, 'org_link');
 ?>
-        <input type="text" id="orglinkupdate" name="setting_value" class="form-control" placeholder="Organization Link" aria-label="Organization Link" aria-describedby="Organization Link" value="<?=$orglink?>">
+        <input type="text" id="orglinkupdate" name="setting_value" class="form-control" placeholder="Organization Link" aria-label="Organization Link" aria-describedby="Organization Link" value="<?=e($orglink)?>">
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
       <p class="text-muted mb-3"><small>This address is linked to from the footer bar when your organization name is clicked.</small></p>
@@ -57,9 +58,9 @@ $orglink = getSetting($link, 'org_link');
       <label for="feedbacklinkupdate" class="form-label">Feedback Webpage/Link</label>
       <div class="input-group">
 <?php
-$feedbacklink = getSetting($link, 'feedback_link');
+$feedbacklink = getSetting($db, 'feedback_link');
 ?>
-        <input type="text" id="feedbacklinkupdate" name="setting_value" class="form-control" placeholder="Feedback Link" aria-label="Feedback Link" aria-describedby="Feedback Link" value="<?=$feedbacklink?>">
+        <input type="text" id="feedbacklinkupdate" name="setting_value" class="form-control" placeholder="Feedback Link" aria-label="Feedback Link" aria-describedby="Feedback Link" value="<?=e($feedbacklink)?>">
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
       <p class="text-muted mb-3"><small>This address is linked to under Feedback in the footer. It should either be a web address or a <code>mailto:</code>.</small></p>
@@ -69,9 +70,9 @@ $feedbacklink = getSetting($link, 'feedback_link');
       <label for="privacypolicylinkupdate" class="form-label">Privacy Policy Webpage/Link</label>
       <div class="input-group">
 <?php
-$privacypolicylink = getSetting($link, 'privacy_policy_link');
+$privacypolicylink = getSetting($db, 'privacy_policy_link');
 ?>
-        <input type="text" id="privacypolicylinkupdate" name="setting_value" class="form-control" placeholder="Privacy Policy Link" aria-label="Privacy Policy Link" aria-describedby="Privacy Policy Link" value="<?=$privacypolicylink?>">
+        <input type="text" id="privacypolicylinkupdate" name="setting_value" class="form-control" placeholder="Privacy Policy Link" aria-label="Privacy Policy Link" aria-describedby="Privacy Policy Link" value="<?=e($privacypolicylink)?>">
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
       <p class="text-muted mb-3"><small>This address is linked to under Privacy Policy in the footer.</small></p>
@@ -81,9 +82,9 @@ $privacypolicylink = getSetting($link, 'privacy_policy_link');
       <label for="headerimageupdate" class="form-label">Header Image URL</label>
       <div class="input-group">
 <?php
-$headerimage = getSetting($link, 'header_image_location');
+$headerimage = getSetting($db, 'header_image_location');
 ?>
-        <input type="text" id="headerimageupdate" name="setting_value" class="form-control" placeholder="Header Image URL" aria-label="Header Image URL" aria-describedby="Header Image URL" value="<?=$headerimage?>">
+        <input type="text" id="headerimageupdate" name="setting_value" class="form-control" placeholder="Header Image URL" aria-label="Header Image URL" aria-describedby="Header Image URL" value="<?=e($headerimage)?>">
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
       <p class="text-muted mb-3"><small>This address should point to a logo or logotype for your organization. Valid extensions include <code>png</code>, <code>webp</code>, and <code>jpg</code>.</small></p>
@@ -93,9 +94,9 @@ $headerimage = getSetting($link, 'header_image_location');
       <label for="gethelpupdate" class="form-label">Get Help Destination</label>
       <div class="input-group">
 <?php
-$gethelpdestination = getSetting($link, 'get_help_destination');
+$gethelpdestination = getSetting($db, 'get_help_destination');
 ?>
-        <input type="text" id="gethelpupdate" name="setting_value" class="form-control" placeholder="Get Help Destination" aria-label="Get Help Destination" aria-describedby="Get Help Destination" value="<?=$gethelpdestination?>">
+        <input type="text" id="gethelpupdate" name="setting_value" class="form-control" placeholder="Get Help Destination" aria-label="Get Help Destination" aria-describedby="Get Help Destination" value="<?=e($gethelpdestination)?>">
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
       <p class="text-muted mb-3"><small>This address is linked to the 'Get Help' button in the header.</small></p>
@@ -105,9 +106,9 @@ $gethelpdestination = getSetting($link, 'get_help_destination');
       <label for="pesdescriptionupdate" class="form-label">PES Description</label>
       <div class="input-group">
 <?php
-$pesdescription = getSetting($link, 'pes_description');
+$pesdescription = getSetting($db, 'pes_description');
 ?>
-        <input type="text" id="pesdescriptionupdate" name="setting_value" class="form-control" placeholder="PES Description" aria-label="PES Description" aria-describedby="PES Description" value="<?=$pesdescription?>">
+        <input type="text" id="pesdescriptionupdate" name="setting_value" class="form-control" placeholder="PES Description" aria-label="PES Description" aria-describedby="PES Description" value="<?=e($pesdescription)?>">
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
       <p class="text-muted mb-3"><small>This text is printed as a description for the post-event summary page.</small></p>
@@ -117,9 +118,9 @@ $pesdescription = getSetting($link, 'pes_description');
       <label for="aboutthissiteupdate" class="form-label">About This Site</label>
       <div class="input-group">
 <?php
-$aboutthissite = getSetting($link, 'about_this_site');
+$aboutthissite = getSetting($db, 'about_this_site');
 ?>
-        <input type="text" id="aboutthissiteupdate" name="setting_value" class="form-control" placeholder="About this site" aria-label="About this site" aria-describedby="About this site" value="<?=$aboutthissite?>">
+        <input type="text" id="aboutthissiteupdate" name="setting_value" class="form-control" placeholder="About this site" aria-label="About this site" aria-describedby="About this site" value="<?=e($aboutthissite)?>">
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
       <p class="text-muted mb-3"><small>This text is printed on the status page as a reference for readers. If left blank, this section will not print.</small></p>
@@ -129,9 +130,9 @@ $aboutthissite = getSetting($link, 'about_this_site');
       <label for="metadescriptionupdate" class="form-label">Meta Description</label>
       <div class="input-group">
 <?php
-$metadescription = getSetting($link, 'meta_description');
+$metadescription = getSetting($db, 'meta_description');
 ?>
-        <input type="text" id="metadescriptionupdate" name="setting_value" class="form-control" placeholder="Meta Description" aria-label="Meta Description" aria-describedby="Meta description" value="<?=$metadescription?>">
+        <input type="text" id="metadescriptionupdate" name="setting_value" class="form-control" placeholder="Meta Description" aria-label="Meta Description" aria-describedby="Meta description" value="<?=e($metadescription)?>">
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
       <p class="text-muted mb-3"><small>This text is provided for search engines as the site description in a meta tag. If left blank, no description will be provided in the document head.</small></p>
@@ -141,9 +142,9 @@ $metadescription = getSetting($link, 'meta_description');
       <label for="gameasurementidupdate" class="form-label">Google Analytics Measurement ID</label>
       <div class="input-group">
 <?php
-$gameasurementid = getSetting($link, 'ga_measurement_id');
+$gameasurementid = getSetting($db, 'ga_measurement_id');
 ?>
-        <input type="text" id="gameasurementidupdate" name="setting_value" class="form-control" placeholder="GA Measurement ID" aria-label="GA Measurement ID" aria-describedby="Google Analytics Measurement ID" value="<?=$gameasurementid?>">
+        <input type="text" id="gameasurementidupdate" name="setting_value" class="form-control" placeholder="GA Measurement ID" aria-label="GA Measurement ID" aria-describedby="Google Analytics Measurement ID" value="<?=e($gameasurementid)?>">
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
       <p class="text-muted mb-3"><small>Paste your Google Analytics measurement ID here. If you do not use Google Analytics, leave this blank.</small></p>
@@ -153,9 +154,9 @@ $gameasurementid = getSetting($link, 'ga_measurement_id');
       <label for="welcomemessageupdate" class="form-label">Welcome Message</label>
       <div class="input-group">
 <?php
-$welcomemessage = getSetting($link, 'welcome_message');
+$welcomemessage = getSetting($db, 'welcome_message');
 ?>
-        <input type="text" id="welcomemessageupdate" name="setting_value" class="form-control" placeholder="Welcome Message" aria-label="Welcome Message" aria-describedby="Welcome Message" value="<?=$welcomemessage?>">
+        <input type="text" id="welcomemessageupdate" name="setting_value" class="form-control" placeholder="Welcome Message" aria-label="Welcome Message" aria-describedby="Welcome Message" value="<?=e($welcomemessage)?>">
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
       <p class="text-muted mb-3"><small>If this welcome message is set, a modal will open with the message text on status page load.</small></p>
@@ -166,7 +167,7 @@ $welcomemessage = getSetting($link, 'welcome_message');
       <div class="input-group">
         <select class="form-control" name="setting_value" id="timezoneupdate">
 <?php
-$activetimezone = getSetting($link, 'timezone');
+$activetimezone = getSetting($db, 'timezone');
 foreach (timezone_identifiers_list() as $timezonerow) {
   if ($activetimezone == $timezonerow) {
     echo '<option value="' . $timezonerow . '" selected>' . $timezonerow . '</option>';
@@ -179,13 +180,28 @@ foreach (timezone_identifiers_list() as $timezonerow) {
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
     </form>
+<?php if ((int)($_SESSION['suflag'] ?? 0) === 1): ?>
+    <form action="updatesettings.php" method="post">
+      <input type="hidden" name="setting_key" id="systemkey-audit_policy" value="audit_policy">
+      <label for="auditpolicyupdate" class="form-label">Audit logging</label>
+      <div class="input-group">
+<?php $activeaudit = getSetting($db, 'audit_policy') === 'soft' ? 'soft' : 'strict'; ?>
+        <select class="form-control" name="setting_value" id="auditpolicyupdate">
+          <option value="strict"<?=$activeaudit === 'strict' ? ' selected' : ''?>>Strict: stop the action if its audit entry cannot be written</option>
+          <option value="soft"<?=$activeaudit === 'soft' ? ' selected' : ''?>>Soft: carry on and record the failure in the server log</option>
+        </select>
+        <button class="btn btn-primary" type="submit">Submit</button>
+      </div>
+      <p class="text-muted mb-3"><small>Strict is the default and is recommended. Only superusers can change this. The change is recorded under the policy in force before it.</small></p>
+    </form>
+<?php endif; ?>
     <form action="updatesettings.php" method="post">
       <input type="hidden" name="setting_key" id="systemkey-plannedfuturedays" value="plannedfuturedays">
       <label for="plannedfuturedaysupdate" class="form-label">Planned Maintenance Preview Days</label>
       <div class="input-group">
         <select class="form-control" name="setting_value" id="plannedfuturedaysupdate">
 <?php
-$activeplannedfutureday = getSetting($link, 'plannedfuturedays');
+$activeplannedfutureday = getSetting($db, 'plannedfuturedays');
 foreach (array(1, 3, 7, 14, 30, 60) as $dayrange) {
   if ($dayrange == $activeplannedfutureday) {
     echo '<option value="' . $dayrange . '" selected>' . $dayrange . ' days</option>';
@@ -205,7 +221,7 @@ foreach (array(1, 3, 7, 14, 30, 60) as $dayrange) {
       <div class="input-group">
         <select class="form-control" name="setting_value" id="incidenttoshowtimerangeupdate">
 <?php
-$activetimerange = getSetting($link, 'incident_to_show_timerange');
+$activetimerange = getSetting($db, 'incident_to_show_timerange');
 foreach (array(30, 60, 90, 120) as $dayrange) {
   if ($dayrange == $activetimerange) {
     echo '<option value="' . $dayrange . '" selected>' . $dayrange . ' days</option>';
@@ -223,7 +239,7 @@ foreach (array(30, 60, 90, 120) as $dayrange) {
   <div class="rounded border p-3 my-2">
     <p>Single Sign-On Settings</p>
 <?php
-$spMetaBaseUrl = getSetting($link, 'service_provider_base_url');
+$spMetaBaseUrl = getSetting($db, 'service_provider_base_url');
 if (!empty($spMetaBaseUrl)):
 ?>
     <div class="alert alert-info py-2 mb-3">
@@ -239,7 +255,7 @@ if (!empty($spMetaBaseUrl)):
       <label for="enablessoupdate" class="form-label">Enable SAML Single Sign-On</label>
       <div class="input-group">
 <?php
-$enablesso = getSetting($link, 'enable_sso');
+$enablesso = getSetting($db, 'enable_sso');
 if ($enablesso == 'true') {
 ?>
 <select id="enablessoupdate" name="setting_value" class="form-control">
@@ -265,9 +281,9 @@ if ($enablesso == 'true') {
       <label for="baseurlupdate" class="form-label">Service Provider Base URL</label>
       <div class="input-group">
 <?php
-$spBaseUrl = getSetting($link, 'service_provider_base_url');
+$spBaseUrl = getSetting($db, 'service_provider_base_url');
 ?>
-        <input type="text" id="baseurlupdate" name="setting_value" class="form-control" placeholder="Service Provider Base URL" aria-label="Service Provider Base URL" aria-describedby="Service Provider Base URL" value="<?=$spBaseUrl?>" required>
+        <input type="text" id="baseurlupdate" name="setting_value" class="form-control" placeholder="Service Provider Base URL" aria-label="Service Provider Base URL" aria-describedby="Service Provider Base URL" value="<?=e($spBaseUrl)?>" required>
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
       <p class="text-muted mb-3" for="baseurlupdate"><small>This should be set to the FQDN of the server running this software without the trailing slash.</small></p>
@@ -277,9 +293,9 @@ $spBaseUrl = getSetting($link, 'service_provider_base_url');
       <label for="nameidformatupdate" class="form-label">Name ID Format</label>
       <div class="input-group">
 <?php
-$NameIDFormat = getSetting($link, 'name_id_format');
+$NameIDFormat = getSetting($db, 'name_id_format');
 ?>
-        <input type="text" id="nameidformatupdate" name="setting_value" class="form-control" placeholder="Name ID Format" aria-label="Name ID Format" aria-describedby="Name ID Format" value="<?=$NameIDFormat?>" required>
+        <input type="text" id="nameidformatupdate" name="setting_value" class="form-control" placeholder="Name ID Format" aria-label="Name ID Format" aria-describedby="Name ID Format" value="<?=e($NameIDFormat)?>" required>
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
       <p class="text-muted mb-3" for="nameidformatupdate"><small>If you are not sure, use <code>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</code>.</small></p>
@@ -289,9 +305,9 @@ $NameIDFormat = getSetting($link, 'name_id_format');
       <label for="entityidupdate" class="form-label">Entity ID</label>
       <div class="input-group mb-3">
 <?php
-$entityid = getSetting($link, 'entity_id');
+$entityid = getSetting($db, 'entity_id');
 ?>
-        <input type="text" id="entityidupdate" name="setting_value" class="form-control" placeholder="Entity ID" aria-label="Entity ID" aria-describedby="Entity ID" value="<?=$entityid?>" required>
+        <input type="text" id="entityidupdate" name="setting_value" class="form-control" placeholder="Entity ID" aria-label="Entity ID" aria-describedby="Entity ID" value="<?=e($entityid)?>" required>
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
     </form>
@@ -300,9 +316,9 @@ $entityid = getSetting($link, 'entity_id');
       <label for="ssoserviceupdate" class="form-label">SSO Service</label>
       <div class="input-group mb-3">
 <?php
-$ssoservice = getSetting($link, 'sso_service');
+$ssoservice = getSetting($db, 'sso_service');
 ?>
-        <input type="text" id="ssoserviceupdate" name="setting_value" class="form-control" placeholder="SSO Service" aria-label="SSO Service" aria-describedby="SSO Service" value="<?=$ssoservice?>" required>
+        <input type="text" id="ssoserviceupdate" name="setting_value" class="form-control" placeholder="SSO Service" aria-label="SSO Service" aria-describedby="SSO Service" value="<?=e($ssoservice)?>" required>
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
     </form>
@@ -311,9 +327,9 @@ $ssoservice = getSetting($link, 'sso_service');
       <label for="sloserviceupdate" class="form-label">SLO Service</label>
       <div class="input-group mb-3">
 <?php
-$sloservice = getSetting($link, 'slo_service');
+$sloservice = getSetting($db, 'slo_service');
 ?>
-        <input type="text" id="sloserviceupdate" name="setting_value" class="form-control" placeholder="SLO Service" aria-label="SLO Service" aria-describedby="SLO Service" value="<?=$sloservice?>" required>
+        <input type="text" id="sloserviceupdate" name="setting_value" class="form-control" placeholder="SLO Service" aria-label="SLO Service" aria-describedby="SLO Service" value="<?=e($sloservice)?>" required>
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
     </form>
@@ -321,7 +337,7 @@ $sloservice = getSetting($link, 'slo_service');
       <input type="hidden" name="setting_key" id="systemkey-x509cert" value="x509cert">
       <label for="x509certificateupdate" class="form-label">X509 Certificate</label>
 <?php
-$x509certificate = getSetting($link, 'x509cert');
+$x509certificate = getSetting($db, 'x509cert');
 ?>
       <textarea id="x509certificateupdate" name="setting_value" class="form-control font-monospace mb-2" rows="4"
         placeholder="Paste the base64-encoded certificate content here (without -----BEGIN/END CERTIFICATE----- headers)"
@@ -334,7 +350,7 @@ $x509certificate = getSetting($link, 'x509cert');
       <label for="samlemailattributeupdate" class="form-label">SAML Email Attribute</label>
       <div class="input-group mb-2">
 <?php
-$samlemailattr = getSetting($link, 'saml_email_attribute');
+$samlemailattr = getSetting($db, 'saml_email_attribute');
 ?>
         <input type="text" id="samlemailattributeupdate" name="setting_value" class="form-control"
           placeholder="e.g. email, mail, or a full URN attribute name (optional)"

@@ -1,3 +1,4 @@
+<?php if (!defined('ADMIN_PORTAL')) { http_response_code(404); exit; } ?>
 <?php
 /*
   Status Page
@@ -24,7 +25,7 @@
 ?>
 <?php require('_guard.php'); ?>
   <div class="container collapse notransition" id="plannedmaintenance" data-bs-parent="#actions">
-    <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
+    <h6 class="my-3">Welcome, <?=e($_SESSION['firstname'])?>!</h6>
     <h1 class="my-3">Planned Maintenance</h1>
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#messagestylemodal">View Style Guide and Examples</button>
     <form action="addplannedmaintenance.php" method="post">
@@ -51,21 +52,21 @@
         <label for="plannedmaintenanceaffected" class="form-label">Affected Services<span class="required">*</span></label>
 <?php
 $servicegroupsql = 'SELECT servicegroups.servicegroup_id, servicegroups.servicegroup_name FROM servicegroups ORDER BY servicegroup_name ASC';
-$servicegroupresult = mysqli_query($link, $servicegroupsql);
-if (mysqli_num_rows($servicegroupresult) > 0) {
+$servicegroupresult = $db->all($servicegroupsql);
+if ($servicegroupresult !== []) {
   echo '<div class="accordion" id="addpmservices">';
-  while ($servicegrouprow = mysqli_fetch_assoc($servicegroupresult)) {
+  foreach ($servicegroupresult as $servicegrouprow) {
     echo '<div class="accordion-item">';
-    echo '<h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#sgp' . $servicegrouprow['servicegroup_id'] . '-collapse" aria-expanded="true" aria-controls="sgp' . $servicegrouprow['servicegroup_id'] . '-collapse">';
-    echo $servicegrouprow['servicegroup_name'];
+    echo '<h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#sgp' . e($servicegrouprow['servicegroup_id']) . '-collapse" aria-expanded="true" aria-controls="sgp' . e($servicegrouprow['servicegroup_id']) . '-collapse">';
+    echo e($servicegrouprow['servicegroup_name']);
     echo '</button></h2>';
-    echo '<div id="sgp' . $servicegrouprow['servicegroup_id'] . '-collapse" class="accordion-collapse collapse show">';
+    echo '<div id="sgp' . e($servicegrouprow['servicegroup_id']) . '-collapse" class="accordion-collapse collapse show">';
     echo '<div class="accordion-body">';
-    $servicesql = 'SELECT service_id, servicegroups.servicegroup_name, service_name FROM services INNER JOIN servicegroups ON services.servicegroup_id = servicegroups.servicegroup_id WHERE servicegroups.servicegroup_id = ' . $servicegrouprow['servicegroup_id'] . ' ORDER BY servicegroups.servicegroup_name ASC';
-    $serviceresult = mysqli_query($link, $servicesql);
-    if (mysqli_num_rows($serviceresult) > 0) {
-      while($servicerow = mysqli_fetch_assoc($serviceresult)) {
-        echo '<div class="form-check"><input class="form-check-input" type="checkbox" value="' . $servicerow['service_id'] . '" id="serviceupdatecheck' . $servicerow['service_id'] . '" name="plannedmaintenanceaffectedservices[]"><label class="form-check-label" for="servicecheck' . $servicerow['service_id'] . '">' . $servicerow['service_name'] . '</label></div>';
+    $servicesql = 'SELECT service_id, servicegroups.servicegroup_name, service_name FROM services INNER JOIN servicegroups ON services.servicegroup_id = servicegroups.servicegroup_id WHERE servicegroups.servicegroup_id = ' . e($servicegrouprow['servicegroup_id']) . ' ORDER BY servicegroups.servicegroup_name ASC';
+    $serviceresult = $db->all($servicesql);
+    if ($serviceresult !== []) {
+      foreach ($serviceresult as $servicerow) {
+        echo '<div class="form-check"><input class="form-check-input" type="checkbox" value="' . e($servicerow['service_id']) . '" id="serviceupdatecheck' . e($servicerow['service_id']) . '" name="plannedmaintenanceaffectedservices[]"><label class="form-check-label" for="servicecheck' . e($servicerow['service_id']) . '">' . e($servicerow['service_name']) . '</label></div>';
       }
     } else {
       echo '<div class="form-check"><input class="form-check-input" type="checkbox" value="" id="servicecheckdisabled" disabled required><label class="form-check-label" for="servicecheckdisabled"></div>';

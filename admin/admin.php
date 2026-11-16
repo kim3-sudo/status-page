@@ -23,7 +23,7 @@
 */
 require('_guard.php');
 include('../templates/_header.php');
-writeToLog($link, 'Admin page accessed', $_SESSION['id']);
+writeToLog($db, 'Admin page accessed', $_SESSION['id']);
 require_once('../vendor/autoload.php');
 use OTPHP\TOTP;
 ?>
@@ -81,11 +81,13 @@ use OTPHP\TOTP;
         </div>
       </li>
       <li class="nav-item">
-        <p class="small text-muted"><em><?=strtolower(getSetting($link, 'software_version'))?>/<?=strtolower(getSetting($link, 'database_version'))?>/<?=strtolower(gethostname())?></em></p>
+        <p class="small text-muted"><em><?=strtolower(getSetting($db, 'software_version'))?>/<?=strtolower(getSetting($db, 'database_version'))?>/<?=strtolower(gethostname())?></em></p>
       </li>
     </ul>
   </div>
 <?php
+// Page fragments refuse direct requests unless this is defined.
+define('ADMIN_PORTAL', true);
 include('pageaddincident.php');
 include('pageupdateincident.php');
 include('pagemanageservices.php');
@@ -100,50 +102,6 @@ include('pageapikeys.php');
 include('pagemodals.php');
 ?>
 </div>
-<script>
-  const editors = [
-    { selector: 'addincidentupdatedescription',  warning: 'addincidentplaceholderwarning' },
-    { selector: 'existingincidentupdate',         warning: 'existingincidentplaceholderwarning' },
-    { selector: 'plannedmaintenancemessage',      warning: 'plannedmaintenanceplaceholderwarning' },
-  ];
-  const placeholderPattern = /\[[a-z/ ]*\?\]/;
-  editors.forEach(({ selector, warning }) => {
-    const textarea = document.getElementById(selector);
-    const container = document.createElement('div');
-    textarea.insertAdjacentElement('afterend', container);
-
-    const quill = new Quill(container, {
-      theme: 'snow',
-      placeholder: textarea.placeholder || '',
-      modules: {
-        toolbar: [
-          ['bold', 'italic', 'underline'],
-          [{ list: 'ordered' }, { list: 'bullet' }],
-          [{ align: [] }],
-          ['link'],
-          ['clean'],
-        ],
-      },
-    });
-
-    // Mirrors TinyMCE's paste_as_text: true — strip formatting from pasted content.
-    quill.clipboard.addMatcher(Node.ELEMENT_NODE, (node, delta) => {
-      delta.ops = [{ insert: node.innerText || '' }];
-      return delta;
-    });
-
-    // Initial textarea value is authored as HTML (see plannedmaintenancemessage's
-    // embedded <a> tag), so parse it the same way TinyMCE would on init.
-    quill.clipboard.dangerouslyPasteHTML(textarea.value);
-
-    quill.on('text-change', () => {
-      textarea.value = quill.root.innerHTML;
-      const hasPlaceholder = placeholderPattern.test(quill.getText());
-      document.getElementById(warning).classList.toggle('d-block', hasPlaceholder);
-      document.getElementById(warning).classList.toggle('d-none', !hasPlaceholder);
-    });
-  });
-</script>
 <style>
 .dropdown-toggle { outline: 0; }
 
@@ -195,7 +153,5 @@ include('pagemodals.php');
 </style>
 <?php
 include('../templates/_footer.php');
-if (isset($_SESSION['twofactornotenrolled']) && $_SESSION['twofactornotenrolled'] == 1) {
-  echo '<script>new bootstrap.Modal("#twofactorwarning").show();</script>';
-}
 ?>
+<script src="/assets/js/admin.js"></script>

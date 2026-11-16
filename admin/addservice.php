@@ -25,7 +25,7 @@
 <?php
 require('_guard.php');
 include('../templates/_header.php');
-writeToLog($link, 'Creating new service', $_SESSION['id']);
+writeToLog($db, 'Creating new service', $_SESSION['id']);
 ?>
 <div class="d-flex flex-row">
   <div class="container">
@@ -36,20 +36,17 @@ $newservicename = $_POST['newservicename'];
 $newserviceingroup = $_POST['newserviceingroup'];
 $newservicedescription = $_POST['newservicedescription'];
 $newservicelink = $_POST['newservicelink'];
-writeToLog($link, 'Adding new service ' . $newservicename . ' to group ' . $newserviceingroup, $_SESSION['id']);
-$stmt = $link->prepare("INSERT INTO services (service_name, servicegroup_id, service_description, service_status_short, service_link) VALUES (?, ?, ?, 'OPE', ?)");
-$stmt->bind_param('siss', $newservicename, $newserviceingroup, $newservicedescription, $newservicelink);
-if ($stmt->execute()) {
-  writeToLog($link, 'Created new service', $_SESSION['id']);
+writeToLog($db, 'Adding new service ' . $newservicename . ' to group ' . $newserviceingroup, $_SESSION['id']);
+if ($db->tryExecute("INSERT INTO services (service_name, servicegroup_id, service_description, service_link) VALUES (?, ?, ?, ?)", [$newservicename, (int)$newserviceingroup, $newservicedescription, $newservicelink])) {
+  writeToLog($db, 'Created new service', $_SESSION['id']);
   echo '<p>Created new service</p>';
 } else {
-  writeToLog($link, 'Failed to create new service', $_SESSION['id']);
-  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
+  writeToLog($db, 'Failed to create new service', $_SESSION['id']);
+  echo '<p>Error: ' . e($db->lastError()) . '</p>';
 }
-$stmt->close();
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
-      <button class="btn btn-secondary" onclick="history.back()">Go Back</a>
+      <button class="btn btn-secondary" data-history-back>Go Back</button>
       </div>
     </div>
   </div>

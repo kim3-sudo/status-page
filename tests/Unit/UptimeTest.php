@@ -1,0 +1,201 @@
+<?php
+
+namespace Tests\Unit;
+
+use PHPUnit\Framework\TestCase;
+
+/**
+ * All timestamps are small integers, so each case reads as a timeline.
+ * Window [0, 100) unless a case says otherwise. Update statuses are incident
+ * states (INV, PLA, RES, ...); severity is passed separately, as it is stored.
+ */
+final class UptimeTest extends TestCase
+{
+    private const DAY = 86400;
+
+    // --- uptimePercent ---------------------------------------------------
+
+    public function testNoSegmentsIsFullUptime(): void
+    {
+        $this->assertSame(100.0, uptimePercent([], 0, 100));
+    }
+
+    public function testOutageEndingBeforeWindowIsIgnored(): void
+    {
+        $segments = [['start' => -500, 'end' => -100, 'status' => 'MAJ']];
+        $this->assertSame(100.0, uptimePercent($segments, 0, 100));
+    }
+
+    public function testOutageStartingBeforeWindowIsClipped(): void
+    {
+        $segments = [['start' => -50, 'end' => 20, 'status' => 'MAJ']];
+        $this->assertSame(80.0, uptimePercent($segments, 0, 100));
+    }
+
+    public function testOutageRunningPastNowIsClipped(): void
+    {
+        $segments = [['start' => 90, 'end' => 500, 'status' => 'MAJ']];
+        $this->assertSame(90.0, uptimePercent($segments, 0, 100));
+    }
+
+    public function testOverlappingOutagesCountOnce(): void
+    {
+        $segments = [
+            ['start' => 10, 'end' => 30, 'status' => 'MAJ'],
+            ['start' => 20, 'end' => 40, 'status' => 'MIN'],
+        ];
+        $this->assertSame(70.0, uptimePercent($segments, 0, 100));
+    }
+
+    public function testDegradedAndMaintenanceDoNotReduceUptime(): void
+    {
+        $segments = [
+            ['start' => 0, 'end' => 50, 'status' => 'DEG'],
+            ['start' => 0, 'end' => 50, 'status' => 'PLA'],
+        ];
+        $this->assertSame(100.0, uptimePercent($segments, 0, 100));
+    }
+
+    public function testMinorAndMajorOutagesBothCount(): void
+    {
+        $segments = [['start' => 0, 'end' => 25, 'status' => 'MIN']];
+        $this->assertSame(75.0, uptimePercent($segments, 0, 100));
+    }
+
+    public function testEmptyOrInvertedWindowIsFullUptime(): void
+    {
+        $segments = [['start' => 0, 'end' => 50, 'status' => 'MAJ']];
+        $this->assertSame(100.0, uptimePercent($segments, 100, 100));
+        $this->assertSame(100.0, uptimePercent($segments, 100, 50));
+    }
+
+    public function testNeverNegativeEvenWhenDowntimeExceedsWindow(): void
+    {
+        // Downtime covering the whole window, and beyond it, clamps to 0 rather than going negative.
+        // (The original formula returned -96.67% for a 60-day outage in a 30-day window.)
+        $segments = [['start' => -60 * self::DAY, 'end' => 10 * self::DAY, 'status' => 'MAJ']];
+        $this->assertSame(0.0, uptimePercent($segments, -30 * self::DAY, 0));
+    }
+
+    public function testThirtyDayWindowWithSixtyDayOutage(): void
+    {
+        // Outage from 60 days ago to 1 day ago; the window is the last 30 days.
+        // The outage covers the window from 30 days ago to 1 day ago: 29 of 30 days.
+        $now = 1000 * self::DAY;
+        $segments = [['start' => $now - 60 * self::DAY, 'end' => $now - self::DAY, 'status' => 'MAJ']];
+        $this->assertEqualsWithDelta(100.0 / 30, uptimePercent($segments, $now - 30 * self::DAY, $now), 1e-9);
+    }
+
+    // --- incidentSegments ------------------------------------------------
+
+    public function testResolvedIncidentProducesOneSegmentAtItsSeverity(): void
+    {
+        $updates = [['ts' => 10, 'status' => 'INV'], ['ts' => 30, 'status' => 'RES']];
+        $this->assertSame([['start' => 10, 'end' => 30, 'status' => 'MAJ']], incidentSegments($updates, 100, 'MAJ'));
+    }
+
+    public function testOpenIncidentRunsUntilNow(): void
+    {
+        $updates = [['ts' => 10, 'status' => 'INV']];
+        $this->assertSame([['start' => 10, 'end' => 60, 'status' => 'MIN']], incidentSegments($updates, 60, 'MIN'));
+    }
+
+    public function testPlannedUpdateInsideAnIncidentSplitsTheSegment(): void
+    {
+        $updates = [
+            ['ts' => 10, 'status' => 'INV'],
+            ['ts' => 20, 'status' => 'PLA'],
+            ['ts' => 40, 'status' => 'RES'],
+        ];
+        $this->assertSame(
+            [
+                ['start' => 10, 'end' => 20, 'status' => 'MAJ'],
+                ['start' => 20, 'end' => 40, 'status' => 'PLA'],
+            ],
+            incidentSegments($updates, 100, 'MAJ')
+        );
+    }
+
+    public function testReopenedIncidentHasTwoSegments(): void
+    {
+        $updates = [
+            ['ts' => 10, 'status' => 'INV'],
+            ['ts' => 20, 'status' => 'RES'],
+            ['ts' => 50, 'status' => 'MON'],
+        ];
+        $this->assertSame(
+            [
+                ['start' => 10, 'end' => 20, 'status' => 'MAJ'],
+                ['start' => 50, 'end' => 60, 'status' => 'MAJ'],
+            ],
+            incidentSegments($updates, 60, 'MAJ')
+        );
+    }
+
+    public function testResolutionOnlyIncidentHasNoSegments(): void
+    {
+        $this->assertSame([], incidentSegments([['ts' => 10, 'status' => 'RES']], 100, 'MAJ'));
+    }
+
+    public function testFutureDatedResolutionDoesNotCloseTheIncidentYet(): void
+    {
+        $updates = [['ts' => 10, 'status' => 'INV'], ['ts' => 200, 'status' => 'RES']];
+        $this->assertSame([['start' => 10, 'end' => 100, 'status' => 'MAJ']], incidentSegments($updates, 100, 'MAJ'));
+    }
+
+    public function testUpdatesAreOrderedBeforeUse(): void
+    {
+        $updates = [['ts' => 30, 'status' => 'RES'], ['ts' => 10, 'status' => 'INV']];
+        $this->assertSame([['start' => 10, 'end' => 30, 'status' => 'MAJ']], incidentSegments($updates, 100, 'MAJ'));
+    }
+
+    // --- segmentsByService + uptime end to end ----------------------------
+
+    public function testOverlappingIncidentsOnOneServiceAreMergedNotDoubleCounted(): void
+    {
+        $incidents = [
+            ['services' => [1 => 'MAJ'], 'updates' => [['ts' => 10, 'status' => 'INV'], ['ts' => 12, 'status' => 'RES']]],
+            ['services' => [1 => 'MAJ', 2 => 'MAJ'], 'updates' => [['ts' => 11, 'status' => 'INV'], ['ts' => 13, 'status' => 'RES']]],
+        ];
+        $byService = segmentsByService($incidents, 100);
+
+        // Service 1: [10,12) and [11,13) merge to [10,13), so 3 units of downtime.
+        $this->assertEqualsWithDelta(97.0, uptimePercent($byService[1], 0, 100), 1e-9);
+        // Service 2 only sees the second incident: 2 units.
+        $this->assertEqualsWithDelta(98.0, uptimePercent($byService[2], 0, 100), 1e-9);
+    }
+
+    public function testDifferentSeveritiesOnTheSameIncidentAreKeptPerService(): void
+    {
+        $incidents = [
+            ['services' => [1 => 'MAJ', 2 => 'DEG'], 'updates' => [['ts' => 0, 'status' => 'INV'], ['ts' => 10, 'status' => 'RES']]],
+        ];
+        $byService = segmentsByService($incidents, 100);
+
+        $this->assertEqualsWithDelta(90.0, uptimePercent($byService[1], 0, 100), 1e-9);
+        $this->assertEqualsWithDelta(100.0, uptimePercent($byService[2], 0, 100), 1e-9, 'DEG does not count');
+    }
+
+    public function testServicesWithoutIncidentsAreAbsent(): void
+    {
+        $incidents = [['services' => [1 => 'MAJ'], 'updates' => [['ts' => 10, 'status' => 'INV']]]];
+        $byService = segmentsByService($incidents, 50);
+        $this->assertArrayHasKey(1, $byService);
+        $this->assertArrayNotHasKey(7, $byService);
+    }
+
+    public function testServiceIdsAreCastToInt(): void
+    {
+        $incidents = [['services' => ['3' => 'MAJ'], 'updates' => [['ts' => 10, 'status' => 'INV']]]];
+        $this->assertArrayHasKey(3, segmentsByService($incidents, 50));
+    }
+
+    // --- unionLength -----------------------------------------------------
+
+    public function testUnionLengthHandlesDisjointAndNestedIntervals(): void
+    {
+        $this->assertSame(5, unionLength([[0, 2], [4, 7]]));
+        $this->assertSame(10, unionLength([[0, 10], [2, 5], [8, 9]]));
+        $this->assertSame(0, unionLength([]));
+    }
+}

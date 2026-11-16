@@ -25,7 +25,7 @@
 <?php
 require('_guard.php');
 include('../templates/_header.php');
-writeToLog($link, 'Existing service API key is being deleted', $_SESSION['id']);
+writeToLog($db, 'Existing service API key is being deleted', $_SESSION['id']);
 ?>
 <div class="d-flex flex-row">
   <div class="container">
@@ -34,23 +34,20 @@ writeToLog($link, 'Existing service API key is being deleted', $_SESSION['id']);
 <?php
 if (isset($_POST['keyid'])) {
   $keyid = $_POST['keyid'];
-  $stmt = $link->prepare('DELETE FROM apikeys WHERE apikeys_id = ?');
-  $stmt->bind_param('i', $keyid);
-  if ($stmt->execute()) {
-    writeToLog($link, 'Old service API key was deleted', $_SESSION['id']);
+  if ($db->tryExecute('DELETE FROM apikeys WHERE apikeys_id = ?', [(int)$keyid])) {
+    writeToLog($db, 'Old service API key was deleted', $_SESSION['id']);
     echo '<p>The old service API key was deleted.</p>';
   } else {
-    writeToLog($link, 'Failed to delete existing API key', $_SESSION['id'], 'WARN');
+    writeToLog($db, 'Failed to delete existing API key', $_SESSION['id'], 'WARN');
     echo '<p>Failed to delete existing API key!</p>';
   }
-  $stmt->close();
 } else {
-  writeToLog($link, 'No API key nickname', $_SESSION['id']);
+  writeToLog($db, 'No API key nickname', $_SESSION['id']);
   echo '<p>No API key nickname.</p>';
 }
 ?>
         <a href="./" class="btn btn-primary">Admin Portal</a>
-        <button class="btn btn-secondary" onclick="history.back()">Go Back</a>
+        <button class="btn btn-secondary" data-history-back>Go Back</button>
       </div>
     </div>
   </div>

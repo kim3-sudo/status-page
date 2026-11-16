@@ -28,15 +28,12 @@
 // from install/run.php; this migration is only for installs that existed
 // before SAML was added.
 //
-// INSERT IGNORE is used deliberately: `setting_key` is the primary key, so
-// this is a no-op for any key that's already present — including one an
-// admin may have already configured by hand — and safe to re-run.
+// Insert-only: a key that already exists keeps its value, including one an admin
+// configured by hand, so this is safe to re-run.
 
-return function (mysqli $link): void {
-  $link->query(
-    "INSERT IGNORE INTO settings (setting_key) VALUES "
-    . "('enable_sso'), ('entity_id'), ('name_id_format'), "
-    . "('saml_email_attribute'), ('service_provider_base_url'), "
-    . "('slo_service'), ('sso_service'), ('x509cert')"
-  );
+return function (Db $db): void {
+  foreach (['enable_sso', 'entity_id', 'name_id_format', 'saml_email_attribute',
+            'service_provider_base_url', 'slo_service', 'sso_service', 'x509cert'] as $key) {
+    $db->upsert('settings', ['setting_key' => $key], ['setting_key'], false);
+  }
 };

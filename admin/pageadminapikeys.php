@@ -1,3 +1,4 @@
+<?php if (!defined('ADMIN_PORTAL')) { http_response_code(404); exit; } ?>
 <?php
 /*
   Status Page
@@ -24,7 +25,7 @@
 ?>
 <?php require('_guard.php'); ?>
   <div class="container collapse notransition" id="serviceapikeys" data-bs-parent="#actions">
-    <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
+    <h6 class="my-3">Welcome, <?=e($_SESSION['firstname'])?>!</h6>
     <h1 class="my-3">Manage Service API Keys</h1>
     <form action="newserviceapikey.php" method="post">
       <label for="newapikeyname" class="form-label mb-3">New Key Nickname</label>
@@ -44,20 +45,20 @@
       </thead>
       <tbody>
 <?php
-$serviceapi = 'SELECT apikeys_nickname, apikeys_id, users.user_first_name, users.user_last_name FROM apikeys INNER JOIN users ON users.user_id = apikeys.apikeys_user_id WHERE apikeys_is_personal = 0';
-$serviceapiresult = mysqli_query($link, $serviceapi);
-if (mysqli_num_rows($serviceapiresult) > 0) {
-  while ($serviceapirow = mysqli_fetch_assoc($serviceapiresult)) {
+$serviceapi = 'SELECT apikeys_nickname, apikeys_id, users.user_first_name, users.user_last_name FROM apikeys INNER JOIN users ON users.user_id = apikeys.apikeys_user_id WHERE apikeys_is_personal = ?';
+$serviceapiresult = $db->all($serviceapi, [0]);
+if ($serviceapiresult !== []) {
+  foreach ($serviceapiresult as $serviceapirow) {
 ?>
         <tr>
           <td>
-            <p><?=$serviceapirow['apikeys_nickname']?></p>
+            <p><?=e($serviceapirow['apikeys_nickname'])?></p>
           </td>
           <td>
-            <p><?=$serviceapirow['user_first_name']?>&nbsp;<?=$serviceapirow['user_last_name']?></p>
+            <p><?=e($serviceapirow['user_first_name'])?>&nbsp;<?=e($serviceapirow['user_last_name'])?></p>
           </td>
           <td>
-            <button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#serviceapi<?=$serviceapirow['apikeys_id']?>delete"><i class="fa-solid fa-xmark text-danger"></i></button>
+            <button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#serviceapi<?=e($serviceapirow['apikeys_id'])?>delete"><i class="fa-solid fa-xmark text-danger"></i></button>
           </td>
         </tr>
 <?php

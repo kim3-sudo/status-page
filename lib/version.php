@@ -34,10 +34,14 @@ if (!defined('SOFTWARE_VERSION')) {
 
 // DATABASE_VERSION tracks the schema/settings shape, independently of
 // SOFTWARE_VERSION — a release can ship with no database changes at all.
-// Bumped here because the SAML integration added new expected `settings`
-// rows (enable_sso, entity_id, ...) that install/run.php creates on a fresh
-// install but that pre-existing installs upgrading in place won't have;
-// see install/migrations/0.2.0.php.
+// 0.2.0: SAML integration added expected `settings` rows; see
+//        install/migrations/0.2.0.php.
+// 0.3.0: UTC flag on incident updates, the incident_service join table, and
+//        the audit_policy setting; see install/migrations/0.3.0.php.
+// 0.3.1: API keys stored as SHA-256 hashes (the plaintext column is removed) and
+//        the log_retention_days setting; see install/migrations/0.3.1.php.
+// 0.3.2: services.service_status_short and incident.incident_describes_ids removed;
+//        see install/migrations/0.3.2.php.
 if (!defined('DATABASE_VERSION')) {
-  define('DATABASE_VERSION', '0.2.0');
+  define('DATABASE_VERSION', '0.3.2');
 }

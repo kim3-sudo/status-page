@@ -25,7 +25,7 @@
 <?php
 require('_guard.php');
 include('../templates/_header.php');
-writeToLog($link, 'Inserting a new service group', $_SESSION['id']);
+writeToLog($db, 'Inserting a new service group', $_SESSION['id']);
 ?>
 <div class="d-flex flex-row">
   <div class="container">
@@ -33,20 +33,17 @@ writeToLog($link, 'Inserting a new service group', $_SESSION['id']);
       <div class="col">
 <?php
 $newservicegroupname = $_POST['newservicegroupname'];
-writeToLog($link, $newservicegroupname, $_SESSION['id']);
-$stmt = $link->prepare('INSERT INTO servicegroups (servicegroup_name) VALUES (?)');
-$stmt->bind_param('s', $newservicegroupname);
-if ($stmt->execute()) {
-  writeToLog($link, 'Created the new service group', $_SESSION['id']);
+writeToLog($db, $newservicegroupname, $_SESSION['id']);
+if ($db->tryExecute('INSERT INTO servicegroups (servicegroup_name) VALUES (?)', [$newservicegroupname])) {
+  writeToLog($db, 'Created the new service group', $_SESSION['id']);
   echo '<p>Created new service group</p>';
 } else {
-  writeToLog($link, 'Failed to create the new service group', $_SESSION['id'], 'NERR');
-  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
+  writeToLog($db, 'Failed to create the new service group', $_SESSION['id'], 'NERR');
+  echo '<p>Error: ' . e($db->lastError()) . '</p>';
 }
-$stmt->close();
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
-      <button class="btn btn-secondary" onclick="history.back()">Go Back</a>
+      <button class="btn btn-secondary" data-history-back>Go Back</button>
       </div>
     </div>
   </div>
