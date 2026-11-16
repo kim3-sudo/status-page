@@ -35,30 +35,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       header('Content-Type: application/json; charset=utf-8');
       $userid = mysqli_fetch_assoc($result)['apikeys_user_id'];
       writeToLog($link, 'Matched authentication key for user', $userid);
+      // Same model as the status page, so the API and the page cannot disagree.
+      $now = time();
+      $snapshot = buildStatusSnapshot(loadStatusInputs($db, $siteZone), $now, $now);
       if (isset($_GET['service_id'])) {
-        $stmt = $link->prepare('SELECT service_id, service_name, service_description, service_status_short, service_link, service_status.service_status_description FROM services INNER JOIN service_status ON service_status.service_status_code = services.service_status_short WHERE service_id = ? LIMIT 1');
         $serviceid = (int)$_GET['service_id'];
-        $stmt->bind_param('i', $serviceid);
-        $stmt->execute();
-        $row = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        if ($row === null) {
+        if (!isset($snapshot['services'][$serviceid])) {
           http_response_code(404);
           echo json_encode(['responsecode' => 'Not Found', 'message' => 'Unknown service']);
         } else {
-          $data = ['service_id' => $row['service_id'], 'service_name' => $row['service_name'], 'service_description' => $row['service_description'], 'service_link' => $row['service_link'], 'service_status_short' => $row['service_status_short'], 'service_status' => $row['service_status_description']];
+          $service = $snapshot['services'][$serviceid];
+          $summary = serviceStatusSummary($service['status']);
+          $data = ['service_id' => (string)$service['id'], 'service_name' => $service['name'], 'service_description' => $service['description'], 'service_link' => $service['link'], 'service_status_short' => $service['status'], 'service_status' => $summary['brief']];
           echo json_encode($data);
         }
       } else {
-        $sql = "SELECT service_status_short, COUNT(*) FROM services GROUP BY service_status_short";
-        $result = mysqli_query($link, $sql);
-        $statusarray = array();
-        if (mysqli_num_rows($result) > 0) {
-          while ($servicecount = mysqli_fetch_assoc($result)) {
-            $statusarray[$servicecount['service_status_short']] = $servicecount['COUNT(*)'];
-          }
-        }
-        $worst = worstServiceStatus(array_keys($statusarray));
+        $worst = $snapshot['banner'];
         $summary = serviceStatusSummary($worst);
         $data = ['service_status_short' => $worst, 'service_status_brief' => $summary['brief'], 'service_status_description' => $summary['description']];
         echo json_encode($data);

@@ -174,6 +174,41 @@ final class SchemaAndMigrationTest extends TestCase
         ));
     }
 
+    // --- status read and write paths ------------------------------------
+
+    public function testSaveIncidentServicesRecordsAndUpdatesSeverity(): void
+    {
+        $this->seedLegacyIncidents();
+
+        saveIncidentServices($this->db, 2, [1, '2', 0, -4], 'MIN');
+        saveIncidentServices($this->db, 2, [1], 'DEG');
+
+        $rows = $this->db->all('SELECT service_id, severity FROM incident_service WHERE incident_id = 2 ORDER BY service_id');
+        $this->assertSame([['service_id' => 1, 'severity' => 'DEG'], ['service_id' => 2, 'severity' => 'MIN']],
+            array_map(fn (array $r) => ['service_id' => (int)$r['service_id'], 'severity' => $r['severity']], $rows));
+    }
+
+    public function testLoadStatusInputsReadsMembershipAndConvertsTimes(): void
+    {
+        $this->db->execute("INSERT INTO servicegroups (servicegroup_id, servicegroup_name) VALUES (1, 'Core')");
+        $this->db->execute("INSERT INTO services (service_id, servicegroup_id, service_name, service_status_short) VALUES (1, 1, 'Mail', 'MAJ')");
+        $this->db->execute("INSERT INTO incident (incident_id, incident_description, incident_status_short) VALUES (1, 'Mail down', 'INV')");
+        $this->db->execute("INSERT INTO incident_service (incident_id, service_id, severity) VALUES (1, 1, 'MAJ')");
+        // Written as UTC (flag set): 12:00 UTC.
+        $this->db->execute("INSERT INTO incident_update (incident_update_incident_id, incident_update_status_short, incident_update_description, incident_update_timestamp, incident_update_utc) VALUES (1, 'INV', 'started', '2026-07-01 12:00:00', ?)", [1]);
+        // Site-local legacy row: 13:00 in New York (EDT), which is 17:00 UTC.
+        $this->db->execute("INSERT INTO incident_update (incident_update_incident_id, incident_update_status_short, incident_update_description, incident_update_timestamp, incident_update_utc) VALUES (1, 'RES', 'done', '2026-07-01 13:00:00', ?)", [0]);
+
+        $inputs = loadStatusInputs($this->db, new \DateTimeZone('America/New_York'));
+
+        $this->assertSame([1 => 'MAJ'], $inputs['incidents'][0]['services']);
+        $updates = $inputs['incidents'][0]['updates'];
+        $byStatus = array_column($updates, 'ts', 'status');
+        $this->assertSame(gmmktime(12, 0, 0, 7, 1, 2026), $byStatus['INV']);
+        $this->assertSame(gmmktime(17, 0, 0, 7, 1, 2026), $byStatus['RES']);
+        $this->assertSame('Mail', $inputs['services'][0]['name']);
+    }
+
     // --- helpers ---------------------------------------------------------
 
     private function applyFreshSchema(): void

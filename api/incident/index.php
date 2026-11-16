@@ -104,6 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             if ($incstmt->execute()) {
               $incidentid = $link->insert_id;
               $incstmt->close();
+              saveIncidentServices($link, (int)$incidentid, $affectedservicesarray, $outage_severity);
               $updstmt = $link->prepare('INSERT INTO incident_update (incident_update_status_short, incident_update_description, incident_update_incident_id) VALUES (?, ?, ?)');
               $updstmt->bind_param('ssi', $incident_status, $incident_update, $incidentid);
               if ($updstmt->execute()) {

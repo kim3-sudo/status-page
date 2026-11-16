@@ -22,6 +22,7 @@ $stmt->bind_param('sss', $addmaintstarttimestamp, $addmaintdescription, $affecte
 if ($stmt->execute()) {
   $incidentid = $link->insert_id;
   $stmt->close();
+  saveIncidentServices($link, (int)$incidentid, $affectedservicesarray, 'PLA');
   $substmt = $link->prepare("INSERT INTO incident_update (incident_update_timestamp, incident_update_status_short, incident_update_description, incident_update_incident_id, incident_update_is_planned_maint) VALUES (?, 'PLA', 'Planned maintenance begins', ?, 'Y')");
   $substmt->bind_param('si', $addmaintstarttimestamp, $incidentid);
   if ($substmt->execute()) {

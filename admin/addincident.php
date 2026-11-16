@@ -64,6 +64,7 @@ $stmt->bind_param('sss', $addincidentdescription, $addincidentstatus, $affecteds
 if ($stmt->execute()) {
   $incidentid = $link->insert_id;
   $stmt->close();
+  saveIncidentServices($link, (int)$incidentid, $affectedservicesarray, $outageseverity);
   if ($starttimestamp !== null) {
     writeToLog($link, 'Start timestamp is set, so adding that timestamp to the query', $_SESSION['id']);
     $substmt = $link->prepare('INSERT INTO incident_update (incident_update_status_short, incident_update_description, incident_update_incident_id, incident_update_timestamp) VALUES (?, ?, ?, ?)');

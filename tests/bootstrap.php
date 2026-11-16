@@ -9,3 +9,5 @@ require_once PROJECT_ROOT . '/lib/status.php';
 require_once PROJECT_ROOT . '/lib/time.php';
 require_once PROJECT_ROOT . '/lib/uptime.php';
 require_once PROJECT_ROOT . '/lib/audit.php';
+require_once PROJECT_ROOT . '/lib/status_model.php';
+require_once PROJECT_ROOT . '/lib/incidents.php';

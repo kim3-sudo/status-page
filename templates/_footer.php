@@ -28,19 +28,19 @@
         <div class="row">
           <div class="col-sm-6">
 <?php
-$footer_org  = getSetting($link, 'footer_org');
-$org_link    = getSetting($link, 'org_link');
-$feedback    = getSetting($link, 'feedback_link');
-$privacy     = getSetting($link, 'privacy_policy_link');
+$footer_org  = getSetting($db, 'footer_org');
+$org_link    = getSetting($db, 'org_link');
+$feedback    = getSetting($db, 'feedback_link');
+$privacy     = getSetting($db, 'privacy_policy_link');
 ?>
-            <p class="mb-0"><small class="text-light">&copy; <?=date("Y")?> <a class="link-light" style="text-decoration: none;" href="<?=$org_link?>"><?=$footer_org?></a></small></p>
+            <p class="mb-0"><small class="text-light">&copy; <?=date("Y")?> <a class="link-light" style="text-decoration: none;" href="<?=safeUrl($org_link) ?? '#'?>"><?=e($footer_org)?></a></small></p>
           </div>
           <div class="col-sm-6 d-none d-sm-block">
             <p class="mb-0" style="text-align: right;">
               <small class="text-muted">
                 <a class="link-light" style="text-decoration: underline;" href="/admin">Admin Login</a>
-                <a class="ml-3 link-light" style="text-decoration: underline;" href="<?=$privacy?>">Privacy Policy</a>
-                <a class="ml-3 link-light" style="text-decoration: underline;" href="<?=$feedback?>">Feedback</a>
+                <a class="ml-3 link-light" style="text-decoration: underline;" href="<?=safeUrl($privacy) ?? '#'?>">Privacy Policy</a>
+                <a class="ml-3 link-light" style="text-decoration: underline;" href="<?=safeUrl($feedback) ?? '#'?>">Feedback</a>
               </small>
             </p>
           </div>
@@ -54,25 +54,15 @@ $privacy     = getSetting($link, 'privacy_policy_link');
       let tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
       tooltipTriggerList.forEach((el) => {new bootstrap.Tooltip(el);});
 
-      // Search driver
-      const accordion = document.getElementsByClassName('accordion-collapse'); //li
-      const serviceparent = document.getElementById("statusparent"); //ul
+      // Search: a group stays open when any of its services matches the query.
+      // Every service in the group is checked, not just the first.
       function evaluatesearch() {
-        var searchquery = document.getElementById("accordionsearchbar").value.toLowerCase(); //filter
-        console.log("Searching for " + searchquery);
-        for (i = 0; i < accordion.length; i++) {
-          headelement = accordion[i].getElementsByClassName("servicehead")[0];
-          textval = headelement.textContent || headelement.innerText;
-          if (textval.toLowerCase().indexOf(searchquery) > -1) {
-            // expand
-            console.log("Expand " + accordion[i]);
-            accordion[i].classList.remove("collapse");
-          } else {
-            // collapse
-            console.log("Collapse " + accordion[i]);
-            accordion[i].classList.add("collapse");
-          }
-        }
+        const query = document.getElementById("accordionsearchbar").value.trim().toLowerCase();
+        document.querySelectorAll('.accordion-collapse').forEach((panel) => {
+          const headings = Array.from(panel.querySelectorAll('.servicehead'));
+          const matches = headings.some((heading) => (heading.textContent || '').toLowerCase().includes(query));
+          panel.classList.toggle('collapse', !matches);
+        });
       }
     </script>
   </body>

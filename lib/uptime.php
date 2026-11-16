@@ -17,17 +17,20 @@
 const UPTIME_DOWNTIME_STATUSES = ['MIN', 'MAJ'];
 
 /**
- * Status segments produced by one incident's updates.
+ * Status segments for one incident as it affects one service.
  *
  * Each non-RES update starts a segment that runs until the next update, or until
- * $now if it is the last one. RES closes the incident and produces no segment.
- * Updates after $now are ignored, so a future-dated update cannot change the
- * present.
+ * $now if it is the last one. The segment's status is the service's severity for
+ * this incident. A planned-maintenance update (PLA) gives a PLA segment instead,
+ * which is not counted as downtime. RES closes the incident and produces no
+ * segment. Updates after $now are ignored, so a future-dated update cannot change
+ * the present.
  *
- * @param list<array{ts:int, status:string}> $updates in any order
+ * @param list<array{ts:int, status:string}> $updates in any order; statuses are incident states
+ * @param string $severity the service's severity for this incident (MAJ, MIN, DEG, PLA, OPE)
  * @return list<array{start:int, end:int, status:string}>
  */
-function incidentSegments(array $updates, int $now): array
+function incidentSegments(array $updates, int $now, string $severity): array
 {
     $updates = array_values(array_filter($updates, fn (array $u): bool => $u['ts'] <= $now));
     usort($updates, fn (array $a, array $b): int => $a['ts'] <=> $b['ts']);
@@ -41,26 +44,30 @@ function incidentSegments(array $updates, int $now): array
         }
         $end = $i + 1 < $count ? $updates[$i + 1]['ts'] : $now;
         if ($end > $update['ts']) {
-            $segments[] = ['start' => $update['ts'], 'end' => $end, 'status' => $update['status']];
+            $segments[] = [
+                'start' => $update['ts'],
+                'end' => $end,
+                'status' => $update['status'] === 'PLA' ? 'PLA' : $severity,
+            ];
         }
     }
     return $segments;
 }
 
 /**
- * Groups every incident's segments by the services it describes.
+ * Groups every incident's segments by service.
  * Services with no incidents are absent from the result.
  *
- * @param list<array{service_ids: list<int|string>, updates: list<array{ts:int, status:string}>}> $incidents
+ * @param list<array{services: array<int|string, string>, updates: list<array{ts:int, status:string}>}> $incidents
+ *        services maps service id => severity for that incident
  * @return array<int, list<array{start:int, end:int, status:string}>> service id => segments
  */
 function segmentsByService(array $incidents, int $now): array
 {
     $byService = [];
     foreach ($incidents as $incident) {
-        $segments = incidentSegments($incident['updates'], $now);
-        foreach ($incident['service_ids'] as $serviceId) {
-            foreach ($segments as $segment) {
+        foreach ($incident['services'] as $serviceId => $severity) {
+            foreach (incidentSegments($incident['updates'], $now, (string)$severity) as $segment) {
                 $byService[(int)$serviceId][] = $segment;
             }
         }

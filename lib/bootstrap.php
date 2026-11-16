@@ -14,6 +14,8 @@ require_once __DIR__ . '/status.php';
 require_once __DIR__ . '/time.php';
 require_once __DIR__ . '/uptime.php';
 require_once __DIR__ . '/db_helpers.php';   // also loads audit.php
+require_once __DIR__ . '/status_model.php';
+require_once __DIR__ . '/incidents.php';
 
 $configfile = __DIR__ . '/../templates/config.php';
 if (!file_exists($configfile)) {
@@ -26,6 +28,13 @@ $dbdriver = defined('DB_DRIVER') ? DB_DRIVER : 'mysql';
 $dbport = defined('DB_PORT') ? (int)DB_PORT : ($dbdriver === 'pgsql' ? 5432 : 3306);
 
 $db = new Db($dbdriver, DB_SERVER, $dbport, DB_NAME, DB_USERNAME, DB_PASSWORD);
+
+// Site timezone: used to render stored times. Falls back to UTC if the setting is missing or invalid.
+try {
+  $siteZone = new DateTimeZone(getSetting($db, 'timezone') ?: 'UTC');
+} catch (Exception $e) {
+  $siteZone = new DateTimeZone('UTC');
+}
 
 // Transitional: pages not yet moved to $db still use the mysqli handle $link.
 // Remove this block once every caller uses $db (Step 8 of the plan).

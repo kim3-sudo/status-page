@@ -6,7 +6,8 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * All timestamps are small integers, so each case reads as a timeline.
- * Window [0, 100) unless a case says otherwise.
+ * Window [0, 100) unless a case says otherwise. Update statuses are incident
+ * states (INV, PLA, RES, ...); severity is passed separately, as it is stored.
  */
 final class UptimeTest extends TestCase
 {
@@ -87,65 +88,65 @@ final class UptimeTest extends TestCase
 
     // --- incidentSegments ------------------------------------------------
 
-    public function testResolvedIncidentProducesOneSegment(): void
+    public function testResolvedIncidentProducesOneSegmentAtItsSeverity(): void
     {
-        $updates = [['ts' => 10, 'status' => 'MAJ'], ['ts' => 30, 'status' => 'RES']];
-        $this->assertSame([['start' => 10, 'end' => 30, 'status' => 'MAJ']], incidentSegments($updates, 100));
+        $updates = [['ts' => 10, 'status' => 'INV'], ['ts' => 30, 'status' => 'RES']];
+        $this->assertSame([['start' => 10, 'end' => 30, 'status' => 'MAJ']], incidentSegments($updates, 100, 'MAJ'));
     }
 
     public function testOpenIncidentRunsUntilNow(): void
     {
-        $updates = [['ts' => 10, 'status' => 'MAJ']];
-        $this->assertSame([['start' => 10, 'end' => 60, 'status' => 'MAJ']], incidentSegments($updates, 60));
+        $updates = [['ts' => 10, 'status' => 'INV']];
+        $this->assertSame([['start' => 10, 'end' => 60, 'status' => 'MIN']], incidentSegments($updates, 60, 'MIN'));
     }
 
-    public function testSeverityChangeSplitsSegments(): void
+    public function testPlannedUpdateInsideAnIncidentSplitsTheSegment(): void
     {
         $updates = [
-            ['ts' => 10, 'status' => 'MAJ'],
-            ['ts' => 20, 'status' => 'MIN'],
+            ['ts' => 10, 'status' => 'INV'],
+            ['ts' => 20, 'status' => 'PLA'],
             ['ts' => 40, 'status' => 'RES'],
         ];
         $this->assertSame(
             [
                 ['start' => 10, 'end' => 20, 'status' => 'MAJ'],
-                ['start' => 20, 'end' => 40, 'status' => 'MIN'],
+                ['start' => 20, 'end' => 40, 'status' => 'PLA'],
             ],
-            incidentSegments($updates, 100)
+            incidentSegments($updates, 100, 'MAJ')
         );
     }
 
     public function testReopenedIncidentHasTwoSegments(): void
     {
         $updates = [
-            ['ts' => 10, 'status' => 'MAJ'],
+            ['ts' => 10, 'status' => 'INV'],
             ['ts' => 20, 'status' => 'RES'],
-            ['ts' => 50, 'status' => 'MAJ'],
+            ['ts' => 50, 'status' => 'MON'],
         ];
         $this->assertSame(
             [
                 ['start' => 10, 'end' => 20, 'status' => 'MAJ'],
                 ['start' => 50, 'end' => 60, 'status' => 'MAJ'],
             ],
-            incidentSegments($updates, 60)
+            incidentSegments($updates, 60, 'MAJ')
         );
     }
 
     public function testResolutionOnlyIncidentHasNoSegments(): void
     {
-        $this->assertSame([], incidentSegments([['ts' => 10, 'status' => 'RES']], 100));
+        $this->assertSame([], incidentSegments([['ts' => 10, 'status' => 'RES']], 100, 'MAJ'));
     }
 
     public function testFutureDatedResolutionDoesNotCloseTheIncidentYet(): void
     {
-        $updates = [['ts' => 10, 'status' => 'MAJ'], ['ts' => 200, 'status' => 'RES']];
-        $this->assertSame([['start' => 10, 'end' => 100, 'status' => 'MAJ']], incidentSegments($updates, 100));
+        $updates = [['ts' => 10, 'status' => 'INV'], ['ts' => 200, 'status' => 'RES']];
+        $this->assertSame([['start' => 10, 'end' => 100, 'status' => 'MAJ']], incidentSegments($updates, 100, 'MAJ'));
     }
 
     public function testUpdatesAreOrderedBeforeUse(): void
     {
-        $updates = [['ts' => 30, 'status' => 'RES'], ['ts' => 10, 'status' => 'MAJ']];
-        $this->assertSame([['start' => 10, 'end' => 30, 'status' => 'MAJ']], incidentSegments($updates, 100));
+        $updates = [['ts' => 30, 'status' => 'RES'], ['ts' => 10, 'status' => 'INV']];
+        $this->assertSame([['start' => 10, 'end' => 30, 'status' => 'MAJ']], incidentSegments($updates, 100, 'MAJ'));
     }
 
     // --- segmentsByService + uptime end to end ----------------------------
@@ -153,8 +154,8 @@ final class UptimeTest extends TestCase
     public function testOverlappingIncidentsOnOneServiceAreMergedNotDoubleCounted(): void
     {
         $incidents = [
-            ['service_ids' => [1], 'updates' => [['ts' => 10, 'status' => 'MAJ'], ['ts' => 12, 'status' => 'RES']]],
-            ['service_ids' => [1, 2], 'updates' => [['ts' => 11, 'status' => 'MAJ'], ['ts' => 13, 'status' => 'RES']]],
+            ['services' => [1 => 'MAJ'], 'updates' => [['ts' => 10, 'status' => 'INV'], ['ts' => 12, 'status' => 'RES']]],
+            ['services' => [1 => 'MAJ', 2 => 'MAJ'], 'updates' => [['ts' => 11, 'status' => 'INV'], ['ts' => 13, 'status' => 'RES']]],
         ];
         $byService = segmentsByService($incidents, 100);
 
@@ -164,9 +165,20 @@ final class UptimeTest extends TestCase
         $this->assertEqualsWithDelta(98.0, uptimePercent($byService[2], 0, 100), 1e-9);
     }
 
+    public function testDifferentSeveritiesOnTheSameIncidentAreKeptPerService(): void
+    {
+        $incidents = [
+            ['services' => [1 => 'MAJ', 2 => 'DEG'], 'updates' => [['ts' => 0, 'status' => 'INV'], ['ts' => 10, 'status' => 'RES']]],
+        ];
+        $byService = segmentsByService($incidents, 100);
+
+        $this->assertEqualsWithDelta(90.0, uptimePercent($byService[1], 0, 100), 1e-9);
+        $this->assertEqualsWithDelta(100.0, uptimePercent($byService[2], 0, 100), 1e-9, 'DEG does not count');
+    }
+
     public function testServicesWithoutIncidentsAreAbsent(): void
     {
-        $incidents = [['service_ids' => [1], 'updates' => [['ts' => 10, 'status' => 'MAJ']]]];
+        $incidents = [['services' => [1 => 'MAJ'], 'updates' => [['ts' => 10, 'status' => 'INV']]]];
         $byService = segmentsByService($incidents, 50);
         $this->assertArrayHasKey(1, $byService);
         $this->assertArrayNotHasKey(7, $byService);
@@ -174,7 +186,7 @@ final class UptimeTest extends TestCase
 
     public function testServiceIdsAreCastToInt(): void
     {
-        $incidents = [['service_ids' => ['3'], 'updates' => [['ts' => 10, 'status' => 'MAJ']]]];
+        $incidents = [['services' => ['3' => 'MAJ'], 'updates' => [['ts' => 10, 'status' => 'INV']]]];
         $this->assertArrayHasKey(3, segmentsByService($incidents, 50));
     }
 
