@@ -174,29 +174,29 @@
         },
         {
             "name": "onelogin/php-saml",
-            "version": "4.3.2",
+            "version": "4.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/SAML-Toolkits/php-saml.git",
-                "reference": "26b3a47349415e5b7aa300ba4ab7fc316c65f19e"
+                "reference": "68008d28359928b16a4953c2dda19400ce2d0654"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/SAML-Toolkits/php-saml/zipball/26b3a47349415e5b7aa300ba4ab7fc316c65f19e",
-                "reference": "26b3a47349415e5b7aa300ba4ab7fc316c65f19e",
+                "url": "https://api.github.com/repos/SAML-Toolkits/php-saml/zipball/68008d28359928b16a4953c2dda19400ce2d0654",
+                "reference": "68008d28359928b16a4953c2dda19400ce2d0654",
                 "shasum": ""
             },
             "require": {
-                "php": ">=7.3",
-                "robrichards/xmlseclibs": "^3.1.5"
+                "php": ">=8.0",
+                "robrichards/xmlseclibs": "^4.0"
             },
             "require-dev": {
                 "pdepend/pdepend": "^2.8.0",
                 "php-coveralls/php-coveralls": "^2.0",
                 "phploc/phploc": "^4.0 || ^5.0 || ^6.0 || ^7.0",
-                "phpunit/phpunit": "^9.5",
+                "phpunit/phpunit": ">9.6.32",
                 "sebastian/phpcpd": "^4.0 || ^5.0 || ^6.0 ",
-                "squizlabs/php_codesniffer": "^3.5.8"
+                "squizlabs/php_codesniffer": "^3.13.6"
             },
             "suggest": {
                 "ext-curl": "Install curl lib to be able to use the IdPMetadataParser for parsing remote XMLs",
@@ -234,7 +234,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-05-07T22:38:04+00:00"
+            "time": "2026-11-04T18:13:16+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
@@ -355,21 +355,24 @@
         },
         {
             "name": "robrichards/xmlseclibs",
-            "version": "3.1.5",
+            "version": "4.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/robrichards/xmlseclibs.git",
-                "reference": "03062be78178cbb5e8f605cd255dc32a14981f92"
+                "reference": "3d910b23ac1f566c2fa48abf795d710f78a3b770"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/robrichards/xmlseclibs/zipball/03062be78178cbb5e8f605cd255dc32a14981f92",
-                "reference": "03062be78178cbb5e8f605cd255dc32a14981f92",
+                "url": "https://api.github.com/repos/robrichards/xmlseclibs/zipball/3d910b23ac1f566c2fa48abf795d710f78a3b770",
+                "reference": "3d910b23ac1f566c2fa48abf795d710f78a3b770",
                 "shasum": ""
             },
             "require": {
-                "ext-openssl": "*",
-                "php": ">= 5.4"
+                "php": ">= 8.0",
+                "phpseclib/phpseclib": "~3.0"
+            },
+            "suggest": {
+                "ext-openssl": "Improves phpseclib performance when available"
             },
             "type": "library",
             "autoload": {
@@ -391,9 +394,9 @@
             ],
             "support": {
                 "issues": "https://github.com/robrichards/xmlseclibs/issues",
-                "source": "https://github.com/robrichards/xmlseclibs/tree/3.1.5"
+                "source": "https://github.com/robrichards/xmlseclibs/tree/4.0.1"
             },
-            "time": "2026-03-13T10:31:56+00:00"
+            "time": "2026-10-19T17:42:17+00:00"
         },
         {
             "name": "spomky-labs/otphp",
@@ -775,16 +778,16 @@
         },
         {
             "name": "phpunit/php-code-coverage",
-            "version": "14.5.0",
+            "version": "14.5.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-code-coverage.git",
-                "reference": "1db2f40af7a6538742e4a634b71ee556d6219be7"
+                "reference": "4063552c678ce3beb4b7f131a5b7354a19ff3e2a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/1db2f40af7a6538742e4a634b71ee556d6219be7",
-                "reference": "1db2f40af7a6538742e4a634b71ee556d6219be7",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/4063552c678ce3beb4b7f131a5b7354a19ff3e2a",
+                "reference": "4063552c678ce3beb4b7f131a5b7354a19ff3e2a",
                 "shasum": ""
             },
             "require": {
@@ -840,7 +843,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/php-code-coverage/issues",
                 "security": "https://github.com/sebastianbergmann/php-code-coverage/security/policy",
-                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/14.5.0"
+                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/14.5.1"
             },
             "funding": [
                 {
@@ -860,7 +863,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-10-30T08:11:15+00:00"
+            "time": "2026-11-02T11:47:37+00:00"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -1157,16 +1160,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "13.4.5",
+            "version": "13.4.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "941457a4f147a60fe2074d40e1fce0d08ea8d930"
+                "reference": "4821376960d0e1e5a7b7b700955ebcab33ecd71b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/941457a4f147a60fe2074d40e1fce0d08ea8d930",
-                "reference": "941457a4f147a60fe2074d40e1fce0d08ea8d930",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/4821376960d0e1e5a7b7b700955ebcab33ecd71b",
+                "reference": "4821376960d0e1e5a7b7b700955ebcab33ecd71b",
                 "shasum": ""
             },
             "require": {
@@ -1180,7 +1183,7 @@
                 "phar-io/manifest": "^2.0.4",
                 "phar-io/version": "^3.2.1",
                 "php": ">=8.4.1",
-                "phpunit/php-code-coverage": "^14.4.1",
+                "phpunit/php-code-coverage": "^14.5.0",
                 "phpunit/php-file-iterator": "^7.0.2",
                 "phpunit/php-invoker": "^7.0.0",
                 "phpunit/php-text-template": "^6.0.1",
@@ -1237,7 +1240,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/13.4.5"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/13.4.6"
             },
             "funding": [
                 {
@@ -1245,7 +1248,7 @@
                     "type": "other"
                 }
             ],
-            "time": "2026-10-27T04:16:22+00:00"
+            "time": "2026-11-02T07:12:28+00:00"
         },
         {
             "name": "sebastian/cli-parser",
