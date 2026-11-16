@@ -7,7 +7,7 @@
 */
 
 // Shared bootstrap for the JSON API endpoints (api/*). Emits no HTML.
-require_once __DIR__ . '/../lib/bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 
 /**
  * Authenticates the current API request. Returns the owning user id, or null when

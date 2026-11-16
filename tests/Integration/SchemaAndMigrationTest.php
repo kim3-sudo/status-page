@@ -60,10 +60,18 @@ final class SchemaAndMigrationTest extends TestCase
         $this->assertSame(5, (int)$this->db->value('SELECT COUNT(*) FROM incident_status'));
     }
 
-    public function testFreshSchemaForeignKeysRejectUnknownServiceStatus(): void
+    public function testFreshSchemaForeignKeysRejectUnknownSeverity(): void
     {
+        $this->db->execute("INSERT INTO services (service_name) VALUES ('x')");
+        $this->db->execute("INSERT INTO incident (incident_description, incident_status_short) VALUES ('i', 'INV')");
         $this->expectException(\Throwable::class);
-        $this->db->execute("INSERT INTO services (service_name, service_status_short) VALUES ('x', 'ZZZ')");
+        $this->db->execute("INSERT INTO incident_service (incident_id, service_id, severity) VALUES (1, 1, 'ZZZ')");
+    }
+
+    public function testFreshSchemaHasNoLegacyStatusOrCsvColumns(): void
+    {
+        $this->assertFalse($this->db->hasColumn('services', 'service_status_short'));
+        $this->assertFalse($this->db->hasColumn('incident', 'incident_describes_ids'));
     }
 
     // --- migration 0.3.0 from a 0.2.x state ------------------------------
@@ -179,7 +187,7 @@ final class SchemaAndMigrationTest extends TestCase
     public function testLoadStatusInputsReadsMembershipAndConvertsTimes(): void
     {
         $this->db->execute("INSERT INTO servicegroups (servicegroup_id, servicegroup_name) VALUES (1, 'Core')");
-        $this->db->execute("INSERT INTO services (service_id, servicegroup_id, service_name, service_status_short) VALUES (1, 1, 'Mail', 'MAJ')");
+        $this->db->execute("INSERT INTO services (service_id, servicegroup_id, service_name) VALUES (1, 1, 'Mail')");
         $this->db->execute("INSERT INTO incident (incident_id, incident_description, incident_status_short) VALUES (1, 'Mail down', 'INV')");
         $this->db->execute("INSERT INTO incident_service (incident_id, service_id, severity) VALUES (1, 1, 'MAJ')");
         // Written as UTC (flag set): 12:00 UTC.
@@ -302,6 +310,41 @@ final class SchemaAndMigrationTest extends TestCase
             $this->db->runScript('DROP INDEX IF EXISTS incident_update_incident_time');
         }
         $this->db->runScript('ALTER TABLE incident_update DROP COLUMN incident_update_utc');
+
+        // The 0.2 schema had the stored service status, with its foreign key, and the CSV column.
+        if ($this->driver === 'mysql') {
+            $this->db->runScript('ALTER TABLE services ADD COLUMN service_status_short VARCHAR(3) DEFAULT NULL, '
+                . 'ADD CONSTRAINT services_status_fk FOREIGN KEY (service_status_short) REFERENCES service_status (service_status_code)');
+        } else {
+            $this->db->runScript('ALTER TABLE services ADD COLUMN service_status_short VARCHAR(3) DEFAULT NULL REFERENCES service_status (service_status_code)');
+        }
+        $this->db->runScript('ALTER TABLE incident ADD COLUMN incident_describes_ids VARCHAR(96) DEFAULT NULL');
+    }
+
+    public function testMigration032DropsTheLegacyColumnsAndKeepsMembership(): void
+    {
+        $this->simulateVersion020();
+        $this->seedLegacyIncidents();
+        $this->runMigration('0.3.0');
+
+        $this->runMigration('0.3.2');
+
+        $this->assertFalse($this->db->hasColumn('services', 'service_status_short'));
+        $this->assertFalse($this->db->hasColumn('incident', 'incident_describes_ids'));
+        $this->assertSame(4, (int)$this->db->value('SELECT COUNT(*) FROM incident_service'), 'membership is kept');
+    }
+
+    public function testMigration032IsIdempotent(): void
+    {
+        $this->simulateVersion020();
+        $this->seedLegacyIncidents();
+        $this->runMigration('0.3.0');
+        $this->runMigration('0.3.2');
+
+        $this->runMigration('0.3.2');
+
+        $this->assertFalse($this->db->hasColumn('services', 'service_status_short'));
+        $this->assertSame(4, (int)$this->db->value('SELECT COUNT(*) FROM incident_service'));
     }
 
     /** Removes the 0.3.1 API key change, leaving the 0.3.0 shape: plaintext keys, no hash. */

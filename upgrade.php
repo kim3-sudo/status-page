@@ -27,7 +27,7 @@
 // schema/settings, so it does not get a web-accessible counterpart the way
 // install/ does.
 //
-// How it works: DATABASE_VERSION in templates/_version.php is the version
+// How it works: DATABASE_VERSION in lib/version.php is the version
 // this codebase expects. Each file in install/migrations/ is named after
 // the database_version it upgrades TO and returns a callable that applies
 // that step. On each run, every migration newer than the currently
@@ -48,7 +48,7 @@ if (php_sapi_name() !== 'cli') {
 
 require_once __DIR__ . '/lib/bootstrap.php';
 require_once __DIR__ . '/lib/db_helpers.php';
-require_once __DIR__ . '/templates/_version.php';
+require_once __DIR__ . '/lib/version.php';
 require_once __DIR__ . '/install/_migration_functions.php';
 
 function upgradeLog(string $message): void {

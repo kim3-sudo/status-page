@@ -61,20 +61,17 @@ CREATE TABLE services (
   service_name VARCHAR(64) DEFAULT NULL,
   servicegroup_id INTEGER DEFAULT NULL REFERENCES servicegroups (servicegroup_id),
   service_description VARCHAR(144) DEFAULT NULL,
-  service_link VARCHAR(120) DEFAULT NULL,
-  service_status_short VARCHAR(3) DEFAULT NULL REFERENCES service_status (service_status_code)
+  service_link VARCHAR(120) DEFAULT NULL
 );
 CREATE INDEX services_servicegroup_id ON services (servicegroup_id);
-CREATE INDEX services_service_status_short ON services (service_status_short);
 
--- incident_describes_ids is the legacy comma-separated list. It is kept, and
--- incident_service is the source of truth from migration 0.3.0 onwards.
+-- Which services an incident affects is stored in incident_service. Service status
+-- is derived from incidents when it is read, so services has no status column.
 CREATE TABLE incident (
   incident_id SERIAL PRIMARY KEY,
   incident_date DATE DEFAULT CURRENT_DATE,
   incident_description VARCHAR(255) DEFAULT NULL,
-  incident_status_short VARCHAR(3) DEFAULT NULL REFERENCES incident_status (incident_status_code),
-  incident_describes_ids VARCHAR(96) DEFAULT NULL
+  incident_status_short VARCHAR(3) DEFAULT NULL REFERENCES incident_status (incident_status_code)
 );
 CREATE INDEX incident_incident_status_short ON incident (incident_status_short);
 

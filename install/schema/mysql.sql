@@ -64,21 +64,17 @@ CREATE TABLE services (
   servicegroup_id INT DEFAULT NULL,
   service_description VARCHAR(144) DEFAULT NULL,
   service_link VARCHAR(120) DEFAULT NULL,
-  service_status_short VARCHAR(3) DEFAULT NULL,
   KEY servicegroup_id (servicegroup_id),
-  KEY service_status_short (service_status_short),
-  CONSTRAINT services_ibfk_1 FOREIGN KEY (servicegroup_id) REFERENCES servicegroups (servicegroup_id),
-  CONSTRAINT services_ibfk_2 FOREIGN KEY (service_status_short) REFERENCES service_status (service_status_code)
+  CONSTRAINT services_ibfk_1 FOREIGN KEY (servicegroup_id) REFERENCES servicegroups (servicegroup_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- incident_describes_ids is the legacy comma-separated list. It is kept, and
--- incident_service is the source of truth from migration 0.3.0 onwards.
+-- Which services an incident affects is stored in incident_service. Service status
+-- is derived from incidents when it is read, so services has no status column.
 CREATE TABLE incident (
   incident_id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
   incident_date DATE DEFAULT curdate(),
   incident_description VARCHAR(255) DEFAULT NULL,
   incident_status_short VARCHAR(3) DEFAULT NULL,
-  incident_describes_ids VARCHAR(96) DEFAULT NULL,
   KEY incident_status_short (incident_status_short),
   CONSTRAINT incident_ibfk_1 FOREIGN KEY (incident_status_short) REFERENCES incident_status (incident_status_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

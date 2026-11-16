@@ -18,7 +18,7 @@ if (($_POST['installconfirm'] ?? '') !== 'true') {
 require_once __DIR__ . '/../lib/db.php';
 require_once __DIR__ . '/../lib/html.php';
 require_once __DIR__ . '/../lib/db_helpers.php';
-require_once __DIR__ . '/../templates/_version.php';
+require_once __DIR__ . '/../lib/version.php';
 
 // Settings that exist from the start but have no value until an admin sets one.
 const INSTALL_EMPTY_SETTINGS = [

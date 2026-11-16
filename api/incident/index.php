@@ -7,7 +7,7 @@
 */
 ?>
 <?php
-include('../../templates/_api.php');
+include('../../lib/api.php');
 require_once __DIR__ . '/../../lib/incidents.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -31,11 +31,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
     echo json_encode($data);
   } else {
-    $rows = $db->all('SELECT incident_id, incident_date, incident_description, incident_status_short, incident_describes_ids FROM incident');
+    $rows = $db->all('SELECT incident_id, incident_date, incident_description, incident_status_short FROM incident');
+    // incident_describes_ids was a comma-separated column. Clients still read it,
+    // so it is rebuilt from incident_service.
+    $services = [];
+    foreach ($db->all('SELECT incident_id, service_id FROM incident_service ORDER BY incident_id, service_id') as $membership) {
+      $services[(int)$membership['incident_id']][] = (int)$membership['service_id'];
+    }
     if ($rows !== []) {
       $data = [];
       foreach ($rows as $row) {
-        $data[] = ['incident_id' => $row['incident_id'], 'incident_date' => $row['incident_date'], 'incident_description' => $row['incident_description'], 'incident_status_short' => $row['incident_status_short'], 'incident_describes_ids' => $row['incident_describes_ids']];
+        $ids = $services[(int)$row['incident_id']] ?? [];
+        $data[] = ['incident_id' => $row['incident_id'], 'incident_date' => $row['incident_date'], 'incident_description' => $row['incident_description'], 'incident_status_short' => $row['incident_status_short'], 'incident_describes_ids' => implode(',', $ids)];
       }
     } else {
       $data = ['responsecode' => 'Success', 'message' => 'No data'];

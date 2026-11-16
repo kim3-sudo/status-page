@@ -40,6 +40,8 @@ if (!defined('SOFTWARE_VERSION')) {
 //        the audit_policy setting; see install/migrations/0.3.0.php.
 // 0.3.1: API keys stored as SHA-256 hashes (the plaintext column is removed) and
 //        the log_retention_days setting; see install/migrations/0.3.1.php.
+// 0.3.2: services.service_status_short and incident.incident_describes_ids removed;
+//        see install/migrations/0.3.2.php.
 if (!defined('DATABASE_VERSION')) {
-  define('DATABASE_VERSION', '0.3.1');
+  define('DATABASE_VERSION', '0.3.2');
 }

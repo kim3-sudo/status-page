@@ -13,16 +13,15 @@
 //   2. records the request in the audit log, which strict auditing can refuse
 //      before anything is written,
 //   3. writes everything in one transaction. The outcome is recorded inside it, so
-//      a failed audit write rolls the whole change back,
-//   4. re-derives the stored service status, so that services.service_status_short
-//      matches what the page shows.
+//      a failed audit write rolls the whole change back.
+//
+// Service status is not stored. It is derived when the page or API is read
+// (lib/status_model.php).
 //
 // Times are entered in the site timezone and stored in UTC with
 // incident_update_utc set (lib/time.php).
 //
-// Service membership and severity are written to incident_service. The legacy
-// incident_describes_ids column is still written, for one release, so older code
-// can still read it.
+// Service membership and severity are written to incident_service.
 
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/db_helpers.php';
@@ -41,7 +40,6 @@ final class IncidentValidationException extends InvalidArgumentException
 const INCIDENT_OUTAGE_SEVERITIES = ['MAJ', 'MIN', 'DEG'];
 const INCIDENT_TITLE_MAX = 255;
 const INCIDENT_UPDATE_MAX = 2000;
-const INCIDENT_SERVICES_CSV_MAX = 96;
 
 /** Returns the set of incident status codes from the database. @return array<string, true> */
 function incidentStatusCodes(Db $db): array
@@ -66,9 +64,6 @@ function requireServiceIds(Db $db, array $ids): array
     $clean = array_values(array_filter($clean, fn (int $id): bool => $id > 0));
     if ($clean === []) {
         throw new IncidentValidationException('Choose at least one affected service.');
-    }
-    if (strlen(implode(',', $clean)) > INCIDENT_SERVICES_CSV_MAX) {
-        throw new IncidentValidationException('Too many services for one incident. Split it into several incidents.');
     }
     foreach ($clean as $id) {
         if ($db->value('SELECT COUNT(*) FROM services WHERE service_id = ?', [$id]) == 0) {
@@ -145,26 +140,6 @@ function localDateOf(string $utc, DateTimeZone $zone): string
 }
 
 /**
- * Re-derives every service's stored status from its incidents, and writes the
- * ones that changed. The page and API read the derived state directly, so this
- * only keeps the stored column in step for code that still reads it.
- */
-function recomputeServiceStatus(Db $db, DateTimeZone $zone, ?int $now = null): void
-{
-    $now ??= time();
-    $inputs = loadStatusInputs($db, $zone);
-    $states = currentServiceStates($inputs['incidents'], $now);
-
-    foreach ($inputs['services'] as $service) {
-        $derived = worstServiceStatus($states[$service['id']] ?? []);
-        $db->execute(
-            'UPDATE services SET service_status_short = ? WHERE service_id = ? AND (service_status_short IS NULL OR service_status_short <> ?)',
-            [$derived, $service['id'], $derived]
-        );
-    }
-}
-
-/**
  * Creates an incident with its first update and its affected services.
  *
  * $input keys: title, status, update, severity, services (ids), start (site-local, optional).
@@ -181,17 +156,15 @@ function createIncident(Db $db, array $input, DateTimeZone $zone, int $actorId, 
     $severity = requireOutageSeverity((string)($input['severity'] ?? ''));
     $serviceIds = requireServiceIds($db, (array)($input['services'] ?? []));
     $startUtc = incidentTimeToUtc($input['start'] ?? null, $zone, 'Start time') ?? gmdate('Y-m-d H:i:s', $now);
-    $csv = implode(',', $serviceIds);
 
     writeToLog($db, 'Requested incident: ' . $title, $actorId);
 
-    return $db->transaction(function (Db $db) use ($title, $status, $body, $severity, $serviceIds, $csv, $startUtc, $zone, $now, $actorId): int {
+    return $db->transaction(function (Db $db) use ($title, $status, $body, $severity, $serviceIds, $startUtc, $zone, $now, $actorId): int {
         $incidentId = $db->insert('incident', [
             'incident_date' => localDateOf($startUtc, $zone),
             'incident_description' => $title,
             'incident_status_short' => $status,
-            'incident_describes_ids' => $csv,
-        ], 'incident_id');
+            ], 'incident_id');
 
         $db->insert('incident_update', [
             'incident_update_incident_id' => $incidentId,
@@ -208,8 +181,6 @@ function createIncident(Db $db, array $input, DateTimeZone $zone, int $actorId, 
                 'severity' => $severity,
             ], ['incident_id', 'service_id']);
         }
-
-        recomputeServiceStatus($db, $zone, $now);
         auditWrite($db, "Created incident $incidentId: $title", $actorId, 'INFO');
         return $incidentId;
     });
@@ -250,8 +221,6 @@ function addIncidentUpdate(Db $db, int $incidentId, array $input, DateTimeZone $
         if ($thisEpoch >= $latestEpoch) {
             $db->execute('UPDATE incident SET incident_status_short = ? WHERE incident_id = ?', [$status, $incidentId]);
         }
-
-        recomputeServiceStatus($db, $zone, $now);
         auditWrite($db, "Added update to incident $incidentId", $actorId, 'INFO');
     });
 }
@@ -281,17 +250,15 @@ function scheduleMaintenance(Db $db, array $input, DateTimeZone $zone, int $acto
     }
     // While the window has not ended, the incident is in planned maintenance; afterwards it is resolved.
     $status = strtotime($endUtc . ' UTC') > $now ? 'PLA' : 'RES';
-    $csv = implode(',', $serviceIds);
 
     writeToLog($db, 'Requested maintenance: ' . $title, $actorId);
 
-    return $db->transaction(function (Db $db) use ($title, $message, $serviceIds, $csv, $startUtc, $endUtc, $status, $zone, $now, $actorId): int {
+    return $db->transaction(function (Db $db) use ($title, $message, $serviceIds, $startUtc, $endUtc, $status, $zone, $now, $actorId): int {
         $incidentId = $db->insert('incident', [
             'incident_date' => localDateOf($startUtc, $zone),
             'incident_description' => $title,
             'incident_status_short' => $status,
-            'incident_describes_ids' => $csv,
-        ], 'incident_id');
+            ], 'incident_id');
 
         $db->insert('incident_update', [
             'incident_update_incident_id' => $incidentId,
@@ -318,8 +285,6 @@ function scheduleMaintenance(Db $db, array $input, DateTimeZone $zone, int $acto
                 'severity' => 'PLA',
             ], ['incident_id', 'service_id']);
         }
-
-        recomputeServiceStatus($db, $zone, $now);
         auditWrite($db, "Scheduled maintenance $incidentId: $title", $actorId, 'INFO');
         return $incidentId;
     });

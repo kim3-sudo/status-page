@@ -37,7 +37,7 @@ $newserviceingroup = $_POST['newserviceingroup'];
 $newservicedescription = $_POST['newservicedescription'];
 $newservicelink = $_POST['newservicelink'];
 writeToLog($db, 'Adding new service ' . $newservicename . ' to group ' . $newserviceingroup, $_SESSION['id']);
-if ($db->tryExecute("INSERT INTO services (service_name, servicegroup_id, service_description, service_status_short, service_link) VALUES (?, ?, ?, 'OPE', ?)", [$newservicename, (int)$newserviceingroup, $newservicedescription, $newservicelink])) {
+if ($db->tryExecute("INSERT INTO services (service_name, servicegroup_id, service_description, service_link) VALUES (?, ?, ?, ?)", [$newservicename, (int)$newserviceingroup, $newservicedescription, $newservicelink])) {
   writeToLog($db, 'Created new service', $_SESSION['id']);
   echo '<p>Created new service</p>';
 } else {

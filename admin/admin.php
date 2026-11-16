@@ -86,6 +86,8 @@ use OTPHP\TOTP;
     </ul>
   </div>
 <?php
+// Page fragments refuse direct requests unless this is defined.
+define('ADMIN_PORTAL', true);
 include('pageaddincident.php');
 include('pageupdateincident.php');
 include('pagemanageservices.php');

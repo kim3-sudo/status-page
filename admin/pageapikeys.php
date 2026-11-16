@@ -1,3 +1,4 @@
+<?php if (!defined('ADMIN_PORTAL')) { http_response_code(404); exit; } ?>
 <?php
 /*
   Status Page

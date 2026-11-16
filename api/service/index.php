@@ -23,7 +23,7 @@
 */
 ?>
 <?php
-include('../../templates/_api.php');
+include('../../lib/api.php');
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
   http_response_code(405);
   die('Method Not Allowed');

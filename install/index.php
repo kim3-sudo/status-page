@@ -129,7 +129,7 @@ foreach (timezone_identifiers_list() as $row) {
         <input type="checkbox" id="installconfirm" name="installconfirm" value="true" required>
         <label for="installconfirm">Confirm?</label>
       </fieldset>
-      <?php require_once __DIR__ . '/../templates/_version.php'; ?>
+      <?php require_once __DIR__ . '/../lib/version.php'; ?>
       <p>This installer will prepare software version <?=htmlspecialchars(SOFTWARE_VERSION)?> and database version <?=htmlspecialchars(DATABASE_VERSION)?> for use.</p>
       <button type="submit">Install Now</button>
     </form>

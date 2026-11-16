@@ -41,7 +41,7 @@ final class IncidentWritesTest extends TestCase
 
         $this->db->runScript((string)file_get_contents(PROJECT_ROOT . '/install/schema/' . $driver . '.sql'));
         $this->db->execute("INSERT INTO servicegroups (servicegroup_id, servicegroup_name) VALUES (1, 'Core')");
-        $this->db->execute("INSERT INTO services (service_id, servicegroup_id, service_name, service_status_short) VALUES (1, 1, 'Mail', 'OPE'), (2, 1, 'Web', 'OPE')");
+        $this->db->execute("INSERT INTO services (service_id, servicegroup_id, service_name) VALUES (1, 1, 'Mail'), (2, 1, 'Web')");
         SiteSettings::clear();
     }
 
@@ -73,7 +73,6 @@ final class IncidentWritesTest extends TestCase
         $incident = $this->db->one('SELECT * FROM incident WHERE incident_id = ?', [$id]);
         $this->assertSame('Mail is down', $incident['incident_description']);
         $this->assertSame('INV', $incident['incident_status_short']);
-        $this->assertSame('1,2', $incident['incident_describes_ids'], 'legacy column still written');
         $this->assertSame('2026-07-01', substr((string)$incident['incident_date'], 0, 10));
 
         $update = $this->db->one('SELECT incident_update_timestamp, incident_update_utc FROM incident_update WHERE incident_update_incident_id = ?', [$id]);
@@ -85,7 +84,7 @@ final class IncidentWritesTest extends TestCase
             array_map(fn (array $r) => ['service_id' => (int)$r['service_id'], 'severity' => $r['severity']],
                 $this->db->all('SELECT service_id, severity FROM incident_service WHERE incident_id = ? ORDER BY service_id', [$id]))
         );
-        $this->assertSame('MAJ', $this->db->value('SELECT service_status_short FROM services WHERE service_id = 1'));
+        $this->assertSame('MAJ', $this->derivedStatus(1));
     }
 
     public function testSanitizesTheUpdateBodyOnWrite(): void
@@ -129,7 +128,6 @@ final class IncidentWritesTest extends TestCase
             'title too long' => [['title' => str_repeat('x', 256)]],
             'empty update' => [['update' => '<p> </p>']],
             'bad start time' => [['start' => 'not a time']],
-            'too many services for the legacy column' => [['services' => range(1000000001, 1000000012)]],
         ];
     }
 
@@ -142,7 +140,8 @@ final class IncidentWritesTest extends TestCase
         addIncidentUpdate($this->db, $id, ['status' => 'RES', 'update' => 'Fixed'], $this->zone, 1, self::NOW + 3600);
 
         $this->assertSame('RES', $this->db->value('SELECT incident_status_short FROM incident WHERE incident_id = ?', [$id]));
-        $this->assertSame('OPE', $this->db->value('SELECT service_status_short FROM services WHERE service_id = 2'));
+        $this->assertSame('MIN', $this->derivedStatus(2), 'still open at the first update');
+        $this->assertSame('OPE', $this->derivedStatus(2, self::NOW + 3600), 'resolved once the resolving update applies');
     }
 
     public function testBackdatedUpdateDoesNotChangeTheCurrentStatus(): void
@@ -205,7 +204,7 @@ final class IncidentWritesTest extends TestCase
         $this->assertSame(0, (int)$this->db->value('SELECT COUNT(*) FROM incident'), 'no incident written');
         $this->assertSame(0, (int)$this->db->value('SELECT COUNT(*) FROM incident_update'), 'no update written');
         $this->assertSame(0, (int)$this->db->value('SELECT COUNT(*) FROM incident_service'), 'no service links written');
-        $this->assertSame('OPE', $this->db->value('SELECT service_status_short FROM services WHERE service_id = 1'), 'service status untouched');
+        $this->assertSame('OPE', $this->derivedStatus(1), 'service status untouched');
         $this->assertSame(1, (int)$this->db->value("SELECT COUNT(*) FROM log WHERE log_entry LIKE 'Requested incident%'"), 'the attempt is still recorded');
     }
 
@@ -254,5 +253,12 @@ final class IncidentWritesTest extends TestCase
         } else {
             $this->db->runScript('DROP FUNCTION IF EXISTS statuspage_block_log() CASCADE');
         }
+    }
+
+    /** The status a service shows at the test's reference time, derived from its incidents. */
+    private function derivedStatus(int $serviceId, int $at = self::NOW): string
+    {
+        $snapshot = buildStatusSnapshot(loadStatusInputs($this->db, $this->zone), $at, $at);
+        return $snapshot['services'][$serviceId]['status'];
     }
 }

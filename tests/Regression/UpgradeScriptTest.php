@@ -31,10 +31,10 @@ final class UpgradeScriptTest extends TestCase
 
     public function testDatabaseVersionConstantHasAMatchingMigrationFile(): void
     {
-        require_once PROJECT_ROOT . '/templates/_version.php';
+        require_once PROJECT_ROOT . '/lib/version.php';
         $this->assertFileExists(
             PROJECT_ROOT . '/install/migrations/' . DATABASE_VERSION . '.php',
-            'DATABASE_VERSION in templates/_version.php should have a corresponding install/migrations/ file'
+            'DATABASE_VERSION in lib/version.php should have a corresponding install/migrations/ file'
         );
     }
 }
