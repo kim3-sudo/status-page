@@ -24,7 +24,7 @@
 ?>
 <?php require('_guard.php'); ?>
   <div class="container collapse notransition" id="updateincident" data-bs-parent="#actions">
-    <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
+    <h6 class="my-3">Welcome, <?=e($_SESSION['firstname'])?>!</h6>
     <h1 class="my-3">Update an incident</h1>
     <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#messagestylemodal">View Style Guide and Examples</button>
     <form action="updateincident.php" method="post">
@@ -34,10 +34,10 @@
           <option selected disabled>Select one...</option>
 <?php
 $incidentsql = "SELECT incident_id, incident_date, incident_description FROM incident WHERE incident_status_short != 'RES'";
-$incidentresult = mysqli_query($link, $incidentsql);
-if (mysqli_num_rows($incidentresult) > 0) {
-  while ($incidentrow = mysqli_fetch_assoc($incidentresult)) {
-    echo '<option value="' . $incidentrow['incident_id'] . '">' . $incidentrow['incident_date'] . ' - ' . $incidentrow['incident_description'] . '</option>';
+$incidentresult = $db->all($incidentsql);
+if ($incidentresult !== []) {
+  foreach ($incidentresult as $incidentrow) {
+    echo '<option value="' . e($incidentrow['incident_id']) . '">' . e($incidentrow['incident_date']) . ' - ' . e($incidentrow['incident_description']) . '</option>';
   }
 } else {
   echo '<option disabled>No open incidents</option>';
@@ -58,11 +58,11 @@ if (mysqli_num_rows($incidentresult) > 0) {
           <option disabled selected>Select one...</option>
 <?php
 $statussql = 'SELECT incident_status_code, incident_status_description FROM incident_status';
-$statusresult = mysqli_query($link, $statussql);
-if (mysqli_num_rows($statusresult) > 0) {
-  while($statusrow = mysqli_fetch_assoc($statusresult)) {
+$statusresult = $db->all($statussql);
+if ($statusresult !== []) {
+  foreach ($statusresult as $statusrow) {
     if ($statusrow['incident_status_code'] != 'PLA') {
-      echo '<option value="' . $statusrow['incident_status_code'] . '">' . $statusrow['incident_status_description'] . '</option>';
+      echo '<option value="' . e($statusrow['incident_status_code']) . '">' . e($statusrow['incident_status_description']) . '</option>';
     }
   }
 } else {

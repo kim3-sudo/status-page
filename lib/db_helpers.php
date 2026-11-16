@@ -9,9 +9,6 @@
 // No HTML output and no other side effects here. This file is included by
 // contexts that must not emit HTML or do unrelated DB work (install/run.php,
 // saml/index.php), in addition to the normal HTML-emitting templates/_header.php.
-//
-// These helpers still take the mysqli $link. Re-platforming them onto the Db
-// class happens in Step 8, once the remaining mysqli callers are converted.
 
 require_once __DIR__ . '/audit.php';
 
@@ -23,11 +20,8 @@ final class SiteSettings
 {
     private static ?array $values = null;
 
-    /**
-     * @param mysqli|Db $link
-     * @return array<string, string>
-     */
-    public static function load($link): array
+    /** @return array<string, string> */
+    public static function load(Db $db): array
     {
         if (self::$values !== null) {
             return self::$values;
@@ -35,16 +29,8 @@ final class SiteSettings
 
         try {
             $values = [];
-            if ($link instanceof Db) {
-                foreach ($link->all('SELECT setting_key, setting_value FROM settings') as $row) {
-                    $values[$row['setting_key']] = $row['setting_value'] ?? '';
-                }
-            } else {
-                $result = $link->query('SELECT setting_key, setting_value FROM settings');
-                while ($row = $result->fetch_assoc()) {
-                    $values[$row['setting_key']] = $row['setting_value'] ?? '';
-                }
-                $result->free();
+            foreach ($db->all('SELECT setting_key, setting_value FROM settings') as $row) {
+                $values[$row['setting_key']] = $row['setting_value'] ?? '';
             }
         } catch (Throwable $e) {
             // Not cached: a later call may succeed once the table exists.
@@ -68,27 +54,23 @@ if (!function_exists('writeToLog')) {
      * Strict policy throws AuditException on failure. Soft policy logs the failure
      * and returns false.
      */
-    function writeToLog($link, $entry, $uid, $type = 'INFO'): bool {
-        return auditWrite($link, $entry, $uid, $type);
+    function writeToLog(Db $db, $entry, $uid, $type = 'INFO'): bool {
+        return auditWrite($db, $entry, $uid, $type);
     }
 }
 
 if (!function_exists('samlWriteToLog')) {
-    // Same as writeToLog(), but tolerates a missing $link and swallows failures
-    // instead of dying. Losing an audit entry mid-SSO-handshake shouldn't break
-    // the handshake itself.
-    function samlWriteToLog($link, $entry, $uid, $type = 'INFO') {
-        if (!$link) {
-            return;
-        }
-        // Same policy as writeToLog(). Under strict auditing a failed entry aborts
-        // the SSO request with a 503 (see lib/bootstrap.php).
-        auditWrite($link, $entry, $uid, $type);
+    /**
+     * Same policy as writeToLog(). Under strict auditing a failed entry aborts the
+     * SSO request with a 503 (see lib/bootstrap.php).
+     */
+    function samlWriteToLog(Db $db, $entry, $uid, $type = 'INFO'): void {
+        auditWrite($db, $entry, $uid, $type);
     }
 }
 
 if (!function_exists('getSetting')) {
-    function getSetting($link, $key) {
-        return SiteSettings::load($link)[$key] ?? '';
+    function getSetting(Db $db, string $key): string {
+        return SiteSettings::load($db)[$key] ?? '';
     }
 }

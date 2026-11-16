@@ -25,7 +25,7 @@
 <?php
 require('_guard.php');
 include('../templates/_header.php');
-writeToLog($link, 'New service API keys are being generated', $_SESSION['id']);
+writeToLog($db, 'New service API keys are being generated', $_SESSION['id']);
 ?>
 <div class="d-flex flex-row">
   <div class="container">
@@ -40,24 +40,21 @@ if (isset($_POST['newapikeyname'])) {
     $randomString .= $characters[random_int(0, $charactersLength - 1)];
   }
   $newapikeyname = $_POST['newapikeyname'];
-  $stmt = $link->prepare('INSERT INTO apikeys (apikeys_user_id, apikeys_authkey, apikeys_is_personal, apikeys_nickname) VALUES (?, ?, 0, ?)');
-  $stmt->bind_param('iss', $_SESSION['id'], $randomString, $newapikeyname);
-  if ($stmt->execute()) {
-    writeToLog($link, 'New service API key was generated, new key starts with', $_SESSION['id']);
-    writeToLog($link, substr($randomString, 0, 8), $_SESSION['id']);
+  if ($db->tryExecute('INSERT INTO apikeys (apikeys_user_id, apikeys_authkey, apikeys_is_personal, apikeys_nickname) VALUES (?, ?, ?, ?)', [(int)$_SESSION['id'], $randomString, 0, $newapikeyname])) {
+    writeToLog($db, 'New service API key was generated, new key starts with', $_SESSION['id']);
+    writeToLog($db, substr($randomString, 0, 8), $_SESSION['id']);
     echo '<p>Your new service API key is ready. Your new API key is <code>' . htmlspecialchars($randomString) . '</code>. Save this key now, as you will not be able to see it again later.</p>';
   } else {
-    writeToLog($link, 'Failed to generate and save new API key', $_SESSION['id'], 'WARN');
+    writeToLog($db, 'Failed to generate and save new API key', $_SESSION['id'], 'WARN');
     echo '<p>Failed to generate and save new API key!</p>';
   }
-  $stmt->close();
 } else {
-  writeToLog($link, 'No API key nickname', $_SESSION['id']);
+  writeToLog($db, 'No API key nickname', $_SESSION['id']);
   echo '<p>No API key nickname.</p>';
 }
 ?>
         <a href="./" class="btn btn-primary">Admin Portal</a>
-        <button class="btn btn-secondary" onclick="history.back()">Go Back</a>
+        <button class="btn btn-secondary" onclick="history.back()">Go Back</button>
       </div>
     </div>
   </div>

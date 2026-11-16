@@ -23,7 +23,7 @@
 */
 require('_guard.php');
 include('../templates/_header.php');
-writeToLog($link, 'Admin page accessed', $_SESSION['id']);
+writeToLog($db, 'Admin page accessed', $_SESSION['id']);
 require_once('../vendor/autoload.php');
 use OTPHP\TOTP;
 ?>
@@ -81,7 +81,7 @@ use OTPHP\TOTP;
         </div>
       </li>
       <li class="nav-item">
-        <p class="small text-muted"><em><?=strtolower(getSetting($link, 'software_version'))?>/<?=strtolower(getSetting($link, 'database_version'))?>/<?=strtolower(gethostname())?></em></p>
+        <p class="small text-muted"><em><?=strtolower(getSetting($db, 'software_version'))?>/<?=strtolower(getSetting($db, 'database_version'))?>/<?=strtolower(gethostname())?></em></p>
       </li>
     </ul>
   </div>

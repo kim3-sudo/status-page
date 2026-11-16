@@ -24,7 +24,7 @@
 ?>
 <?php require('_guard.php'); ?>
   <div class="container collapse notransition" id="managegroups" data-bs-parent="#actions">
-    <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
+    <h6 class="my-3">Welcome, <?=e($_SESSION['firstname'])?>!</h6>
     <h1 class="my-3">Manage service groups</h1>
     <form action="addservicegroup.php" method="post">
       <div class="mb-3">
@@ -44,13 +44,13 @@
       <tbody>
 <?php
 $servicegroupsql = 'SELECT servicegroup_id, servicegroup_name FROM servicegroups ORDER BY servicegroup_name ASC';
-$servicegroupresult = mysqli_query($link, $servicegroupsql);
-if (mysqli_num_rows($servicegroupresult) > 0) {
-  while ($servicegrouprow = mysqli_fetch_assoc($servicegroupresult)) {
+$servicegroupresult = $db->all($servicegroupsql);
+if ($servicegroupresult !== []) {
+  foreach ($servicegroupresult as $servicegrouprow) {
 ?>
 <tr>
-  <td><button class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#servicegroup<?=$servicegrouprow['servicegroup_id']?>modal"><?=$servicegrouprow['servicegroup_name']?></button></td>
-  <td><button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#servicegroup<?=$servicegrouprow['servicegroup_id']?>delete"><i class="fa-solid fa-xmark text-danger"></i></button></td>
+  <td><button class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#servicegroup<?=e($servicegrouprow['servicegroup_id'])?>modal"><?=e($servicegrouprow['servicegroup_name'])?></button></td>
+  <td><button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#servicegroup<?=e($servicegrouprow['servicegroup_id'])?>delete"><i class="fa-solid fa-xmark text-danger"></i></button></td>
 </tr>
 <?php
   }

@@ -24,7 +24,7 @@
 ?>
 <?php require('_guard.php'); ?>
   <div class="container collapse notransition" id="apikeys" data-bs-parent="#actions">
-    <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
+    <h6 class="my-3">Welcome, <?=e($_SESSION['firstname'])?>!</h6>
     <h1 class="my-3">Manage Your Personal API Key</h1>
     <form action="updateapikeys.php" method="post">
       <label for="confirmapikeyrotation" class="form-label mb-3">Type "ROTATE MY KEYS" here to confirm you want to rotate your API key.</label>

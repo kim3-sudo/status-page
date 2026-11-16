@@ -24,7 +24,7 @@
 ?>
 <?php require('_guard.php'); ?>
   <div class="container collapse show notransition" id="addincident" data-bs-parent="#actions">
-    <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
+    <h6 class="my-3">Welcome, <?=e($_SESSION['firstname'])?>!</h6>
     <h1 class="my-3">Add an incident</h1>
     <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#messagestylemodal">View Style Guide and Examples</button>
     <form action="addincident.php" method="post">
@@ -45,21 +45,21 @@
         <label for="addincidentaffected" name="addincidentaffected" class="form-label">Affected Services<span class="required">*</span></label>
 <?php
 $servicegroupsql = 'SELECT servicegroups.servicegroup_id, servicegroups.servicegroup_name FROM servicegroups ORDER BY servicegroup_name ASC';
-$servicegroupresult = mysqli_query($link, $servicegroupsql);
-if (mysqli_num_rows($servicegroupresult) > 0) {
+$servicegroupresult = $db->all($servicegroupsql);
+if ($servicegroupresult !== []) {
   echo '<div class="accordion" id="addincidentservices">';
-  while ($servicegrouprow = mysqli_fetch_assoc($servicegroupresult)) {
+  foreach ($servicegroupresult as $servicegrouprow) {
     echo '<div class="accordion-item">';
-    echo '<h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#sg' . $servicegrouprow['servicegroup_id'] . '-collapse" aria-expanded="true" aria-controls="sg' . $servicegrouprow['servicegroup_id'] . '-collapse">';
-    echo $servicegrouprow['servicegroup_name'];
+    echo '<h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#sg' . e($servicegrouprow['servicegroup_id']) . '-collapse" aria-expanded="true" aria-controls="sg' . e($servicegrouprow['servicegroup_id']) . '-collapse">';
+    echo e($servicegrouprow['servicegroup_name']);
     echo '</button></h2>';
-    echo '<div id="sg' . $servicegrouprow['servicegroup_id'] . '-collapse" class="accordion-collapse collapse show">';
+    echo '<div id="sg' . e($servicegrouprow['servicegroup_id']) . '-collapse" class="accordion-collapse collapse show">';
     echo '<div class="accordion-body">';
-    $servicesql = 'SELECT service_id, servicegroups.servicegroup_name, service_name FROM services INNER JOIN servicegroups ON services.servicegroup_id = servicegroups.servicegroup_id WHERE servicegroups.servicegroup_id = ' . $servicegrouprow['servicegroup_id'] . ' ORDER BY servicegroups.servicegroup_name ASC';
-    $serviceresult = mysqli_query($link, $servicesql);
-    if (mysqli_num_rows($serviceresult) > 0) {
-      while($servicerow = mysqli_fetch_assoc($serviceresult)) {
-        echo '<div class="form-check"><input class="form-check-input" type="checkbox" value="' . $servicerow['service_id'] . '" id="servicecheck' . $servicerow['service_id'] . '" name="affectedservices[]"><label class="form-check-label" for="servicecheck' . $servicerow['service_id'] . '">' . $servicerow['service_name'] . '</label></div>';
+    $servicesql = 'SELECT service_id, servicegroups.servicegroup_name, service_name FROM services INNER JOIN servicegroups ON services.servicegroup_id = servicegroups.servicegroup_id WHERE servicegroups.servicegroup_id = ' . e($servicegrouprow['servicegroup_id']) . ' ORDER BY servicegroups.servicegroup_name ASC';
+    $serviceresult = $db->all($servicesql);
+    if ($serviceresult !== []) {
+      foreach ($serviceresult as $servicerow) {
+        echo '<div class="form-check"><input class="form-check-input" type="checkbox" value="' . e($servicerow['service_id']) . '" id="servicecheck' . e($servicerow['service_id']) . '" name="affectedservices[]"><label class="form-check-label" for="servicecheck' . e($servicerow['service_id']) . '">' . e($servicerow['service_name']) . '</label></div>';
       }
     } else {
       echo '<div class="form-check"><input class="form-check-input" type="checkbox" value="" id="servicecheckdisabled" disabled required><label class="form-check-label" for="servicecheckdisabled"></div>';
@@ -78,11 +78,11 @@ if (mysqli_num_rows($servicegroupresult) > 0) {
           <option disabled selected>Select one...</option>
 <?php
 $severitysql = 'SELECT service_status_code, service_status_description FROM service_status';
-$severityresult = mysqli_query($link, $severitysql);
-if (mysqli_num_rows($severityresult) > 0) {
-  while($severityrow = mysqli_fetch_assoc($severityresult)) {
+$severityresult = $db->all($severitysql);
+if ($severityresult !== []) {
+  foreach ($severityresult as $severityrow) {
     if ($severityrow['service_status_code'] != 'PLA') {
-      echo '<option value="' . $severityrow['service_status_code'] . '">' . $severityrow['service_status_description'] . '</option>';
+      echo '<option value="' . e($severityrow['service_status_code']) . '">' . e($severityrow['service_status_description']) . '</option>';
     }
   }
 } else {
@@ -97,11 +97,11 @@ if (mysqli_num_rows($severityresult) > 0) {
           <option disabled selected>Select one...</option>
 <?php
 $statussql = 'SELECT incident_status_code, incident_status_description FROM incident_status';
-$statusresult = mysqli_query($link, $statussql);
-if (mysqli_num_rows($statusresult) > 0) {
-  while($statusrow = mysqli_fetch_assoc($statusresult)) {
+$statusresult = $db->all($statussql);
+if ($statusresult !== []) {
+  foreach ($statusresult as $statusrow) {
     if ($statusrow['incident_status_code'] != 'PLA') {
-      echo '<option value="' . $statusrow['incident_status_code'] . '">' . $statusrow['incident_status_description'] . '</option>';
+      echo '<option value="' . e($statusrow['incident_status_code']) . '">' . e($statusrow['incident_status_description']) . '</option>';
     }
   }
 } else {

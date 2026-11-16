@@ -24,7 +24,7 @@
 ?>
 <?php require('_guard.php'); ?>
   <div class="container collapse notransition" id="updatepassword" data-bs-parent="#actions">
-    <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
+    <h6 class="my-3">Welcome, <?=e($_SESSION['firstname'])?>!</h6>
     <h1 class="my-3">Change Your Password</h1>
     <form action="updateownpassword.php" method="post">
       <div class="mb-3">
@@ -46,11 +46,7 @@
       <div class="mb-3">
         <h1 class="my-3">Time-Based One Time Passcode 2FA</h1>
 <?php
-$stmt = $link->prepare('SELECT user_totpenabled FROM users WHERE user_id = ?');
-$stmt->bind_param('i', $_SESSION['id']);
-$stmt->execute();
-$row = $stmt->get_result()->fetch_assoc();
-$stmt->close();
+$row = $db->one('SELECT user_totpenabled FROM users WHERE user_id = ?', [(int)$_SESSION['id']]);
 $isenrolled = $row['user_totpenabled'];
 if ($isenrolled == 1) {
 ?>

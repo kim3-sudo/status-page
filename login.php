@@ -43,8 +43,7 @@ include('templates/_header.php');
     <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
   </form>
 <?php
-$srow = mysqli_fetch_assoc(mysqli_query($link, "SELECT setting_value FROM settings WHERE setting_key = 'enable_sso'"));
-if ($srow['setting_value'] == 'true') {
+if (getSetting($db, 'enable_sso') === 'true') {
 ?>
   <br>
   <a class="w-100 btn btn-lg btn-success" href="saml/index.php?sso2">Sign in with SSO</a>

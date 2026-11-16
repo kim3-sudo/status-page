@@ -21,7 +21,7 @@
 // entries written before the action. Entries written after a successful database
 // change cannot undo that change. Step 7 moves those writes into transactions.
 
-// Requires getSetting() and the mysqli $link, both provided by lib/db_helpers.php.
+// Requires getSetting() and the Db handle, both provided by lib/db_helpers.php.
 
 /** Raised when strict auditing is on and an audit entry cannot be written. */
 final class AuditException extends RuntimeException
@@ -38,33 +38,20 @@ function auditFailureAction(string $policy): string
     return $policy === AUDIT_POLICY_SOFT ? 'log' : 'throw';
 }
 
-/**
- * Inserts one row into the log table. Throws on failure, so callers must catch.
- * Accepts either a Db or a mysqli connection.
- */
-function auditInsert($link, string $entry, $uid, string $type): void
+/** Inserts one row into the log table. Throws on failure, so callers must catch. */
+function auditInsert(Db $db, string $entry, $uid, string $type): void
 {
-    if ($link instanceof Db) {
-        $link->execute(
-            'INSERT INTO log (log_entry, log_user_id, log_type) VALUES (?, ?, ?)',
-            [$entry, (int)$uid, $type]
-        );
-        return;
-    }
-    $stmt = $link->prepare('INSERT INTO log (log_entry, log_user_id, log_type) VALUES (?, ?, ?)');
-    $stmt->bind_param('sis', $entry, $uid, $type);
-    $ok = $stmt->execute();
-    $stmt->close();
-    if (!$ok) {
-        throw new RuntimeException('execute returned false');
-    }
+    $db->execute(
+        'INSERT INTO log (log_entry, log_user_id, log_type) VALUES (?, ?, ?)',
+        [$entry, (int)$uid, $type]
+    );
 }
 
 /** The active policy. Anything other than exactly 'soft' is strict. */
-function auditPolicy($link): string
+function auditPolicy(Db $db): string
 {
     try {
-        return getSetting($link, AUDIT_POLICY_SETTING) === AUDIT_POLICY_SOFT
+        return getSetting($db, AUDIT_POLICY_SETTING) === AUDIT_POLICY_SOFT
             ? AUDIT_POLICY_SOFT
             : AUDIT_POLICY_STRICT;
     } catch (Throwable $e) {
@@ -76,24 +63,19 @@ function auditPolicy($link): string
  * Writes one audit entry and returns true on success. On failure it throws
  * AuditException under strict policy, or logs and returns false under soft policy.
  */
-function auditWrite($link, string $entry, $uid, string $type): bool
+function auditWrite(Db $db, string $entry, $uid, string $type): bool
 {
     $entry = substr($entry, 0, 139);
     try {
-        if ($link instanceof Db) {
-            // Inside a transaction, a failed insert must not abort the rest of it (PostgreSQL does).
-            $link->savepoint(fn () => auditInsert($link, $entry, $uid, $type));
-        } else {
-            auditInsert($link, $entry, $uid, $type);
-        }
+        // Inside a transaction, a failed insert must not abort the rest of it (PostgreSQL does).
+        $db->savepoint(fn () => auditInsert($db, $entry, $uid, $type));
         return true;
     } catch (Throwable $e) {
-        // mysqli throws on failure by default (PHP 8.1+), so this is the normal failure path.
         $reason = $e->getMessage();
     }
 
     $message = "audit entry not written (type $type): $entry [$reason]";
-    if (auditFailureAction(auditPolicy($link)) === 'throw') {
+    if (auditFailureAction(auditPolicy($db)) === 'throw') {
         throw new AuditException($message);
     }
     error_log('status-page: ' . $message);

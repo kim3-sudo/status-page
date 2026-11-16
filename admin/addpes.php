@@ -25,7 +25,7 @@
 <?php
 require('_guard.php');
 include('../templates/_header.php');
-writeToLog($link, 'Creating new PES', $_SESSION['id']);
+writeToLog($db, 'Creating new PES', $_SESSION['id']);
 ?>
 <div class="d-flex flex-row">
   <div class="container">
@@ -36,25 +36,22 @@ $pestitle = $_POST['pestitle'];
 $pessummary = $_POST['pessummary'];
 $pesimpact = $_POST['pesimpact'];
 $pesdate = $_POST['pesdate'];
-writeToLog($link, 'Adding PES dated ' . $pesdate . ' for '. $pestitle, $_SESSION['id']);
+writeToLog($db, 'Adding PES dated ' . $pesdate . ' for '. $pestitle, $_SESSION['id']);
 if ($pesdate == "") {
-  $stmt = $link->prepare('INSERT INTO pes (pes_title, pes_issue_summary, pes_issue_service_impact) VALUES (?, ?, ?)');
-  $stmt->bind_param('sss', $pestitle, $pessummary, $pesimpact);
+  $ok = $db->tryExecute('INSERT INTO pes (pes_title, pes_issue_summary, pes_issue_service_impact) VALUES (?, ?, ?)', [$pestitle, $pessummary, $pesimpact]);
 } else {
-  $stmt = $link->prepare('INSERT INTO pes (pes_title, pes_date, pes_issue_summary, pes_issue_service_impact) VALUES (?, ?, ?, ?)');
-  $stmt->bind_param('ssss', $pestitle, $pesdate, $pessummary, $pesimpact);
+  $ok = $db->tryExecute('INSERT INTO pes (pes_title, pes_date, pes_issue_summary, pes_issue_service_impact) VALUES (?, ?, ?, ?)', [$pestitle, $pesdate, $pessummary, $pesimpact]);
 }
-if ($stmt->execute()) {
-  writeToLog($link, 'Added PES successfully', $_SESSION['id']);
+if ($ok) {
+  writeToLog($db, 'Added PES successfully', $_SESSION['id']);
   echo '<p>Added post-event summary</p>';
 } else {
-  writeToLog($link, 'Failed to add PES', $_SESSION['id']);
-  writeToLog($link, $link->error, $_SESSION['id']);
+  writeToLog($db, 'Failed to add PES', $_SESSION['id']);
+  writeToLog($db, $db->lastError(), $_SESSION['id']);
 ?>
-<p>Error: <?=htmlspecialchars($link->error)?></p>
+<p>Error: <?=e($db->lastError())?></p>
 <?php
 }
-$stmt->close();
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
       <button class="btn btn-secondary" onclick="history.back()">Go Back</a>

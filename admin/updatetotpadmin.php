@@ -30,7 +30,7 @@ if ($_SESSION['suflag'] != 1) {
 }
 require_once('../vendor/autoload.php');
 use OTPHP\TOTP;
-writeToLog($link, 'TOTP settings were changed', $_SESSION['id']);
+writeToLog($db, 'TOTP settings were changed', $_SESSION['id']);
 ?>
 <div class="d-flex flex-row">
   <div class="container">
@@ -39,33 +39,27 @@ writeToLog($link, 'TOTP settings were changed', $_SESSION['id']);
 <?php
 if (isset($_POST['totpuserid'])) {
   $totpuserid = $_POST['totpuserid'];
-  writeToLog($link, 'TOTP was disabled by admin for user ID '. $totpuserid, $_SESSION['id']);
-  writeToLog($link, 'Setting the TOTP flag false in the user ledger', $_SESSION['id']);
-  $stmt = $link->prepare('UPDATE users SET user_totpenabled = 0 WHERE user_id = ?');
-  $stmt->bind_param('i', $totpuserid);
-  if ($stmt->execute()) {
-    writeToLog($link, 'TOTP flag was unset', $_SESSION['id']);
+  writeToLog($db, 'TOTP was disabled by admin for user ID '. $totpuserid, $_SESSION['id']);
+  writeToLog($db, 'Setting the TOTP flag false in the user ledger', $_SESSION['id']);
+  if ($db->tryExecute('UPDATE users SET user_totpenabled = ? WHERE user_id = ?', [0, (int)$totpuserid])) {
+    writeToLog($db, 'TOTP flag was unset', $_SESSION['id']);
     echo '<p>TOTP was disabled.</p>';
   } else {
-    writeToLog($link, 'Failed to unset TOTP flag', $_SESSION['id'], 'WARN');
+    writeToLog($db, 'Failed to unset TOTP flag', $_SESSION['id'], 'WARN');
     echo '<p>Failed to disable TOTP!</p>';
   }
-  $stmt->close();
-  writeToLog($link, 'Removing old TOTP secrets', $_SESSION['id']);
-  $stmt = $link->prepare('UPDATE users SET user_totpsecret = NULL WHERE user_id = ?');
-  $stmt->bind_param('i', $totpuserid);
-  if ($stmt->execute()) {
-    writeToLog($link, 'Removed old TOTP secrets', $_SESSION['id']);
+  writeToLog($db, 'Removing old TOTP secrets', $_SESSION['id']);
+  if ($db->tryExecute('UPDATE users SET user_totpsecret = NULL WHERE user_id = ?', [(int)$totpuserid])) {
+    writeToLog($db, 'Removed old TOTP secrets', $_SESSION['id']);
     echo '<p>Old secrets have been removed.</p>';
   } else {
-    writeToLog($link, 'Failed to remove old TOTP secrets', $_SESSION['id'], 'WARN');
+    writeToLog($db, 'Failed to remove old TOTP secrets', $_SESSION['id'], 'WARN');
     echo '<p>Failed to remove old secrets!</p>';
   }
-  $stmt->close();
 }
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
-      <button class="btn btn-secondary" onclick="history.back()">Go Back</a>
+      <button class="btn btn-secondary" onclick="history.back()">Go Back</button>
       </div>
     </div>
   </div>

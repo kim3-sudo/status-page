@@ -28,7 +28,7 @@ include('../templates/_header.php');
 require_once('../vendor/autoload.php');
 use OTPHP\TOTP;
 use chillerlan\QRCode\QRCode;
-writeToLog($link, 'TOTP settings were changed', $_SESSION['id']);
+writeToLog($db, 'TOTP settings were changed', $_SESSION['id']);
 ?>
 <div class="d-flex flex-row">
   <div class="container">
@@ -37,7 +37,7 @@ writeToLog($link, 'TOTP settings were changed', $_SESSION['id']);
 <?php
 if ($_POST['totpenabled'] == 1) {
   $otp = TOTP::generate();
-  writeToLog($link, 'TOTP enrollment request', $_SESSION['id']);
+  writeToLog($db, 'TOTP enrollment request', $_SESSION['id']);
   $qrdata = 'otpauth://totp/Status Page:Status Page ' . $_SESSION['email'] . '?secret=' . $otp->getSecret() . '&issuer=Status Page';
 ?>
         <p>The OTP secret is <code><?=$otp->getSecret()?></code>.</p>
@@ -53,31 +53,25 @@ if ($_POST['totpenabled'] == 1) {
         </form>
 <?php
 } else {
-  writeToLog($link, 'TOTP was disabled', $_SESSION['id']);
-  writeToLog($link, 'Setting the TOTP flag false in the user ledger', $_SESSION['id']);
-  $stmt = $link->prepare('UPDATE users SET user_totpenabled = 0 WHERE user_id = ?');
-  $stmt->bind_param('i', $_SESSION['id']);
-  if ($stmt->execute()) {
-    writeToLog($link, 'TOTP flag was unset', $_SESSION['id']);
+  writeToLog($db, 'TOTP was disabled', $_SESSION['id']);
+  writeToLog($db, 'Setting the TOTP flag false in the user ledger', $_SESSION['id']);
+  if ($db->tryExecute('UPDATE users SET user_totpenabled = ? WHERE user_id = ?', [0, (int)$_SESSION['id']])) {
+    writeToLog($db, 'TOTP flag was unset', $_SESSION['id']);
     echo '<p>TOTP was disabled.</p>';
   } else {
-    writeToLog($link, 'Failed to unset TOTP flag', $_SESSION['id'], 'WARN');
+    writeToLog($db, 'Failed to unset TOTP flag', $_SESSION['id'], 'WARN');
     echo '<p>Failed to disable TOTP!</p>';
   }
-  $stmt->close();
-  writeToLog($link, 'Removing old TOTP secrets', $_SESSION['id']);
-  $stmt = $link->prepare('UPDATE users SET user_totpsecret = NULL WHERE user_id = ?');
-  $stmt->bind_param('i', $_SESSION['id']);
-  if ($stmt->execute()) {
-    writeToLog($link, 'Removed old TOTP secrets', $_SESSION['id']);
+  writeToLog($db, 'Removing old TOTP secrets', $_SESSION['id']);
+  if ($db->tryExecute('UPDATE users SET user_totpsecret = NULL WHERE user_id = ?', [(int)$_SESSION['id']])) {
+    writeToLog($db, 'Removed old TOTP secrets', $_SESSION['id']);
     echo '<p>Old secrets have been removed.</p>';
   } else {
-    writeToLog($link, 'Failed to remove old TOTP secrets', $_SESSION['id'], 'WARN');
+    writeToLog($db, 'Failed to remove old TOTP secrets', $_SESSION['id'], 'WARN');
     echo '<p>Failed to remove old secrets!</p>';
   }
-  $stmt->close();
   echo '<a href="./" class="btn btn-primary">Admin Portal</a>';
-  echo '<button class="btn btn-secondary" onclick="history.back()">Go Back</a>';
+  echo '<button class="btn btn-secondary" onclick="history.back()">Go Back</button>';
 }
 ?>
       </div>

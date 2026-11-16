@@ -130,7 +130,7 @@ foreach ($snapshot['groups'] as $group) {
   }
   foreach ($group['services'] as $service) {
     $badge = serviceStatusDisplay($service['status']);
-    $link = safeUrl($service['link']);
+    $linkurl = safeUrl($service['link']);
 ?>
                 <div class="container px-4 py-2">
                   <div class="row">
@@ -141,8 +141,8 @@ foreach ($snapshot['groups'] as $group) {
 <?php if ((string)$service['description'] !== ''): ?>
                         &nbsp;<i class="text-muted fa-solid fa-question-circle" data-bs-toggle="tooltip" data-bs-title="<?=e($service['description'])?>"></i>
 <?php endif; ?>
-<?php if ($link !== null): ?>
-                        &nbsp;<a href="<?=$link?>"><i class="text-muted fa fa-external-link"></i></a>
+<?php if ($linkurl !== null): ?>
+                        &nbsp;<a href="<?=$linkurl?>"><i class="text-muted fa fa-external-link"></i></a>
 <?php endif; ?>
                       </h6>
                     </div>

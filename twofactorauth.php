@@ -25,8 +25,8 @@
 <?php
 session_start();
 include('templates/_header.php');
-writeToLog($link, 'Two-factor authentication TOTP code request', -1);
-writeToLog($link, $_POST['email'], -1);
+writeToLog($db, 'Two-factor authentication TOTP code request', -1);
+writeToLog($db, $_POST['email'], -1);
 require_once('vendor/autoload.php');
 use OTPHP\TOTP;
 ?>
@@ -35,23 +35,19 @@ use OTPHP\TOTP;
     <div class="col">
 <?php
 if (!isset($_POST['email'], $_POST['id'], $_POST['totpcode']) ) {
-  writeToLog($link, 'Missing field information', -1);
+  writeToLog($db, 'Missing field information', -1);
   exit('Missing field information');
 }
-writeToLog($link, 'Querying for TOTP token for user ID ' . $_POST['id'], -1);
-$stmt = $link->prepare('SELECT user_id, user_first_name, user_last_name, user_issuperuser, user_totpsecret FROM users WHERE user_totpsecret IS NOT NULL AND user_id = ?');
-$stmt->bind_param('i', $_POST['id']);
-$stmt->execute();
-$result = $stmt->get_result();
-if ($result->num_rows == 1) {
-  $row = $result->fetch_assoc();
+writeToLog($db, 'Querying for TOTP token for user ID ' . $_POST['id'], -1);
+$row = $db->one('SELECT user_id, user_first_name, user_last_name, user_issuperuser, user_totpsecret FROM users WHERE user_totpsecret IS NOT NULL AND user_id = ?', [(int)$_POST['id']]);
+if ($row !== null) {
   $totpsecret = $row['user_totpsecret'];
-  writeToLog($link, 'Verifying TOTP token starting with ' . substr($totpsecret, 0, 14), -1);
+  writeToLog($db, 'Verifying TOTP token starting with ' . substr($totpsecret, 0, 14), -1);
   if ($totpsecret) {
-    writeToLog($link, 'Query was successful, checking result against POSTed data for match', -1);
+    writeToLog($db, 'Query was successful, checking result against POSTed data for match', -1);
     if (TOTP::createFromSecret($totpsecret)->verify($_POST['totpcode'])) {
-      writeToLog($link, 'TOTP code was verified against secret', -1);
-      writeToLog($link, 'Password hashes are good, two-factor passed, generating session tokens', -1);
+      writeToLog($db, 'TOTP code was verified against secret', -1);
+      writeToLog($db, 'Password hashes are good, two-factor passed, generating session tokens', -1);
       session_regenerate_id(true);
       $_SESSION['loggedin'] = true;
       $_SESSION['email'] = $_POST['email'];
@@ -63,20 +59,19 @@ if ($result->num_rows == 1) {
       $_SESSION['firstname'] = $row['user_first_name'];
       $_SESSION['lastname'] = $row['user_last_name'];
       $_SESSION['suflag'] = $row['user_issuperuser'];
-      writeToLog($link, 'Redirecting user to admin', -1);
+      writeToLog($db, 'Redirecting user to admin', -1);
       header('Location: admin/admin.php');
     } else {
-      writeToLog($link, 'Authentication failed on TOTP!', -1, 'WARN');
+      writeToLog($db, 'Authentication failed on TOTP!', -1, 'WARN');
       echo '<p>Failed two-factor authentication check</p>';
     }
   } else {
-    writeToLog($link, 'Failed to match user ledger row', -1, 'WARN');
+    writeToLog($db, 'Failed to match user ledger row', -1, 'WARN');
     echo '<p>Something went wrong, check logs</p>';
   }
 } else {
-  writeToLog($link, $result->num_rows . ' rows were matched when querying for TOTP tokens', -1);
+  writeToLog($db, 'No row matched when querying for TOTP tokens', -1);
 }
-$stmt->close();
 ?>
     </div>
   </div>

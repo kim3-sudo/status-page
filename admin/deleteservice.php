@@ -25,7 +25,7 @@
 <?php
 require('_guard.php');
 include('../templates/_header.php');
-writeToLog($link, 'Deleting service', $_SESSION['id']);
+writeToLog($db, 'Deleting service', $_SESSION['id']);
 ?>
 <div class="d-flex flex-row">
   <div class="container">
@@ -45,7 +45,7 @@ if ((int)$db->value('SELECT COUNT(*) FROM incident_service WHERE service_id = ?'
 }
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
-      <button class="btn btn-secondary" onclick="history.back()">Go Back</a>
+      <button class="btn btn-secondary" onclick="history.back()">Go Back</button>
       </div>
     </div>
   </div>

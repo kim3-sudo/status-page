@@ -24,55 +24,42 @@
 ?>
 <?php
 include('../../templates/_api.php');
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  http_response_code(405);
-  die('Method Not Allowed');
-} elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
-  if (isset($_GET['authkey'])) {
-    writeToLog($link, 'Matching authentication keys for service API via GET', -1);
-    $result = findApiKeyRows($link, $_GET['authkey']);
-    if (mysqli_num_rows($result) == 1) {
-      header('Content-Type: application/json; charset=utf-8');
-      $userid = mysqli_fetch_assoc($result)['apikeys_user_id'];
-      writeToLog($link, 'Matched authentication key for user', $userid);
-      // Same model as the status page, so the API and the page cannot disagree.
-      $now = time();
-      $snapshot = buildStatusSnapshot(loadStatusInputs($db, $siteZone), $now, $now);
-      if (isset($_GET['service_id'])) {
-        $serviceid = (int)$_GET['service_id'];
-        if (!isset($snapshot['services'][$serviceid])) {
-          http_response_code(404);
-          echo json_encode(['responsecode' => 'Not Found', 'message' => 'Unknown service']);
-        } else {
-          $service = $snapshot['services'][$serviceid];
-          $summary = serviceStatusSummary($service['status']);
-          $data = ['service_id' => (string)$service['id'], 'service_name' => $service['name'], 'service_description' => $service['description'], 'service_link' => $service['link'], 'service_status_short' => $service['status'], 'service_status' => $summary['brief']];
-          echo json_encode($data);
-        }
-      } else {
-        $worst = $snapshot['banner'];
-        $summary = serviceStatusSummary($worst);
-        $data = ['service_status_short' => $worst, 'service_status_brief' => $summary['brief'], 'service_status_description' => $summary['description']];
-        echo json_encode($data);
-      }
-    } elseif (mysqli_num_rows($result) > 1) {
-      http_response_code(401);
-      writeToLog($link, 'Ambiguous authentication keys', -1);
-      writeToLog($link, 'Rejected ' . apiKeyFingerprint($_GET['authkey']), -1);
-      echo('Unauthorized');
-    } else {
-      http_response_code(401);
-      writeToLog($link, 'No matching authentication key', -1);
-      writeToLog($link, 'Rejected ' . apiKeyFingerprint($_GET['authkey']), -1);
-      echo('Unauthorized');
-    }
-  } else {
-    http_response_code(401);
-    writeToLog($link, 'No authentication key provided', -1);
-    echo('Unauthorized');
-  }
-} else {
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
   http_response_code(405);
   die('Method Not Allowed');
 }
-?>
+
+if (!isset($_GET['authkey'])) {
+  writeToLog($db, 'No authentication key provided', -1);
+  apiUnauthorized();
+  exit;
+}
+
+$userid = authenticateApiKey($db, $_GET['authkey'], 'service API via GET');
+if ($userid === null) {
+  apiUnauthorized();
+  exit;
+}
+
+header('Content-Type: application/json; charset=utf-8');
+// Same model as the status page, so the API and the page cannot disagree.
+$now = time();
+$snapshot = buildStatusSnapshot(loadStatusInputs($db, $siteZone), $now, $now);
+
+if (isset($_GET['service_id'])) {
+  $serviceid = (int)$_GET['service_id'];
+  if (!isset($snapshot['services'][$serviceid])) {
+    http_response_code(404);
+    echo json_encode(['responsecode' => 'Not Found', 'message' => 'Unknown service']);
+  } else {
+    $service = $snapshot['services'][$serviceid];
+    $summary = serviceStatusSummary($service['status']);
+    $data = ['service_id' => (string)$service['id'], 'service_name' => $service['name'], 'service_description' => $service['description'], 'service_link' => $service['link'], 'service_status_short' => $service['status'], 'service_status' => $summary['brief']];
+    echo json_encode($data);
+  }
+} else {
+  $worst = $snapshot['banner'];
+  $summary = serviceStatusSummary($worst);
+  $data = ['service_status_short' => $worst, 'service_status_brief' => $summary['brief'], 'service_status_description' => $summary['description']];
+  echo json_encode($data);
+}

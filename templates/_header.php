@@ -21,9 +21,10 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
   SOFTWARE.
 */
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
 require_once __DIR__ . '/../lib/bootstrap.php';
-require_once(__DIR__ . '/_db_helpers.php');
 $static_base_url = $_SERVER['DOCUMENT_ROOT'];
 
 date_default_timezone_set($siteZone->getName());

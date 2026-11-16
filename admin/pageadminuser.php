@@ -24,7 +24,7 @@
 ?>
 <?php require('_guard.php'); ?>
   <div class="container collapse notransition" id="adminuser" data-bs-parent="#actions">
-    <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
+    <h6 class="my-3">Welcome, <?=e($_SESSION['firstname'])?>!</h6>
     <h1 class="my-3">Admin Users</h1>
     <h2 class="my-3">Add Users</h2>
     <form action="adduser.php" method="post">
@@ -58,12 +58,12 @@
       <tbody>
 <?php
 $usersql = 'SELECT user_id, user_first_name, user_last_name, user_email, user_totpenabled FROM users ORDER BY user_last_name ASC';
-$userresult = mysqli_query($link, $usersql);
-if (mysqli_num_rows($userresult) > 0) {
-  while ($userrow = mysqli_fetch_assoc($userresult)) {
+$userresult = $db->all($usersql);
+if ($userresult !== []) {
+  foreach ($userresult as $userrow) {
 ?>
 <tr>
-  <td><button class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#user<?=$userrow['user_id']?>modal"><?=$userrow['user_last_name']?>,&nbsp;<?=$userrow['user_first_name']?></button></td>
+  <td><button class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#user<?=e($userrow['user_id'])?>modal"><?=e($userrow['user_last_name'])?>,&nbsp;<?=e($userrow['user_first_name'])?></button></td>
   <td>
 <?php
     if ($userrow['user_totpenabled'] == 1) {
@@ -73,7 +73,7 @@ if (mysqli_num_rows($userresult) > 0) {
     }
 ?>
   </td>
-  <td><button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#user<?=$userrow['user_id']?>delete"><i class="fa-solid fa-xmark text-danger"></i></button></td>
+  <td><button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#user<?=e($userrow['user_id'])?>delete"><i class="fa-solid fa-xmark text-danger"></i></button></td>
 </tr>
 <?php
   }

@@ -25,7 +25,7 @@
 <?php
 require('_guard.php');
 include('../templates/_header.php');
-writeToLog($link, 'Deleting user', $_SESSION['id']);
+writeToLog($db, 'Deleting user', $_SESSION['id']);
 ?>
 <div class="d-flex flex-row">
   <div class="container">
@@ -33,20 +33,17 @@ writeToLog($link, 'Deleting user', $_SESSION['id']);
       <div class="col">
 <?php
 $deleteuserid = $_POST['deleteuserid'];
-writeToLog($link, 'Deleting user ' . $deleteuserid, $_SESSION['id']);
-$stmt = $link->prepare('DELETE FROM users WHERE user_id = ?');
-$stmt->bind_param('i', $deleteuserid);
-if ($stmt->execute()) {
-  writeToLog($link, 'Deleted the user', $_SESSION['id']);
+writeToLog($db, 'Deleting user ' . $deleteuserid, $_SESSION['id']);
+if ($db->tryExecute('DELETE FROM users WHERE user_id = ?', [(int)$deleteuserid])) {
+  writeToLog($db, 'Deleted the user', $_SESSION['id']);
   echo '<p>Deleted user ' . htmlspecialchars($deleteuserid) . '</p>';
 } else {
-  writeToLog($link, 'Failed to delete the user', $_SESSION['id']);
-  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
+  writeToLog($db, 'Failed to delete the user', $_SESSION['id']);
+  echo '<p>Error: ' . e($db->lastError()) . '</p>';
 }
-$stmt->close();
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
-      <button class="btn btn-secondary" onclick="history.back()">Go Back</a>
+      <button class="btn btn-secondary" onclick="history.back()">Go Back</button>
       </div>
     </div>
   </div>

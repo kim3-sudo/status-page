@@ -25,14 +25,14 @@
 <?php
 require('_guard.php');
 include('../templates/_header.php');
-writeToLog($link, 'Adding a new user by admin', $_SESSION['id']);
+writeToLog($db, 'Adding a new user by admin', $_SESSION['id']);
 ?>
 <div class="d-flex flex-row">
   <div class="container">
     <div class="row">
       <div class="col">
 <?php
-writeToLog($link, 'Generating new password', $_SESSION['id']);
+writeToLog($db, 'Generating new password', $_SESSION['id']);
 $fp = @fopen('words.txt', 'r');
 if ($fp) {
   $words = explode("\n", fread($fp, filesize('words.txt')));
@@ -53,21 +53,18 @@ $adduserfirst = $_POST['adduserfirst'];
 $adduserlast = $_POST['adduserlast'];
 $adduseremail = $_POST['adduseremail'];
 $hashedpassword = password_hash($autogenpassword, PASSWORD_DEFAULT);
-writeToLog($link, 'Inserting the new user with email ' . $adduseremail . ' to user ledger', $_SESSION['id']);
-$stmt = $link->prepare('INSERT INTO users (user_first_name, user_last_name, user_email, user_password) VALUES (?, ?, ?, ?)');
-$stmt->bind_param('ssss', $adduserfirst, $adduserlast, $adduseremail, $hashedpassword);
-if ($stmt->execute()) {
-  writeToLog($link, 'Created new user ' . $adduseremail, $_SESSION['id']);
+writeToLog($db, 'Inserting the new user with email ' . $adduseremail . ' to user ledger', $_SESSION['id']);
+if ($db->tryExecute('INSERT INTO users (user_first_name, user_last_name, user_email, user_password) VALUES (?, ?, ?, ?)', [$adduserfirst, $adduserlast, $adduseremail, $hashedpassword])) {
+  writeToLog($db, 'Created new user ' . $adduseremail, $_SESSION['id']);
   echo '<p>Created new user: ' . htmlspecialchars($adduserfirst) . '&nbsp;' . htmlspecialchars($adduserlast) . '</p>';
   echo '<p>' . htmlspecialchars($adduserfirst) . "'s temporary password is <code>" . htmlspecialchars($autogenpassword) . "</code>. Make sure you record this temporary password now, as you cannot get it later.</p>";
 } else {
-  writeToLog($link, 'Failed to create new user', $_SESSION['id']);
-  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
+  writeToLog($db, 'Failed to create new user', $_SESSION['id']);
+  echo '<p>Error: ' . e($db->lastError()) . '</p>';
 }
-$stmt->close();
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
-      <button class="btn btn-secondary" onclick="history.back()">Go Back</a>
+      <button class="btn btn-secondary" onclick="history.back()">Go Back</button>
       </div>
     </div>
   </div>

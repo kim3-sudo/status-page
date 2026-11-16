@@ -25,7 +25,7 @@
 <?php
 require('_guard.php');
 include('../templates/_header.php');
-writeToLog($link, 'Updating service group', $_SESSION['id']);
+writeToLog($db, 'Updating service group', $_SESSION['id']);
 ?>
 <div class="d-flex flex-row">
   <div class="container">
@@ -34,20 +34,17 @@ writeToLog($link, 'Updating service group', $_SESSION['id']);
 <?php
 $updateservicegroupid = $_POST['updateservicegroupid'];
 $updateservicegroupname = $_POST['updateservicegroupname'];
-writeToLog($link, 'Updating service group ' . $updateservicegroupid, $_SESSION['id']);
-$stmt = $link->prepare('UPDATE servicegroups SET servicegroup_name = ? WHERE servicegroup_id = ?');
-$stmt->bind_param('si', $updateservicegroupname, $updateservicegroupid);
-if ($stmt->execute()) {
-  writeToLog($link, 'Updated service group name to ' . $updateservicegroupname, $_SESSION['id']);
+writeToLog($db, 'Updating service group ' . $updateservicegroupid, $_SESSION['id']);
+if ($db->tryExecute('UPDATE servicegroups SET servicegroup_name = ? WHERE servicegroup_id = ?', [$updateservicegroupname, (int)$updateservicegroupid])) {
+  writeToLog($db, 'Updated service group name to ' . $updateservicegroupname, $_SESSION['id']);
   echo '<p>Updated service group</p>';
 } else {
-  writeToLog($link, 'Failed to update service group name', $_SESSION['id'], 'NERR');
-  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
+  writeToLog($db, 'Failed to update service group name', $_SESSION['id'], 'NERR');
+  echo '<p>Error: ' . e($db->lastError()) . '</p>';
 }
-$stmt->close();
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
-      <button class="btn btn-secondary" onclick="history.back()">Go Back</a>
+      <button class="btn btn-secondary" onclick="history.back()">Go Back</button>
       </div>
     </div>
   </div>

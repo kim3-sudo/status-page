@@ -37,12 +37,6 @@ try {
   $siteZone = new DateTimeZone('UTC');
 }
 
-// Transitional: pages not yet moved to $db still use the mysqli handle $link.
-// Remove this block once every caller uses $db (Step 8 of the plan).
-if ($dbdriver === 'mysql' && !isset($link)) {
-  $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME, $dbport);
-}
-
 // Turns an unhandled exception into a response. Details go to the PHP error log,
 // never to the page. A strict-audit failure gets a 503 that says the action was
 // not performed. Anything else gets a generic 500.

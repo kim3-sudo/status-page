@@ -185,11 +185,41 @@ final class DbIntegrationTest extends TestCase
     public function testBooleanColumnReadsAsTruthy(): void
     {
         // Engines return booleans differently (MySQL 0/1, PostgreSQL bool).
-        // Callers must cast; Step 8 normalizes this in the Db layer.
+        // Db normalizes both to 1/0; see testBooleanColumnsAreIntegersOnEveryPath.
         $this->db->insert(self::TABLE, ['name' => 'on', 'flag' => 1]);
         $this->db->insert(self::TABLE, ['name' => 'off', 'flag' => 0]);
 
         $this->assertTrue((bool)$this->db->value('SELECT flag FROM ' . self::TABLE . ' WHERE name = ?', ['on']));
         $this->assertFalse((bool)$this->db->value('SELECT flag FROM ' . self::TABLE . ' WHERE name = ?', ['off']));
+    }
+
+    public function testBooleanColumnsAreIntegersOnEveryPath(): void
+    {
+        $this->db->insert(self::TABLE, ['name' => 'on', 'flag' => 1]);
+        $this->db->insert(self::TABLE, ['name' => 'off', 'flag' => 0]);
+
+        $rows = $this->db->all('SELECT name, flag FROM ' . self::TABLE . ' ORDER BY name');
+        $this->assertSame([['name' => 'off', 'flag' => 0], ['name' => 'on', 'flag' => 1]], $rows);
+        $this->assertSame(1, $this->db->one('SELECT flag FROM ' . self::TABLE . ' WHERE name = ?', ['on'])['flag']);
+        $this->assertSame(0, $this->db->value('SELECT flag FROM ' . self::TABLE . ' WHERE name = ?', ['off']));
+    }
+
+    public function testPhpBooleansBindAsOneAndZero(): void
+    {
+        // PDO binds false as '', which PostgreSQL rejects for a boolean column.
+        $this->db->insert(self::TABLE, ['name' => 'yes', 'flag' => true]);
+        $this->db->insert(self::TABLE, ['name' => 'no', 'flag' => false]);
+
+        $this->assertSame(1, $this->db->value('SELECT flag FROM ' . self::TABLE . ' WHERE name = ?', ['yes']));
+        $this->assertSame(0, $this->db->value('SELECT flag FROM ' . self::TABLE . ' WHERE name = ?', ['no']));
+    }
+
+    public function testTryExecuteReportsFailureWithoutThrowing(): void
+    {
+        $this->assertTrue($this->db->tryExecute('INSERT INTO ' . self::TABLE . ' (name) VALUES (?)', ['dup']));
+        $this->assertNull($this->db->lastError());
+
+        $this->assertFalse($this->db->tryExecute('INSERT INTO ' . self::TABLE . ' (name) VALUES (?)', ['dup']));
+        $this->assertNotNull($this->db->lastError());
     }
 }

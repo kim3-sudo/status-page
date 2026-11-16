@@ -31,41 +31,34 @@ include('../templates/_header.php');
     <div class="row">
       <div class="col">
 <?php
-writeToLog($link, 'Querying users for old password', $_SESSION['id']);
-$stmt = $link->prepare('SELECT user_password FROM users WHERE user_id = ?');
-$stmt->bind_param('i', $_SESSION['id']);
-$stmt->execute();
-$row = $stmt->get_result()->fetch_assoc();
-$stmt->close();
-$oldhash = $row['user_password'];
-writeToLog($link, 'Fetched old password hash', $_SESSION['id']);
+writeToLog($db, 'Querying users for old password', $_SESSION['id']);
+$row = $db->one('SELECT user_password FROM users WHERE user_id = ?', [(int)$_SESSION['id']]);
+$oldhash = $row['user_password'] ?? '';
+writeToLog($db, 'Fetched old password hash', $_SESSION['id']);
 if (strlen($_POST['updateownpassword']) >= 14 && password_verify($_POST['oldpassword'], $oldhash) && $_POST['updateownpassword'] == $_POST['updateownpasswordconfirm']) {
-  writeToLog($link, 'All conditions satisfied for self-initiated password update', $_SESSION['id']);
+  writeToLog($db, 'All conditions satisfied for self-initiated password update', $_SESSION['id']);
   $newhash = password_hash($_POST['updateownpassword'], PASSWORD_DEFAULT);
-  $stmt = $link->prepare('UPDATE users SET user_password = ? WHERE user_id = ?');
-  $stmt->bind_param('si', $newhash, $_SESSION['id']);
-  if ($stmt->execute()) {
-    writeToLog($link, 'Updated own password', $_SESSION['id']);
+  if ($db->tryExecute('UPDATE users SET user_password = ? WHERE user_id = ?', [$newhash, (int)$_SESSION['id']])) {
+    writeToLog($db, 'Updated own password', $_SESSION['id']);
     echo '<p>Updated own password</p>';
   } else {
-    writeToLog($link, 'Error when updating own password', $_SESSION['id'], 'NERR');
-    writeToLog($link, $link->error, $_SESSION['id'], 'NERR');
-    echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
+    writeToLog($db, 'Error when updating own password', $_SESSION['id'], 'NERR');
+    writeToLog($db, $db->lastError(), $_SESSION['id'], 'NERR');
+    echo '<p>Error: ' . e($db->lastError()) . '</p>';
   }
-  $stmt->close();
-} elseif ($_POST['updateuserpassword'] != $_POST['updateuserpasswordconfirm']) {
-  writeToLog($link, 'Failed password confirmation on password change attempt', $_SESSION['id'], 'WARN');
+} elseif ($_POST['updateownpassword'] != $_POST['updateownpasswordconfirm']) {
+  writeToLog($db, 'Failed password confirmation on password change attempt', $_SESSION['id'], 'WARN');
   echo '<p>Passwords do not match.</p>';
 } elseif (password_verify($_POST['oldpassword'], $oldhash)) {
-  writeToLog($link, 'Failed old password on password change attempt', $_SESSION['id'], 'WARN');
+  writeToLog($db, 'Failed old password on password change attempt', $_SESSION['id'], 'WARN');
   echo '<p>Old password is not correct.</p>';
 } else {
-  writeToLog($link, 'Failed password length requirement on password change attempt', $_SESSION['id'], 'WARN');
+  writeToLog($db, 'Failed password length requirement on password change attempt', $_SESSION['id'], 'WARN');
   echo '<p>Password does not match minimum length requirement.</p>';
 }
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
-      <button class="btn btn-secondary" onclick="history.back()">Go Back</a>
+      <button class="btn btn-secondary" onclick="history.back()">Go Back</button>
       </div>
     </div>
   </div>

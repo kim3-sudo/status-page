@@ -25,7 +25,7 @@
 <?php
 require('_guard.php');
 include('../templates/_header.php');
-writeToLog($link, 'API keys are being rotated', $_SESSION['id']);
+writeToLog($db, 'API keys are being rotated', $_SESSION['id']);
 ?>
 <div class="d-flex flex-row">
   <div class="container">
@@ -39,33 +39,27 @@ if ($_POST['confirmation'] == 'ROTATE MY KEYS') {
   for ($i = 0; $i < 128; $i++) {
     $randomString .= $characters[random_int(0, $charactersLength - 1)];
   }
-  $stmt = $link->prepare('DELETE FROM apikeys WHERE apikeys_is_personal = 1 AND apikeys_user_id = ?');
-  $stmt->bind_param('i', $_SESSION['id']);
-  if ($stmt->execute()) {
-    writeToLog($link, 'Old API keys were removed', $_SESSION['id']);
+  if ($db->tryExecute('DELETE FROM apikeys WHERE apikeys_is_personal = ? AND apikeys_user_id = ?', [1, (int)$_SESSION['id']])) {
+    writeToLog($db, 'Old API keys were removed', $_SESSION['id']);
   } else {
-    writeToLog($link, 'Failed to remove old API keys', $_SESSION['id'], 'FERR');
+    writeToLog($db, 'Failed to remove old API keys', $_SESSION['id'], 'FERR');
     die('Failed to remove old API keys!');
   }
-  $stmt->close();
-  $stmt = $link->prepare('INSERT INTO apikeys (apikeys_user_id, apikeys_authkey, apikeys_is_personal) VALUES (?, ?, 1)');
-  $stmt->bind_param('is', $_SESSION['id'], $randomString);
-  if ($stmt->execute()) {
-    writeToLog($link, 'API keys were rotated, new key starts with', $_SESSION['id']);
-    writeToLog($link, substr($randomString, 0, 8), $_SESSION['id']);
+  if ($db->tryExecute('INSERT INTO apikeys (apikeys_user_id, apikeys_authkey, apikeys_is_personal) VALUES (?, ?, ?)', [(int)$_SESSION['id'], $randomString, 1])) {
+    writeToLog($db, 'API keys were rotated, new key starts with', $_SESSION['id']);
+    writeToLog($db, substr($randomString, 0, 8), $_SESSION['id']);
     echo '<p>Your API keys were rotated. Your new API key is <code>' . htmlspecialchars($randomString) . '</code>. Save this key now, as you will not be able to see it again later.</p>';
   } else {
-    writeToLog($link, 'Failed to generate and save new API key', $_SESSION['id'], 'WARN');
+    writeToLog($db, 'Failed to generate and save new API key', $_SESSION['id'], 'WARN');
     echo '<p>Failed to generate and save new API key!</p>';
   }
-  $stmt->close();
 } else {
-  writeToLog($link, 'Failed to confirm API key rotation phrase', $_SESSION['id']);
+  writeToLog($db, 'Failed to confirm API key rotation phrase', $_SESSION['id']);
   echo '<p>Failed to confirm API key rotation phrase! Your old key (if set) is still active.</p>';
 }
 ?>
         <a href="./" class="btn btn-primary">Admin Portal</a>
-        <button class="btn btn-secondary" onclick="history.back()">Go Back</a>
+        <button class="btn btn-secondary" onclick="history.back()">Go Back</button>
       </div>
     </div>
   </div>

@@ -23,6 +23,7 @@ final class Db
 {
     private PDO $pdo;
     private string $driver;
+    private ?string $lastError = null;
 
     public function __construct(
         string $driver,
@@ -53,30 +54,72 @@ final class Db
         return $this->driver;
     }
 
-    /** @return array<int, array<string, mixed>> */
+    /**
+     * All rows. Boolean columns come back as 1 or 0 on both engines.
+     * @return array<int, array<string, mixed>>
+     */
     public function all(string $sql, array $params = []): array
     {
-        return $this->run($sql, $params)->fetchAll();
+        $stmt = $this->run($sql, $params);
+        $rows = $stmt->fetchAll();
+        $boolColumns = $this->boolColumns($stmt);
+        if ($boolColumns === []) {
+            return $rows;
+        }
+        foreach ($rows as $i => $row) {
+            $rows[$i] = $this->castBooleans($row, $boolColumns);
+        }
+        return $rows;
     }
 
     /** @return array<string, mixed>|null */
     public function one(string $sql, array $params = []): ?array
     {
-        $row = $this->run($sql, $params)->fetch();
-        return $row === false ? null : $row;
+        $rows = $this->all($sql, $params);
+        return $rows[0] ?? null;
     }
 
     /** First column of the first row, or null when there are no rows. */
     public function value(string $sql, array $params = []): mixed
     {
-        $value = $this->run($sql, $params)->fetchColumn();
-        return $value === false ? null : $value;
+        $stmt = $this->run($sql, $params);
+        // fetch() rather than fetchColumn(): a boolean false column value is also false.
+        $row = $stmt->fetch(PDO::FETCH_NUM);
+        if ($row === false) {
+            return null;
+        }
+        $value = $row[0];
+        $meta = $stmt->columnCount() > 0 ? $stmt->getColumnMeta(0) : false;
+        return ($meta !== false && ($meta['native_type'] ?? '') === 'bool') ? $this->boolToInt($value) : $value;
     }
 
     /** Runs a write statement and returns the number of affected rows. */
     public function execute(string $sql, array $params = []): int
     {
         return $this->run($sql, $params)->rowCount();
+    }
+
+    /**
+     * Like execute(), but returns false instead of throwing on a database error.
+     * The error text is kept for lastError(). Use it where a page reports failure
+     * to the user and carries on.
+     */
+    public function tryExecute(string $sql, array $params = []): bool
+    {
+        $this->lastError = null;
+        try {
+            $this->execute($sql, $params);
+            return true;
+        } catch (PDOException $e) {
+            $this->lastError = $e->getMessage();
+            return false;
+        }
+    }
+
+    /** Error text from the last tryExecute() that failed, or null. */
+    public function lastError(): ?string
+    {
+        return $this->lastError;
     }
 
     /**
@@ -235,8 +278,52 @@ final class Db
     private function run(string $sql, array $params): PDOStatement
     {
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
+        // Bind PHP bools as 1/0: PDO turns false into '', which PostgreSQL rejects for boolean columns.
+        $stmt->execute(array_map(
+            fn (mixed $p): mixed => is_bool($p) ? (int)$p : $p,
+            $params
+        ));
         return $stmt;
+    }
+
+    /**
+     * Names of the boolean columns in a result. Only PostgreSQL reports them as
+     * boolean. MySQL BOOLEAN is TINYINT(1), which already comes back as an int.
+     * @return array<string, true>
+     */
+    private function boolColumns(PDOStatement $stmt): array
+    {
+        if ($this->driver !== 'pgsql') {
+            return [];
+        }
+        $names = [];
+        for ($i = 0, $n = $stmt->columnCount(); $i < $n; $i++) {
+            $meta = $stmt->getColumnMeta($i);
+            if (($meta['native_type'] ?? '') === 'bool') {
+                $names[$meta['name']] = true;
+            }
+        }
+        return $names;
+    }
+
+    /** @param array<string, true> $boolColumns */
+    private function castBooleans(array $row, array $boolColumns): array
+    {
+        foreach (array_keys($boolColumns) as $name) {
+            if (array_key_exists($name, $row)) {
+                $row[$name] = $this->boolToInt($row[$name]);
+            }
+        }
+        return $row;
+    }
+
+    /** Accepts PostgreSQL's 't'/'f' text or a PHP bool, and returns 1 or 0. */
+    private function boolToInt(mixed $value): ?int
+    {
+        if ($value === null) {
+            return null;
+        }
+        return ($value === true || $value === 't' || $value === '1' || $value === 1) ? 1 : 0;
     }
 
     /** @return array{0: string, 1: string, 2: array<int, mixed>} */

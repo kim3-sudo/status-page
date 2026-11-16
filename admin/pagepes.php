@@ -24,7 +24,7 @@
 ?>
 <?php require('_guard.php'); ?>
   <div class="container collapse notransition" id="pes" data-bs-parent="#actions">
-    <h6 class="my-3">Welcome, <?=$_SESSION['firstname']?>!</h6>
+    <h6 class="my-3">Welcome, <?=e($_SESSION['firstname'])?>!</h6>
     <h1 class="my-3">Post-Event Summaries</h1>
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#pesstyle">View Post-Event Summary Style Guide</button>
     <p><em>It is </em>strongly recommended<em> that you do not draft your summary and impact statements on this page, since reloads may cause you to lose your work.</em></p>

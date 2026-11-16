@@ -40,6 +40,31 @@ final class AdminSqlInjectionTest extends TestCase
         }
     }
 
+    public function testNoMysqliOrLegacyHandleRemainsInRequestHandlers(): void
+    {
+        // Every request handler goes through the Db class. A leftover mysqli call
+        // or $link handle means a page was missed when the code moved to PDO.
+        $files = array_merge(
+            $this->adminPhpFiles(),
+            glob(PROJECT_ROOT . '/*.php'),
+            glob(PROJECT_ROOT . '/pes/*.php'),
+            glob(PROJECT_ROOT . '/saml/*.php'),
+            glob(PROJECT_ROOT . '/lib/*.php'),
+            glob(PROJECT_ROOT . '/templates/*.php')
+        );
+        $forbidden = ['/mysqli/', '/\$link\b/', '/bind_param\(/', '/get_result\(/', '/insert_id/'];
+        foreach ($files as $file) {
+            $contents = file_get_contents($file);
+            foreach ($forbidden as $pattern) {
+                $this->assertDoesNotMatchRegularExpression(
+                    $pattern,
+                    $contents,
+                    basename($file) . ' still uses the mysqli API: ' . $pattern
+                );
+            }
+        }
+    }
+
     public function testNoStringConcatenatedSqlWithUserInput(): void
     {
         // A $sql/$stmt-ish variable built via string concatenation that also

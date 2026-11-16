@@ -27,7 +27,7 @@ if (!isset($_SESSION['id'])) {
     die('Forbidden');
 }
 include('../templates/_header.php');
-writeToLog($link, 'Logout called for user', $_SESSION['id']);
+writeToLog($db, 'Logout called for user', $_SESSION['id']);
 
 if (isset($_SESSION['saml_authenticated']) && $_SESSION['saml_authenticated'] === true) {
     // SAML SSO session: hand off to the SAML Single Logout handler.
@@ -35,7 +35,7 @@ if (isset($_SESSION['saml_authenticated']) && $_SESSION['saml_authenticated'] ==
     // needs the samlNameId / samlSessionIndex / etc. still in the session so it can
     // build the correct LogoutRequest for the IdP. The SLS callback will call
     // session_destroy() after the IdP confirms the logout.
-    writeToLog($link, 'SAML SLO initiated for SSO user', $_SESSION['id']);
+    writeToLog($db, 'SAML SLO initiated for SSO user', $_SESSION['id']);
     echo '<div class="container"><div class="row"><div class="col"><p>Signing you out&hellip;</p></div></div></div>';
     include('../templates/_footer.php');
     header('Location: ../saml/index.php?slo');
@@ -43,7 +43,7 @@ if (isset($_SESSION['saml_authenticated']) && $_SESSION['saml_authenticated'] ==
 }
 
 // Standard username/password session logout
-writeToLog($link, 'Session ended', $_SESSION['id']);
+writeToLog($db, 'Session ended', $_SESSION['id']);
 echo '<div class="container"><div class="row"><div class="col"><p>Logged out</p></div></div></div>';
 include('../templates/_footer.php');
 session_destroy();

@@ -14,10 +14,12 @@ final class DbHelpersTest extends TestCase
 {
     public function testDbHelpersUsesPreparedStatements(): void
     {
-        // The audit INSERT lives in lib/audit.php; the helpers delegate to it.
+        // The audit INSERT lives in lib/audit.php and goes through Db::execute(),
+        // which binds every value as a parameter.
         $contents = file_get_contents(PROJECT_ROOT . '/lib/db_helpers.php')
             . file_get_contents(PROJECT_ROOT . '/lib/audit.php');
-        $this->assertStringContainsString('->prepare(', $contents);
+        $this->assertStringContainsString('$db->execute(', $contents);
+        $this->assertStringNotContainsString('mysqli', $contents);
         $this->assertStringNotContainsString('mysqli_real_escape_string', $contents);
     }
 

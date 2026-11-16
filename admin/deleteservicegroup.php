@@ -25,7 +25,7 @@
 <?php
 require('_guard.php');
 include('../templates/_header.php');
-writeToLog($link, 'Deleting service group', $_SESSION['id']);
+writeToLog($db, 'Deleting service group', $_SESSION['id']);
 ?>
 <div class="d-flex flex-row">
   <div class="container">
@@ -33,20 +33,17 @@ writeToLog($link, 'Deleting service group', $_SESSION['id']);
       <div class="col">
 <?php
 $deleteservicegroupid = $_POST['deleteservicegroupid'];
-writeToLog($link, 'Deleting service group ' . $deleteservicegroupid, $_SESSION['id']);
-$stmt = $link->prepare('DELETE FROM servicegroups WHERE servicegroup_id = ?');
-$stmt->bind_param('i', $deleteservicegroupid);
-if ($stmt->execute()) {
-  writeToLog($link, 'Deleted the service group', $_SESSION['id']);
+writeToLog($db, 'Deleting service group ' . $deleteservicegroupid, $_SESSION['id']);
+if ($db->tryExecute('DELETE FROM servicegroups WHERE servicegroup_id = ?', [(int)$deleteservicegroupid])) {
+  writeToLog($db, 'Deleted the service group', $_SESSION['id']);
   echo '<p>Deleted service group</p>';
 } else {
-  writeToLog($link, 'Failed to delete the service group', $_SESSION['id']);
-  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
+  writeToLog($db, 'Failed to delete the service group', $_SESSION['id']);
+  echo '<p>Error: ' . e($db->lastError()) . '</p>';
 }
-$stmt->close();
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
-      <button class="btn btn-secondary" onclick="history.back()">Go Back</a>
+      <button class="btn btn-secondary" onclick="history.back()">Go Back</button>
       </div>
     </div>
   </div>

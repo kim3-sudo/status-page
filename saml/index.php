@@ -26,16 +26,16 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Load SAML library and settings (also establishes $link and $spBaseUrl)
+// Load SAML library and settings (also establishes $db and $spBaseUrl)
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/saml_settings.php';
 
 use OneLogin\Saml2\Auth;
 use OneLogin\Saml2\Utils;
 
-// samlWriteToLog() comes from _db_helpers.php — avoids pulling in _header.php
-// (which outputs HTML) while still sharing one prepared-statement implementation.
-require_once __DIR__ . '/../templates/_db_helpers.php';
+// samlWriteToLog() comes from lib/db_helpers.php. Loading it avoids pulling in
+// _header.php, which outputs HTML.
+require_once __DIR__ . '/../lib/db_helpers.php';
 
 // Minimal error page — keeps branding out of this handler so XML responses stay clean
 function samlErrorPage($title, $message, $backUrl = '../login.php', $statusCode = 401) {
@@ -57,19 +57,19 @@ $auth = new Auth($settingsInfo);
 
 // ── SSO: initiate login, return to referring page ──────────────────────────
 if (isset($_GET['sso'])) {
-    samlWriteToLog($link, 'SSO login initiated', -1);
+    samlWriteToLog($db, 'SSO login initiated', -1);
     $auth->login();
 
 // ── SSO2: initiate login, return to admin portal ───────────────────────────
 } elseif (isset($_GET['sso2'])) {
-    samlWriteToLog($link, 'SSO login initiated (admin portal redirect)', -1);
+    samlWriteToLog($db, 'SSO login initiated (admin portal redirect)', -1);
     $returnTo = rtrim($spBaseUrl, '/') . '/admin/admin.php';
     $auth->login($returnTo);
 
 // ── SLO: initiate Single Logout with the IdP ──────────────────────────────
 } elseif (isset($_GET['slo'])) {
     $uid = isset($_SESSION['id']) ? $_SESSION['id'] : -1;
-    samlWriteToLog($link, 'SAML SLO initiated', $uid);
+    samlWriteToLog($db, 'SAML SLO initiated', $uid);
 
     $nameId                    = isset($_SESSION['samlNameId'])                ? $_SESSION['samlNameId']                : null;
     $nameIdFormat              = isset($_SESSION['samlNameIdFormat'])           ? $_SESSION['samlNameIdFormat']           : null;
@@ -95,7 +95,7 @@ if (isset($_GET['sso'])) {
 
     $errors = $auth->getErrors();
     if (!empty($errors)) {
-        samlWriteToLog($link, 'ACS error: ' . implode(', ', $errors), -1, 'WARN');
+        samlWriteToLog($db, 'ACS error: ' . implode(', ', $errors), -1, 'WARN');
         $detail = $auth->getSettings()->isDebugActive()
             ? '<br><small class="text-muted">' . htmlspecialchars($auth->getLastErrorReason()) . '</small>'
             : '';
@@ -106,7 +106,7 @@ if (isset($_GET['sso'])) {
     }
 
     if (!$auth->isAuthenticated()) {
-        samlWriteToLog($link, 'ACS: response not authenticated', -1, 'WARN');
+        samlWriteToLog($db, 'ACS: response not authenticated', -1, 'WARN');
         samlErrorPage('Not Authenticated', 'The SAML response could not be verified. Please try again.');
     }
 
@@ -120,7 +120,7 @@ if (isset($_GET['sso'])) {
     unset($_SESSION['AuthNRequestID']);
 
     // Resolve user email: prefer configured attribute, fall back to NameID
-    $emailAttr = getSetting($link, 'saml_email_attribute');
+    $emailAttr = getSetting($db, 'saml_email_attribute');
     $samlEmail = null;
     if (!empty($emailAttr) && isset($_SESSION['samlUserdata'][$emailAttr][0])) {
         $samlEmail = $_SESSION['samlUserdata'][$emailAttr][0];
@@ -129,48 +129,43 @@ if (isset($_GET['sso'])) {
         $samlEmail = $_SESSION['samlNameId'];
     }
 
-    samlWriteToLog($link, 'ACS: authenticated via SSO as ' . $samlEmail, -1);
+    samlWriteToLog($db, 'ACS: authenticated via SSO as ' . $samlEmail, -1);
 
     // Map SAML identity to an admin user account
-    if ($stmt = $link->prepare(
-        'SELECT user_id, user_first_name, user_last_name, user_issuperuser FROM users WHERE user_email = ?'
-    )) {
-        $stmt->bind_param('s', $samlEmail);
-        $stmt->execute();
-        $stmt->store_result();
-
-        if ($stmt->num_rows > 0) {
-            $stmt->bind_result($userId, $firstName, $lastName, $suFlag);
-            $stmt->fetch();
-            $stmt->close();
-
-            // Rotate the session ID to prevent fixation attacks
-            session_regenerate_id(true);
-
-            // Create the same session structure as the password-based login flow
-            $_SESSION['loggedin']          = true;
-            $_SESSION['email']             = $samlEmail;
-            $_SESSION['id']                = $userId;
-            $_SESSION['firstname']         = $firstName;
-            $_SESSION['lastname']          = $lastName;
-            $_SESSION['suflag']            = $suFlag;
-            $_SESSION['saml_authenticated'] = true;  // flag used by logout.php
-
-            samlWriteToLog($link, 'SSO login successful', $userId);
-        } else {
-            $stmt->close();
-            samlWriteToLog($link, 'ACS: no admin account for SSO email ' . $samlEmail, -1, 'WARN');
-            samlErrorPage(
-                'Access Denied',
-                'No administrator account is associated with <strong>' . htmlspecialchars($samlEmail) . '</strong>.'
-                . ' Contact your administrator to be granted access.',
-                '../login.php',
-                403
-            );
-        }
-    } else {
-        samlWriteToLog($link, 'ACS: DB prepare failed during user lookup', -1, 'WARN');
+    try {
+        $user = $db->one(
+            'SELECT user_id, user_first_name, user_last_name, user_issuperuser FROM users WHERE user_email = ?',
+            [(string)$samlEmail]
+        );
+    } catch (Throwable $e) {
+        error_log('status-page: SAML user lookup failed: ' . $e->getMessage());
+        samlWriteToLog($db, 'ACS: DB query failed during user lookup', -1, 'WARN');
         samlErrorPage('Server Error', 'Unable to verify credentials. Please try again later.', '../login.php', 500);
+    }
+
+    if ($user !== null) {
+        // Rotate the session ID to prevent fixation attacks
+        session_regenerate_id(true);
+
+        // Create the same session structure as the password-based login flow
+        $_SESSION['loggedin']          = true;
+        $_SESSION['email']             = $samlEmail;
+        $_SESSION['id']                = $user['user_id'];
+        $_SESSION['firstname']         = $user['user_first_name'];
+        $_SESSION['lastname']          = $user['user_last_name'];
+        $_SESSION['suflag']            = $user['user_issuperuser'];
+        $_SESSION['saml_authenticated'] = true;  // flag used by logout.php
+
+        samlWriteToLog($db, 'SSO login successful', $user['user_id']);
+    } else {
+        samlWriteToLog($db, 'ACS: no admin account for SSO email ' . $samlEmail, -1, 'WARN');
+        samlErrorPage(
+            'Access Denied',
+            'No administrator account is associated with <strong>' . htmlspecialchars($samlEmail) . '</strong>.'
+            . ' Contact your administrator to be granted access.',
+            '../login.php',
+            403
+        );
     }
 
     // Honor the RelayState (e.g. the admin portal URL set by ?sso2), otherwise
@@ -191,12 +186,12 @@ if (isset($_GET['sso'])) {
     $errors = $auth->getErrors();
 
     if (empty($errors)) {
-        samlWriteToLog($link, 'SLO completed successfully', $uid);
+        samlWriteToLog($db, 'SLO completed successfully', $uid);
         session_destroy();
         header('Location: ' . rtrim($spBaseUrl, '/') . '/login.php');
         exit();
     } else {
-        samlWriteToLog($link, 'SLO error: ' . implode(', ', $errors), $uid, 'WARN');
+        samlWriteToLog($db, 'SLO error: ' . implode(', ', $errors), $uid, 'WARN');
         $detail = $auth->getSettings()->isDebugActive()
             ? '<br><small class="text-muted">' . htmlspecialchars($auth->getLastErrorReason()) . '</small>'
             : '';

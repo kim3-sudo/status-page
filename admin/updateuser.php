@@ -36,65 +36,53 @@ $updateuserfirstname = $_POST['updateuserfirstname'];
 $updateuserlastname = $_POST['updateuserlastname'];
 $updateuseremail = $_POST['updateuseremail'];
 
-writeToLog($link, 'Updating user first name for ID ' . $updateuserid, $_SESSION['id']);
-$stmt = $link->prepare('UPDATE users SET user_first_name = ? WHERE user_id = ?');
-$stmt->bind_param('si', $updateuserfirstname, $updateuserid);
-if ($stmt->execute()) {
+writeToLog($db, 'Updating user first name for ID ' . $updateuserid, $_SESSION['id']);
+if ($db->tryExecute('UPDATE users SET user_first_name = ? WHERE user_id = ?', [$updateuserfirstname, (int)$updateuserid])) {
   echo '<p>Updated first name</p>';
-  writeToLog($link, 'Updated ' . $updateuserid . ' first name to ' . $updateuserfirstname, $_SESSION['id']);
+  writeToLog($db, 'Updated ' . $updateuserid . ' first name to ' . $updateuserfirstname, $_SESSION['id']);
 } else {
-  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
-  writeToLog($link, 'Failed to update ' . $updateuserid . ' first name to ' . $updateuserfirstname, $_SESSION['id']);
+  echo '<p>Error: ' . e($db->lastError()) . '</p>';
+  writeToLog($db, 'Failed to update ' . $updateuserid . ' first name to ' . $updateuserfirstname, $_SESSION['id']);
 }
-$stmt->close();
 ?>
 <?php
-writeToLog($link, 'Updating user last name for ID ' . $updateuserid, $_SESSION['id']);
-$stmt = $link->prepare('UPDATE users SET user_last_name = ? WHERE user_id = ?');
-$stmt->bind_param('si', $updateuserlastname, $updateuserid);
-if ($stmt->execute()) {
+writeToLog($db, 'Updating user last name for ID ' . $updateuserid, $_SESSION['id']);
+if ($db->tryExecute('UPDATE users SET user_last_name = ? WHERE user_id = ?', [$updateuserlastname, (int)$updateuserid])) {
   echo '<p>Updated last name</p>';
-  writeToLog($link, 'Updated ' . $updateuserid . ' last name to ' . $updateuserlastname, $_SESSION['id']);
+  writeToLog($db, 'Updated ' . $updateuserid . ' last name to ' . $updateuserlastname, $_SESSION['id']);
 } else {
-  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
-  writeToLog($link, 'Failed to update ' . $updateuserid . ' last name to ' . $updateuserlastname, $_SESSION['id']);
+  echo '<p>Error: ' . e($db->lastError()) . '</p>';
+  writeToLog($db, 'Failed to update ' . $updateuserid . ' last name to ' . $updateuserlastname, $_SESSION['id']);
 }
-$stmt->close();
 ?>
 <?php
-writeToLog($link, 'Updating user email name for ID ' . $updateuserid, $_SESSION['id']);
-$stmt = $link->prepare('UPDATE users SET user_email = ? WHERE user_id = ?');
-$stmt->bind_param('si', $updateuseremail, $updateuserid);
-if ($stmt->execute()) {
+writeToLog($db, 'Updating user email name for ID ' . $updateuserid, $_SESSION['id']);
+if ($db->tryExecute('UPDATE users SET user_email = ? WHERE user_id = ?', [$updateuseremail, (int)$updateuserid])) {
   echo '<p>Updated email address</p>';
-  writeToLog($link, 'Updated ' . $updateuserid . ' email to ' . $updateuseremail, $_SESSION['id']);
+  writeToLog($db, 'Updated ' . $updateuserid . ' email to ' . $updateuseremail, $_SESSION['id']);
 } else {
-  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
-  writeToLog($link, 'Failed to update ' . $updateuserid . ' email to ' . $updateuseremail, $_SESSION['id']);
+  echo '<p>Error: ' . e($db->lastError()) . '</p>';
+  writeToLog($db, 'Failed to update ' . $updateuserid . ' email to ' . $updateuseremail, $_SESSION['id']);
 }
-$stmt->close();
 ?>
 <?php
 if ($_SESSION['suflag'] == 1) {
-  writeToLog($link, 'Superuser flag is set', $_SESSION['id']);
+  writeToLog($db, 'Superuser flag is set', $_SESSION['id']);
   if ($_POST['updateuserpassword'] != '') {
-    writeToLog($link, 'Password update by admin is not blank, so setting new one', $_SESSION['id']);
+    writeToLog($db, 'Password update by admin is not blank, so setting new one', $_SESSION['id']);
     $newhash = password_hash($_POST['updateuserpassword'], PASSWORD_DEFAULT);
-    $stmt = $link->prepare('UPDATE users SET user_password = ? WHERE user_id = ?');
-    $stmt->bind_param('si', $newhash, $updateuserid);
-    if ($stmt->execute()) {
-      writeToLog($link, 'Password for user ' . $updateuserid . ' was updated', $_SESSION['id']);
+    if ($db->tryExecute('UPDATE users SET user_password = ? WHERE user_id = ?', [$newhash, (int)$updateuserid])) {
+      writeToLog($db, 'Password for user ' . $updateuserid . ' was updated', $_SESSION['id']);
       echo '<p>Updated password as administrator</p>';
     } else {
-      echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
-      writeToLog($link, 'Failed to update ' . $updateuserid . ' password', $_SESSION['id']);
+      echo '<p>Error: ' . e($db->lastError()) . '</p>';
+      writeToLog($db, 'Failed to update ' . $updateuserid . ' password', $_SESSION['id']);
     }
-    $stmt->close();
   }
 }
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
-      <button class="btn btn-secondary" onclick="history.back()">Go Back</a>
+      <button class="btn btn-secondary" onclick="history.back()">Go Back</button>
       </div>
     </div>
   </div>
