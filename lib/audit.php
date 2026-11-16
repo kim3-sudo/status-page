@@ -38,6 +38,28 @@ function auditFailureAction(string $policy): string
     return $policy === AUDIT_POLICY_SOFT ? 'log' : 'throw';
 }
 
+/**
+ * Inserts one row into the log table. Throws on failure, so callers must catch.
+ * Accepts either a Db or a mysqli connection.
+ */
+function auditInsert($link, string $entry, $uid, string $type): void
+{
+    if ($link instanceof Db) {
+        $link->execute(
+            'INSERT INTO log (log_entry, log_user_id, log_type) VALUES (?, ?, ?)',
+            [$entry, (int)$uid, $type]
+        );
+        return;
+    }
+    $stmt = $link->prepare('INSERT INTO log (log_entry, log_user_id, log_type) VALUES (?, ?, ?)');
+    $stmt->bind_param('sis', $entry, $uid, $type);
+    $ok = $stmt->execute();
+    $stmt->close();
+    if (!$ok) {
+        throw new RuntimeException('execute returned false');
+    }
+}
+
 /** The active policy. Anything other than exactly 'soft' is strict. */
 function auditPolicy($link): string
 {
@@ -58,14 +80,8 @@ function auditWrite($link, string $entry, $uid, string $type): bool
 {
     $entry = substr($entry, 0, 139);
     try {
-        $stmt = $link->prepare('INSERT INTO log (log_entry, log_user_id, log_type) VALUES (?, ?, ?)');
-        $stmt->bind_param('sis', $entry, $uid, $type);
-        $ok = $stmt->execute();
-        $stmt->close();
-        if ($ok) {
-            return true;
-        }
-        $reason = 'execute returned false';
+        auditInsert($link, $entry, $uid, $type);
+        return true;
     } catch (Throwable $e) {
         // mysqli throws on failure by default (PHP 8.1+), so this is the normal failure path.
         $reason = $e->getMessage();

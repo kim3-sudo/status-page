@@ -23,24 +23,33 @@ final class SiteSettings
 {
     private static ?array $values = null;
 
-    /** @return array<string, string> */
-    public static function load(mysqli $link): array
+    /**
+     * @param mysqli|Db $link
+     * @return array<string, string>
+     */
+    public static function load($link): array
     {
         if (self::$values !== null) {
             return self::$values;
         }
 
-        $result = $link->query('SELECT setting_key, setting_value FROM settings');
-        if ($result === false) {
+        try {
+            $values = [];
+            if ($link instanceof Db) {
+                foreach ($link->all('SELECT setting_key, setting_value FROM settings') as $row) {
+                    $values[$row['setting_key']] = $row['setting_value'] ?? '';
+                }
+            } else {
+                $result = $link->query('SELECT setting_key, setting_value FROM settings');
+                while ($row = $result->fetch_assoc()) {
+                    $values[$row['setting_key']] = $row['setting_value'] ?? '';
+                }
+                $result->free();
+            }
+        } catch (Throwable $e) {
             // Not cached: a later call may succeed once the table exists.
             return [];
         }
-
-        $values = [];
-        while ($row = $result->fetch_assoc()) {
-            $values[$row['setting_key']] = $row['setting_value'] ?? '';
-        }
-        $result->free();
 
         self::$values = $values;
         return $values;

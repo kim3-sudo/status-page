@@ -98,10 +98,14 @@ final class Db
     }
 
     /**
-     * Inserts a row, or updates the existing row whose $keys columns match.
+     * Inserts a row, or handles the existing row whose $keys columns match.
      * $keys must be a unique key (or primary key) of $table.
+     *
+     * With $updateExisting true (the default) the existing row takes the new values.
+     * With false it is left unchanged, which makes the call an idempotent
+     * "insert if missing".
      */
-    public function upsert(string $table, array $values, array $keys): void
+    public function upsert(string $table, array $values, array $keys, bool $updateExisting = true): void
     {
         if ($keys === []) {
             throw new InvalidArgumentException('upsert() needs at least one key column');
@@ -111,7 +115,7 @@ final class Db
             $this->assertIdentifier($key);
         }
 
-        $updateColumns = array_values(array_diff(array_keys($values), $keys));
+        $updateColumns = $updateExisting ? array_values(array_diff(array_keys($values), $keys)) : [];
         $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
 
         if ($this->driver === 'mysql') {
@@ -128,6 +132,50 @@ final class Db
         }
 
         $this->execute($sql, $params);
+    }
+
+    /**
+     * Runs a script of several statements with no parameters, such as a schema
+     * file. Statements must be written for this driver. Use only for trusted,
+     * repository-owned SQL, never for user input.
+     */
+    public function runScript(string $sql): void
+    {
+        $this->pdo->exec($sql);
+    }
+
+    /** True when $table has a column named $column in the current database/schema. */
+    public function hasColumn(string $table, string $column): bool
+    {
+        $this->assertIdentifier($table);
+        $this->assertIdentifier($column);
+        $count = $this->driver === 'mysql'
+            ? $this->value(
+                'SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?',
+                [$table, $column]
+            )
+            : $this->value(
+                'SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = ? AND column_name = ?',
+                [$table, $column]
+            );
+        return (int)$count > 0;
+    }
+
+    /** True when $table has an index named $index in the current database/schema. */
+    public function hasIndex(string $table, string $index): bool
+    {
+        $this->assertIdentifier($table);
+        $this->assertIdentifier($index);
+        $count = $this->driver === 'mysql'
+            ? $this->value(
+                'SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?',
+                [$table, $index]
+            )
+            : $this->value(
+                'SELECT COUNT(*) FROM pg_indexes WHERE schemaname = current_schema() AND tablename = ? AND indexname = ?',
+                [$table, $index]
+            );
+        return (int)$count > 0;
     }
 
     /**

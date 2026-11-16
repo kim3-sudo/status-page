@@ -151,6 +151,23 @@ final class DbIntegrationTest extends TestCase
         $this->assertSame(1, (int)$this->db->value('SELECT COUNT(*) FROM ' . self::TABLE));
     }
 
+    public function testUpsertWithoutUpdateKeepsExistingValue(): void
+    {
+        $this->db->upsert(self::TABLE, ['name' => 'alpha', 'note' => 'first'], ['name']);
+        $this->db->upsert(self::TABLE, ['name' => 'alpha', 'note' => 'second'], ['name'], false);
+        $this->db->upsert(self::TABLE, ['name' => 'beta', 'note' => 'new'], ['name'], false);
+
+        $this->assertSame('first', $this->db->value('SELECT note FROM ' . self::TABLE . ' WHERE name = ?', ['alpha']));
+        $this->assertSame('new', $this->db->value('SELECT note FROM ' . self::TABLE . ' WHERE name = ?', ['beta']));
+    }
+
+    public function testHasColumnAndHasIndexReportExistence(): void
+    {
+        $this->assertTrue($this->db->hasColumn(self::TABLE, 'note'));
+        $this->assertFalse($this->db->hasColumn(self::TABLE, 'nope'));
+        $this->assertFalse($this->db->hasIndex(self::TABLE, 'statuspage_missing_index'));
+    }
+
     public function testRejectsInvalidIdentifiers(): void
     {
         $this->expectException(InvalidArgumentException::class);

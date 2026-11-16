@@ -95,6 +95,17 @@ foreach (timezone_identifiers_list() as $row) {
       <fieldset>
         <legend>Database Information</legend>
         <fieldset>
+          <label for="dbdriver">Database Engine</label>
+          <select id="dbdriver" name="dbdriver" required>
+            <option value="mysql" selected>MySQL or MariaDB</option>
+            <option value="pgsql">PostgreSQL</option>
+          </select>
+        </fieldset>
+        <fieldset>
+          <label for="dbport">Database Port (optional)</label>
+          <input type="number" id="dbport" name="dbport" min="1" max="65535" placeholder="3306 for MySQL/MariaDB, 5432 for PostgreSQL">
+        </fieldset>
+        <fieldset>
           <label for="dbhost">Database Host</label>
           <input type="text" id="dbhost" name="dbhost" required>
         </fieldset>
