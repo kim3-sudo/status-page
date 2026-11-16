@@ -10,5 +10,8 @@
         <testsuite name="regression">
             <directory>tests/Regression</directory>
         </testsuite>
+        <testsuite name="integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
     </testsuites>
 </phpunit>

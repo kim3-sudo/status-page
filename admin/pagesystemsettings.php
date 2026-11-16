@@ -179,6 +179,21 @@ foreach (timezone_identifiers_list() as $timezonerow) {
         <button class="btn btn-primary" type="submit">Submit</button>
       </div>
     </form>
+<?php if ((int)($_SESSION['suflag'] ?? 0) === 1): ?>
+    <form action="updatesettings.php" method="post">
+      <input type="hidden" name="setting_key" id="systemkey-audit_policy" value="audit_policy">
+      <label for="auditpolicyupdate" class="form-label">Audit logging</label>
+      <div class="input-group">
+<?php $activeaudit = getSetting($link, 'audit_policy') === 'soft' ? 'soft' : 'strict'; ?>
+        <select class="form-control" name="setting_value" id="auditpolicyupdate">
+          <option value="strict"<?=$activeaudit === 'strict' ? ' selected' : ''?>>Strict: stop the action if its audit entry cannot be written</option>
+          <option value="soft"<?=$activeaudit === 'soft' ? ' selected' : ''?>>Soft: carry on and record the failure in the server log</option>
+        </select>
+        <button class="btn btn-primary" type="submit">Submit</button>
+      </div>
+      <p class="text-muted mb-3"><small>Strict is the default and is recommended. Only superusers can change this. The change is recorded under the policy in force before it.</small></p>
+    </form>
+<?php endif; ?>
     <form action="updatesettings.php" method="post">
       <input type="hidden" name="setting_key" id="systemkey-plannedfuturedays" value="plannedfuturedays">
       <label for="plannedfuturedaysupdate" class="form-label">Planned Maintenance Preview Days</label>

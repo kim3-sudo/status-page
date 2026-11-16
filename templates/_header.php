@@ -22,7 +22,7 @@
   SOFTWARE.
 */
 session_start();
-include_once('config.php');
+require_once __DIR__ . '/../lib/bootstrap.php';
 require_once(__DIR__ . '/_db_helpers.php');
 $static_base_url = $_SERVER['DOCUMENT_ROOT'];
 

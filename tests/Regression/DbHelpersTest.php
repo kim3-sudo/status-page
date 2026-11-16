@@ -14,7 +14,9 @@ final class DbHelpersTest extends TestCase
 {
     public function testDbHelpersUsesPreparedStatements(): void
     {
-        $contents = file_get_contents(PROJECT_ROOT . '/templates/_db_helpers.php');
+        // The audit INSERT lives in lib/audit.php; the helpers delegate to it.
+        $contents = file_get_contents(PROJECT_ROOT . '/lib/db_helpers.php')
+            . file_get_contents(PROJECT_ROOT . '/lib/audit.php');
         $this->assertStringContainsString('->prepare(', $contents);
         $this->assertStringNotContainsString('mysqli_real_escape_string', $contents);
     }
@@ -23,28 +25,28 @@ final class DbHelpersTest extends TestCase
     {
         $offenders = [];
         foreach ($this->allPhpFilesExcludingVendor() as $file) {
-            if (str_ends_with($file, '/templates/_db_helpers.php')) {
+            if (str_ends_with($file, '/lib/db_helpers.php')) {
                 continue;
             }
             if (preg_match('/function\s+(samlW|w)riteToLog\s*\(/', file_get_contents($file))) {
                 $offenders[] = $file;
             }
         }
-        $this->assertSame([], $offenders, 'writeToLog()/samlWriteToLog() should only be defined in templates/_db_helpers.php');
+        $this->assertSame([], $offenders, 'writeToLog()/samlWriteToLog() should only be defined in lib/db_helpers.php');
     }
 
     public function testGetSettingIsNotRedefinedOutsideDbHelpers(): void
     {
         $offenders = [];
         foreach ($this->allPhpFilesExcludingVendor() as $file) {
-            if (str_ends_with($file, '/templates/_db_helpers.php')) {
+            if (str_ends_with($file, '/lib/db_helpers.php')) {
                 continue;
             }
             if (preg_match('/function\s+getSetting\s*\(/', file_get_contents($file))) {
                 $offenders[] = $file;
             }
         }
-        $this->assertSame([], $offenders, 'getSetting() should only be defined in templates/_db_helpers.php');
+        $this->assertSame([], $offenders, 'getSetting() should only be defined in lib/db_helpers.php');
     }
 
     private function allPhpFilesExcludingVendor(): array

@@ -23,6 +23,7 @@
 */
 if (!file_exists('templates/config.php')) {
   header('Location: /install');
+  exit;
 }
 include('templates/_header.php');
 
@@ -155,15 +156,8 @@ if (mysqli_num_rows($result) > 0) {
     if (mysqli_num_rows($serviceresult) > 0) {
       while ($service = mysqli_fetch_assoc($serviceresult)) {
         $cleanname = strtolower(preg_replace('/\W/', '', $service['service_name']));
-        // Determine badge/icon and group badge update script based on status
-        $statusBadges = [
-          'OPE' => ['class' => 'text-bg-success', 'icon' => 'fa-check-circle',         'label' => 'Operational',          'tooltip' => 'The service is working normally and as expected.'],
-          'DEG' => ['class' => 'text-bg-warning', 'icon' => 'fa-exclamation-circle',    'label' => 'Degraded Performance', 'tooltip' => 'The service may be experiencing degraded performance.'],
-          'PLA' => ['class' => 'text-bg-info',    'icon' => 'fa-circle-info',           'label' => 'Planned Maintenance',  'tooltip' => 'There is planned maintenance for this system soon.'],
-          'MIN' => ['class' => 'text-bg-warning', 'icon' => 'fa-exclamation-circle',    'label' => 'Minor Outage',         'tooltip' => 'The system may be experiencing a minor outage right now.'],
-          'MAJ' => ['class' => 'text-bg-danger',  'icon' => 'fa-triangle-exclamation',  'label' => 'Major Outage',         'tooltip' => 'The system may be experiencing a major outage right now.'],
-        ];
-        $s = $statusBadges[$service['service_status_short']] ?? $statusBadges['OPE'];
+        // Badge/icon and group badge update script based on status (lib/status.php)
+        $s = serviceStatusDisplay($service['service_status_short']);
 ?>
                 <div class="container px-4 py-2">
                   <div class="row">
@@ -213,6 +207,11 @@ if (mysqli_num_rows($result) > 0) {
               } else {
                 $incidenttimes[] = strtotime($incidentaccumrow['incident_update_timestamp']);
               }
+            }
+            // Incidents with only RES updates have no start time; skip them
+            // rather than calling min() on an empty array (throws in PHP 8).
+            if (empty($incidenttimes)) {
+              continue;
             }
             $accumulatedtime += abs($resolved - min($incidenttimes));
           }

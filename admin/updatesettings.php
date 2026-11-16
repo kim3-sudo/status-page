@@ -39,12 +39,18 @@ writeToLog($link, 'Updating setting value to ' . $setting_value, $_SESSION['id']
 // Use INSERT … ON DUPLICATE KEY UPDATE so this works correctly for both:
 //  (a) existing rows (standard update), and
 //  (b) keys that were added after install (e.g. saml_email_attribute on older installs).
+$policyerror = settingWriteError($setting_key, $setting_value, $_SESSION);
+if ($policyerror !== null) {
+  writeToLog($link, 'Refused setting change: ' . $policyerror, $_SESSION['id'], 'WARN');
+  echo '<p>Error: ' . e($policyerror) . '</p>';
+} else {
 $stmt = $link->prepare('INSERT INTO settings (setting_key, setting_value)
         VALUES (?, ?)
         ON DUPLICATE KEY UPDATE
         setting_value = ?');
 $stmt->bind_param('sss', $setting_key, $setting_value, $setting_value);
 if ($stmt->execute()) {
+  SiteSettings::clear();
   writeToLog($link, 'Updated setting', $_SESSION['id']);
   echo '<p>Updated setting</p>';
 } else {
@@ -52,6 +58,7 @@ if ($stmt->execute()) {
   echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
 }
 $stmt->close();
+}
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
       <button class="btn btn-secondary" onclick="history.back()">Go Back</button>

@@ -27,15 +27,18 @@ include('../../templates/_api.php');
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
   if (isset($_GET['authkey'])) {
     writeToLog($link, 'Matching authentication keys for incident API via GET', -1);
-    $sql = "SELECT apikeys_user_id, apikeys_authkey FROM apikeys WHERE apikeys_authkey = '" . mysqli_real_escape_string($link, $_GET['authkey']) . "'";
-    $result = mysqli_query($link, $sql);
+    $result = findApiKeyRows($link, $_GET['authkey']);
     if (mysqli_num_rows($result) == 1) {
       header('Content-Type: application/json; charset=utf-8');
       $userid = mysqli_fetch_assoc($result)['apikeys_user_id'];
       writeToLog($link, 'Matched authentication key for user', $userid);
       if (isset($_GET['incident_id'])) {
-        $sql = "SELECT incident_update_id, incident_update_timestamp, incident_update_status_short, incident_update_description FROM incident_update WHERE incident_update_incident_id = " . mysqli_real_escape_string($link, $_GET['incident_id']);
-        $result = mysqli_query($link, $sql);
+        $incidentid = (int)$_GET['incident_id'];
+        $stmt = $link->prepare('SELECT incident_update_id, incident_update_timestamp, incident_update_status_short, incident_update_description FROM incident_update WHERE incident_update_incident_id = ?');
+        $stmt->bind_param('i', $incidentid);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $stmt->close();
         $data = array();
         if (mysqli_num_rows($result) > 0) {
           while ($row = mysqli_fetch_assoc($result)) {
@@ -61,12 +64,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     } elseif (mysqli_num_rows($result) > 1) {
       http_response_code(401);
       writeToLog($link, 'Ambiguous authentication keys', -1);
-      writeToLog($link, $_GET['authkey'], -1);
+      writeToLog($link, 'Rejected ' . apiKeyFingerprint($_GET['authkey']), -1);
       echo('Unauthorized');
     } else {
       http_response_code(401);
       writeToLog($link, 'No matching authentication key', -1);
-      writeToLog($link, $_GET['authkey'], -1);
+      writeToLog($link, 'Rejected ' . apiKeyFingerprint($_GET['authkey']), -1);
       echo('Unauthorized');
     }
   } else {
@@ -77,8 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (isset($_POST['authkey'])) {
     writeToLog($link, 'Matching authentication keys for incident API via POST', -1);
-    $sql = "SELECT apikeys_user_id, apikeys_authkey FROM apikeys WHERE apikeys_authkey = '" . mysqli_real_escape_string($link, $_POST['authkey']) . "'";
-    $result = mysqli_query($link, $sql);
+    $result = findApiKeyRows($link, $_POST['authkey']);
     if (mysqli_num_rows($result) == 1) {
       header('Content-Type: application/json; charset=utf-8');
       $userid = mysqli_fetch_assoc($result)['apikeys_user_id'];
@@ -86,49 +88,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
       if (isset($_POST['type'])) {
         if ($_POST['type'] == 'incident') {
           writeToLog($link, 'Requested to add incident', $userid);
-          if (isset($_POST['incident_description']) && isset($_POST['incident_update'] && isset($_POST['incident_status'] && isset($_POST['affected_services'] && isset($_POST['outage_severity'])) {
+          if (isset($_POST['incident_description']) && isset($_POST['incident_update']) && isset($_POST['incident_status']) && isset($_POST['affected_services']) && isset($_POST['outage_severity'])) {
             writeToLog($link, 'Incident API call was correctly formed', $userid);
-            $incident_description = mysqli_real_escape_string($link, $_POST['incident_description']);
-            $incident_update = mysqli_real_escape_string($link, $_POST['incident_update']);
-            $incident_status = mysqli_real_escape_string($link, $_POST['incident_status']);
-            $outage_severity = mysqli_real_escape_string($link, $_POST['outage_severity']);
-            $affectedservicesarray = $_POST['affected_services'];
+            $incident_description = (string)$_POST['incident_description'];
+            $incident_update = (string)$_POST['incident_update'];
+            $incident_status = (string)$_POST['incident_status'];
+            $outage_severity = (string)$_POST['outage_severity'];
+            $affectedservicesarray = array_map('intval', (array)$_POST['affected_services']);
             $affectedservicesstr = implode(',', $affectedservicesarray);
-            writeToLog($link, 'Affected services are:', $_SESSION['id']);
-            writeToLog($link, $affectedservicesstr, $_SESSION['id']);
-            $sql = "INSERT INTO incident (incident_description, incident_status_short, incident_describes_ids) VALUES ('" . $incident_description . "', '" . $incident_status . "', '" . $affected_services . "')";
+            writeToLog($link, 'Affected services are:', $userid);
+            writeToLog($link, $affectedservicesstr, $userid);
             writeToLog($link, 'Executing an insert to the incident table now', $userid);
-            if ($link->query($sql) === TRUE) {
+            $incstmt = $link->prepare('INSERT INTO incident (incident_description, incident_status_short, incident_describes_ids) VALUES (?, ?, ?)');
+            $incstmt->bind_param('sss', $incident_description, $incident_status, $affectedservicesstr);
+            if ($incstmt->execute()) {
               $incidentid = $link->insert_id;
-              $subsql = "INSERT INTO incident_update (incident_update_status_short, incident_update_description, incident_update_incident_id) VALUES ('" . $incident_status . "', '" . $incident_update . "', '" . $incidentid . "')";
-              if ($link->query($subsql) === TRUE) {
-                foreach ($affectedservicesarray as &$serviceid) {
-                  writeToLog($link, 'Updating ' . $serviceid . ' to ' . $outageseverity, $userid);
-                  $subsubsql = "UPDATE services SET service_status_short = '" . $outage_severity . "' WHERE service_id = " . $serviceid;
-                  if ($link->query($subsubsql) === TRUE) {
-                    writeToLog($link, 'Updated services', $userid);
-                    $data = ['incident_description' => $incident_description, 'incident_update' => $incident_update, 'incident_status' => $incident_status, 'affected_services' => $affected_services, 'outage_severity' => $outage_severity, 'incident_id' => $incidentid];
-                    echo json_encode($data);
-                  } else {
+              $incstmt->close();
+              $updstmt = $link->prepare('INSERT INTO incident_update (incident_update_status_short, incident_update_description, incident_update_incident_id) VALUES (?, ?, ?)');
+              $updstmt->bind_param('ssi', $incident_status, $incident_update, $incidentid);
+              if ($updstmt->execute()) {
+                $updstmt->close();
+                $svcstmt = $link->prepare('UPDATE services SET service_status_short = ? WHERE service_id = ?');
+                $allservicesupdated = true;
+                foreach ($affectedservicesarray as $serviceid) {
+                  writeToLog($link, 'Updating ' . $serviceid . ' to ' . $outage_severity, $userid);
+                  $svcstmt->bind_param('si', $outage_severity, $serviceid);
+                  if (!$svcstmt->execute()) {
+                    $allservicesupdated = false;
                     writeToLog($link, 'Error updating service outage severity level', $userid, 'FERR');
-                    writeToLog($link, $subsubsql, $userid, 'FERR');
-                    http_response_code(500);
-                    $data = ['responsecode' => 'Internal Error', 'message' => 'Error updating service outage severity level'];
-                    echo json_encode($data);
+                    break;
                   }
+                  writeToLog($link, 'Updated services', $userid);
                 }
+                $svcstmt->close();
+                if ($allservicesupdated) {
+                  $data = ['incident_description' => $incident_description, 'incident_update' => $incident_update, 'incident_status' => $incident_status, 'affected_services' => $affectedservicesstr, 'outage_severity' => $outage_severity, 'incident_id' => $incidentid];
+                } else {
+                  http_response_code(500);
+                  $data = ['responsecode' => 'Internal Error', 'message' => 'Error updating service outage severity level'];
+                }
+                echo json_encode($data);
               } else {
                 writeToLog($link, 'Error updating incident update message', $userid, 'FERR');
-                writeToLog($link, $subsql, $_SESSION['id'], 'FERR');
+                writeToLog($link, $link->error, $userid, 'FERR');
                 http_response_code(500);
                 $data = ['responsecode' => 'Internal Error', 'message' => 'Error updating incident update message'];
                 echo json_encode($data);
               }
             } else {
+              $incstmt->close();
               writeToLog($link, 'Error while creating the incident', $userid, 'FERR');
-              writeToLog($link, $sql, $userid, 'FERR');
+              writeToLog($link, $link->error, $userid, 'FERR');
               http_response_code(500);
-              data = ['responsecode' => 'Internal Error', 'message' => 'Error while creating the incident'];
+              $data = ['responsecode' => 'Internal Error', 'message' => 'Error while creating the incident'];
               echo json_encode($data);
             }
           } else {
@@ -152,12 +164,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     } elseif (mysqli_num_rows($result) > 1) {
       http_response_code(401);
       writeToLog($link, 'Ambiguous authentication keys', -1);
-      writeToLog($link, $_POST['authkey'], -1);
+      writeToLog($link, 'Rejected ' . apiKeyFingerprint($_POST['authkey']), -1);
       echo('Unauthorized');
     } else {
       http_response_code(401);
       writeToLog($link, 'No matching authentication key', -1);
-      writeToLog($link, $_POST['authkey'], -1);
+      writeToLog($link, 'Rejected ' . apiKeyFingerprint($_POST['authkey']), -1);
       echo('Unauthorized');
     }
   } else {

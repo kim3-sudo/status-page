@@ -25,7 +25,7 @@
 // This file is a pure settings loader.
 // Do NOT call session_start() or output any HTML here — it is included by
 // both the SAML handler (which outputs XML) and the metadata endpoint.
-require_once __DIR__ . '/../templates/config.php';
+require_once __DIR__ . '/../lib/bootstrap.php';
 require_once __DIR__ . '/../templates/_db_helpers.php';
 
 $spBaseUrl           = getSetting($link, 'service_provider_base_url');

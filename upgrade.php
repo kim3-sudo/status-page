@@ -44,7 +44,7 @@ if (php_sapi_name() !== 'cli') {
   die('This script must be run from the command line: php upgrade.php');
 }
 
-require_once __DIR__ . '/templates/config.php';
+require_once __DIR__ . '/lib/bootstrap.php';
 require_once __DIR__ . '/templates/_db_helpers.php';
 require_once __DIR__ . '/templates/_version.php';
 require_once __DIR__ . '/install/_migration_functions.php';
@@ -61,6 +61,7 @@ function setSetting(mysqli $link, string $key, string $value): void {
   $stmt->bind_param('sss', $key, $value, $value);
   $stmt->execute();
   $stmt->close();
+  SiteSettings::clear();
 }
 
 // Earliest database_version this migration system supports. Installs from
