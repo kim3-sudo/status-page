@@ -100,6 +100,7 @@ $settings = [
   'plannedfuturedays' => '7',
   'incident_to_show_timerange' => '90',
   'audit_policy' => 'strict',
+  'log_retention_days' => '90',
 ];
 foreach (INSTALL_EMPTY_SETTINGS as $key) {
   $settings[$key] = null;

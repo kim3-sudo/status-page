@@ -40,9 +40,9 @@ if (isset($_POST['newapikeyname'])) {
     $randomString .= $characters[random_int(0, $charactersLength - 1)];
   }
   $newapikeyname = $_POST['newapikeyname'];
-  if ($db->tryExecute('INSERT INTO apikeys (apikeys_user_id, apikeys_authkey, apikeys_is_personal, apikeys_nickname) VALUES (?, ?, ?, ?)', [(int)$_SESSION['id'], $randomString, 0, $newapikeyname])) {
+  if ($db->tryExecute('INSERT INTO apikeys (apikeys_user_id, apikeys_key_hash, apikeys_is_personal, apikeys_nickname) VALUES (?, ?, ?, ?)', [(int)$_SESSION['id'], apiKeyHash($randomString), 0, $newapikeyname])) {
     writeToLog($db, 'New service API key was generated, new key starts with', $_SESSION['id']);
-    writeToLog($db, substr($randomString, 0, 8), $_SESSION['id']);
+    writeToLog($db, apiKeyFingerprint($randomString), $_SESSION['id']);
     echo '<p>Your new service API key is ready. Your new API key is <code>' . htmlspecialchars($randomString) . '</code>. Save this key now, as you will not be able to see it again later.</p>';
   } else {
     writeToLog($db, 'Failed to generate and save new API key', $_SESSION['id'], 'WARN');

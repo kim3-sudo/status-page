@@ -29,13 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
   die('Method Not Allowed');
 }
 
-if (!isset($_GET['authkey'])) {
-  writeToLog($db, 'No authentication key provided', -1);
-  apiUnauthorized();
-  exit;
-}
-
-$userid = authenticateApiKey($db, $_GET['authkey'], 'service API via GET');
+$userid = apiAuthenticateRequest($db, 'service API');
 if ($userid === null) {
   apiUnauthorized();
   exit;

@@ -102,3 +102,34 @@ function settingWriteError(string $key, string $value, array $session): ?string
     }
     return null;
 }
+
+const LOG_RETENTION_SETTING = 'log_retention_days';
+const LOG_RETENTION_DEFAULT_DAYS = 90;
+
+/**
+ * Pure. How many days of audit log to keep, from the setting's value. Null means keep
+ * everything ('0'). A blank or non-numeric value falls back to the default.
+ */
+function logRetentionDays(string $value): ?int
+{
+    $value = trim($value);
+    if ($value === '' || !ctype_digit($value)) {
+        return LOG_RETENTION_DEFAULT_DAYS;
+    }
+    $days = (int)$value;
+    return $days === 0 ? null : $days;
+}
+
+/**
+ * Deletes audit entries older than the retention period. Returns the number of rows
+ * removed. Entries are stamped in UTC by the database, so the cutoff is computed in UTC.
+ */
+function pruneAuditLog(Db $db, int $nowEpoch): int
+{
+    $days = logRetentionDays(getSetting($db, LOG_RETENTION_SETTING));
+    if ($days === null) {
+        return 0;
+    }
+    $cutoff = gmdate('Y-m-d H:i:s', $nowEpoch - $days * 86400);
+    return $db->execute('DELETE FROM log WHERE log_timestamp < ?', [$cutoff]);
+}

@@ -103,10 +103,11 @@ CREATE INDEX incident_service_service_id ON incident_service (service_id);
 CREATE TABLE apikeys (
   apikeys_id SERIAL PRIMARY KEY,
   apikeys_user_id INTEGER DEFAULT NULL REFERENCES users (user_id),
-  apikeys_authkey VARCHAR(128) DEFAULT NULL,
+  apikeys_key_hash VARCHAR(64) DEFAULT NULL,
   apikeys_nickname VARCHAR(128) DEFAULT NULL,
   apikeys_is_personal BOOLEAN DEFAULT NULL
 );
+CREATE UNIQUE INDEX apikeys_key_hash_unique ON apikeys (apikeys_key_hash);
 
 INSERT INTO incident_status (incident_status_code, incident_status_description) VALUES
   ('IDE', 'Identified'), ('INV', 'Investigating'), ('MON', 'Monitoring'),

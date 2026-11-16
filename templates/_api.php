@@ -10,21 +10,29 @@
 require_once __DIR__ . '/../lib/bootstrap.php';
 
 /**
- * A short, non-reversible identifier for an API key, safe to write to the audit
- * log in place of the key itself.
+ * Authenticates the current API request. Returns the owning user id, or null when
+ * the request has no key or the key does not match. Writes the audit entries for the
+ * attempt. Callers respond with apiUnauthorized() on null.
  */
-function apiKeyFingerprint(string $authkey): string {
-  return 'key:' . substr(hash('sha256', $authkey), 0, 12);
+function apiAuthenticateRequest(Db $db, string $context): ?int {
+  $presented = apiKeyFromRequest($_SERVER, $_GET, $_POST);
+  if ($presented === null) {
+    writeToLog($db, 'No authentication key provided', -1);
+    return null;
+  }
+  if ($presented['source'] === 'query') {
+    writeToLog($db, "Deprecated: $context received its key in the URL. Send it in the Authorization header instead.", -1, 'WARN');
+  }
+  return authenticateApiKey($db, $presented['key'], $context);
 }
 
 /**
- * Looks up an API key. Returns the owning user id when exactly one key matches,
- * or null otherwise. Writes the audit entries for the attempt. Callers respond
- * with apiUnauthorized() on null.
+ * Looks up a key by its hash. Returns the owning user id when exactly one key matches,
+ * or null otherwise.
  */
 function authenticateApiKey(Db $db, string $authkey, string $context): ?int {
   writeToLog($db, "Matching authentication keys for $context", -1);
-  $rows = $db->all('SELECT apikeys_user_id FROM apikeys WHERE apikeys_authkey = ?', [$authkey]);
+  $rows = $db->all('SELECT apikeys_user_id FROM apikeys WHERE apikeys_key_hash = ?', [apiKeyHash($authkey)]);
 
   if (count($rows) === 1) {
     $userid = (int)$rows[0]['apikeys_user_id'];

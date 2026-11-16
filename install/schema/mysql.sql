@@ -114,9 +114,10 @@ CREATE TABLE incident_service (
 CREATE TABLE apikeys (
   apikeys_id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
   apikeys_user_id INT DEFAULT NULL,
-  apikeys_authkey VARCHAR(128) DEFAULT NULL,
+  apikeys_key_hash VARCHAR(64) DEFAULT NULL,
   apikeys_nickname VARCHAR(128) DEFAULT NULL,
   apikeys_is_personal BOOLEAN DEFAULT NULL,
+  UNIQUE KEY apikeys_key_hash_unique (apikeys_key_hash),
   CONSTRAINT users_ibfk_9 FOREIGN KEY (apikeys_user_id) REFERENCES users (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

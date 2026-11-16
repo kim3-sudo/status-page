@@ -197,6 +197,94 @@ final class SchemaAndMigrationTest extends TestCase
         $this->assertSame('Mail', $inputs['services'][0]['name']);
     }
 
+    // --- API keys: migration 0.3.1 --------------------------------------
+
+    public function testFreshSchemaStoresHashesNotKeys(): void
+    {
+        $this->assertTrue($this->db->hasColumn('apikeys', 'apikeys_key_hash'));
+        $this->assertFalse($this->db->hasColumn('apikeys', 'apikeys_authkey'));
+        $this->assertTrue($this->db->hasIndex('apikeys', 'apikeys_key_hash_unique'));
+    }
+
+    public function testMigration031HashesExistingKeysAndDropsPlaintext(): void
+    {
+        $this->simulateVersion030ApiKeys();
+        $this->db->execute("INSERT INTO users (user_id, user_email) VALUES (1, 'owner@example.test')");
+        $this->db->execute("INSERT INTO apikeys (apikeys_user_id, apikeys_authkey, apikeys_nickname) VALUES (1, 'legacy-key-one', 'a'), (1, 'legacy-key-two', 'b')");
+
+        $this->runMigration('0.3.1');
+
+        $hashes = array_column($this->db->all('SELECT apikeys_key_hash FROM apikeys ORDER BY apikeys_id'), 'apikeys_key_hash');
+        $this->assertSame([hash('sha256', 'legacy-key-one'), hash('sha256', 'legacy-key-two')], $hashes);
+        $this->assertFalse($this->db->hasColumn('apikeys', 'apikeys_authkey'));
+        $this->assertSame('90', $this->db->value('SELECT setting_value FROM settings WHERE setting_key = ?', ['log_retention_days']));
+    }
+
+    public function testMigration031IsIdempotent(): void
+    {
+        $this->simulateVersion030ApiKeys();
+        $this->db->execute("INSERT INTO users (user_id, user_email) VALUES (1, 'owner@example.test')");
+        $this->db->execute("INSERT INTO apikeys (apikeys_user_id, apikeys_authkey) VALUES (1, 'legacy-key-one')");
+        $this->runMigration('0.3.1');
+        $this->runMigration('0.3.1');
+
+        $this->assertSame(1, (int)$this->db->value('SELECT COUNT(*) FROM apikeys'));
+        $this->assertSame(hash('sha256', 'legacy-key-one'), $this->db->value('SELECT apikeys_key_hash FROM apikeys'));
+    }
+
+    public function testMigration031RefusesDuplicateKeysAndKeepsThePlaintextColumn(): void
+    {
+        $this->simulateVersion030ApiKeys();
+        $this->db->execute("INSERT INTO users (user_id, user_email) VALUES (1, 'owner@example.test')");
+        $this->db->execute("INSERT INTO apikeys (apikeys_user_id, apikeys_authkey) VALUES (1, 'same-key'), (1, 'same-key')");
+
+        try {
+            $this->runMigration('0.3.1');
+            $this->fail('the duplicate keys should stop the migration');
+        } catch (\RuntimeException $e) {
+            $this->assertStringContainsString('appear more than once', $e->getMessage());
+        }
+        $this->assertTrue($this->db->hasColumn('apikeys', 'apikeys_authkey'), 'nothing is dropped when the migration stops');
+        $this->assertFalse($this->db->hasIndex('apikeys', 'apikeys_key_hash_unique'), 'the unique index is not created');
+    }
+
+    public function testMigration031KeepsAnAdminsRetentionChoice(): void
+    {
+        $this->simulateVersion030ApiKeys();
+        $this->db->upsert('settings', ['setting_key' => 'log_retention_days', 'setting_value' => '30'], ['setting_key']);
+
+        $this->runMigration('0.3.1');
+
+        $this->assertSame('30', $this->db->value('SELECT setting_value FROM settings WHERE setting_key = ?', ['log_retention_days']));
+    }
+
+    // --- audit log retention ---------------------------------------------
+
+    public function testPruneRemovesOnlyEntriesOlderThanTheRetentionPeriod(): void
+    {
+        $now = time();
+        $this->insertLogEntry('old entry', $now - 100 * 86400);
+        $this->insertLogEntry('recent entry', $now - 86400);
+        \SiteSettings::clear();
+        $this->db->upsert('settings', ['setting_key' => 'log_retention_days', 'setting_value' => '90'], ['setting_key']);
+
+        $removed = pruneAuditLog($this->db, $now);
+
+        $this->assertSame(1, $removed);
+        $this->assertSame(['recent entry'], array_column($this->db->all('SELECT log_entry FROM log'), 'log_entry'));
+    }
+
+    public function testRetentionZeroKeepsEverything(): void
+    {
+        $now = time();
+        $this->insertLogEntry('ancient', $now - 3650 * 86400);
+        \SiteSettings::clear();
+        $this->db->upsert('settings', ['setting_key' => 'log_retention_days', 'setting_value' => '0'], ['setting_key']);
+
+        $this->assertSame(0, pruneAuditLog($this->db, $now));
+        $this->assertSame(1, (int)$this->db->value('SELECT COUNT(*) FROM log'));
+    }
+
     // --- helpers ---------------------------------------------------------
 
     private function applyFreshSchema(): void
@@ -214,6 +302,27 @@ final class SchemaAndMigrationTest extends TestCase
             $this->db->runScript('DROP INDEX IF EXISTS incident_update_incident_time');
         }
         $this->db->runScript('ALTER TABLE incident_update DROP COLUMN incident_update_utc');
+    }
+
+    /** Removes the 0.3.1 API key change, leaving the 0.3.0 shape: plaintext keys, no hash. */
+    private function simulateVersion030ApiKeys(): void
+    {
+        if ($this->driver === 'mysql') {
+            $this->db->runScript('DROP INDEX apikeys_key_hash_unique ON apikeys');
+        } else {
+            $this->db->runScript('DROP INDEX IF EXISTS apikeys_key_hash_unique');
+        }
+        $this->db->runScript('ALTER TABLE apikeys DROP COLUMN apikeys_key_hash');
+        $this->db->runScript('ALTER TABLE apikeys ADD COLUMN apikeys_authkey VARCHAR(128) DEFAULT NULL');
+        \SiteSettings::clear();
+    }
+
+    private function insertLogEntry(string $entry, int $epoch): void
+    {
+        $this->db->execute(
+            'INSERT INTO log (log_entry, log_user_id, log_type, log_timestamp) VALUES (?, ?, ?, ?)',
+            [$entry, -1, 'INFO', gmdate('Y-m-d H:i:s', $epoch)]
+        );
     }
 
     /** Services 1 (MAJ), 2 and 3 (OPE). Incident 1 resolved, 2 open, 3 open. */

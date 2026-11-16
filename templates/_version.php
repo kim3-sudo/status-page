@@ -38,6 +38,8 @@ if (!defined('SOFTWARE_VERSION')) {
 //        install/migrations/0.2.0.php.
 // 0.3.0: UTC flag on incident updates, the incident_service join table, and
 //        the audit_policy setting; see install/migrations/0.3.0.php.
+// 0.3.1: API keys stored as SHA-256 hashes (the plaintext column is removed) and
+//        the log_retention_days setting; see install/migrations/0.3.1.php.
 if (!defined('DATABASE_VERSION')) {
-  define('DATABASE_VERSION', '0.3.0');
+  define('DATABASE_VERSION', '0.3.1');
 }

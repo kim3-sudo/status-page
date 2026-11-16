@@ -14,6 +14,7 @@ require_once __DIR__ . '/status.php';
 require_once __DIR__ . '/time.php';
 require_once __DIR__ . '/uptime.php';
 require_once __DIR__ . '/db_helpers.php';   // also loads audit.php
+require_once __DIR__ . '/apikeys.php';
 require_once __DIR__ . '/status_model.php';
 require_once __DIR__ . '/sanitize.php';
 require_once __DIR__ . '/incidents.php';

@@ -11,12 +11,7 @@ include('../../templates/_api.php');
 require_once __DIR__ . '/../../lib/incidents.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-  if (!isset($_GET['authkey'])) {
-    writeToLog($db, 'No authentication key provided', -1);
-    apiUnauthorized();
-    exit;
-  }
-  $userid = authenticateApiKey($db, $_GET['authkey'], 'incident API via GET');
+  $userid = apiAuthenticateRequest($db, 'incident API');
   if ($userid === null) {
     apiUnauthorized();
     exit;
@@ -48,12 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     echo json_encode($data);
   }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  if (!isset($_POST['authkey'])) {
-    writeToLog($db, 'No authentication key provided', -1);
-    apiUnauthorized();
-    exit;
-  }
-  $userid = authenticateApiKey($db, $_POST['authkey'], 'incident API via POST');
+  $userid = apiAuthenticateRequest($db, 'incident API');
   if ($userid === null) {
     apiUnauthorized();
     exit;

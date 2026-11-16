@@ -385,7 +385,7 @@ include('_pesstyleguide.php');
         <hr class="my-3">
         <h5>Authentication</h5>
         <p>To start using any API endpoints, you'll need to generate an API key for your account or a service account. API keys are widely scoped and cannot be fine-grained (yet).</p>
-        <p>To authenticate to an endpoint, use the <code>authkey</code> parameter to pass in your API key as a string. Include the entire API key and nothing more.</p>
+        <p>To authenticate, send your API key in an <code>Authorization: Bearer &lt;key&gt;</code> header. Include the entire API key and nothing more. The older <code>authkey</code> URL parameter still works for now, but it is deprecated because URLs are written to web server logs.</p>
         <p>API keys are 128 characters long and consist of uppercase letters, lowercase letters, and numbers. The API key is case-sensitive, and should not contain any ambiguous letters or numbers.</p>
         <hr class="my-3">
         <h5>Service Endpoint&nbsp;<span class="badge" style="background-color: violet; color: white;">GET</span></h5>
@@ -400,7 +400,7 @@ include('_pesstyleguide.php');
 }
         </code>
         <h6 class="mt-3">Specific Service Status</h6>
-        <p>Place a <span class="badge" style="background-color: violet;color: white;">GET</span> request to the endpoint with authentication (<code>authkey</code>) and a specific service ID (<code>service_id</code>) as parameters. The returned JSON object looks like:</p>
+        <p>Place a <span class="badge" style="background-color: violet;color: white;">GET</span> request to the endpoint with authentication (your Bearer header) and a specific service ID (<code>service_id</code>) as parameters. The returned JSON object looks like:</p>
         <code>
 {
   "service_id": The ID of the service, which can be safely typecast to int,
@@ -417,9 +417,9 @@ include('_pesstyleguide.php');
         <h6 class="mt-3">Get Incidents</h6>
         <p>Place a <span class="badge" style="background-color: violet;color: white;">GET</span> request to the endpoint with only the authentication parameter. The returned JSON object contains incident information.
         <h6 class="mt-3">Get Incident Updates</h6>
-        <p>Place a <span class="badge" style="background-color: violet;color: white;">GET</span> request to the endpoint with authentication (<code>authkey</code>) and an incident ID (<code>incident_id</code>). The returned JSON object contains all incident updates for the incident ID provided.</p>
+        <p>Place a <span class="badge" style="background-color: violet;color: white;">GET</span> request to the endpoint with authentication (your Bearer header) and an incident ID (<code>incident_id</code>). The returned JSON object contains all incident updates for the incident ID provided.</p>
         <h6 class="mt-3">Post New Incident</h6>
-        <p>Place a <span class="badge" style="background-color: lightseagreen;color: white;">POST</span> request to the endpoint with authentication (<code>authkey</code>), the <code>type</code> set to <code>incident</code>, an incident description (<code>incident_description</code>), incident update HTML text (<code>incident_update</code>), the three-character coded incident status (<code>IDE</code> for identified, <code>INV</code> for investigating, <code>MON</code> for monitoring, and <code>RES</code> for resolved in <code>incident_status</code>), a comma-separated list of affected service IDs (<code>affected_services</code>), and the three-character coded outage severity (<code>MAJ</code> for major outage, <code>MIN</code> for minor outage, <code>DEG</code> for degraded performance in <code>outage_severity</code>). The returned JSON object contains the inserted information, along with the incident ID.</p>
+        <p>Place a <span class="badge" style="background-color: lightseagreen;color: white;">POST</span> request to the endpoint with authentication (your Bearer header), the <code>type</code> set to <code>incident</code>, an incident description (<code>incident_description</code>), incident update HTML text (<code>incident_update</code>), the three-character coded incident status (<code>IDE</code> for identified, <code>INV</code> for investigating, <code>MON</code> for monitoring, and <code>RES</code> for resolved in <code>incident_status</code>), a comma-separated list of affected service IDs (<code>affected_services</code>), and the three-character coded outage severity (<code>MAJ</code> for major outage, <code>MIN</code> for minor outage, <code>DEG</code> for degraded performance in <code>outage_severity</code>). The returned JSON object contains the inserted information, along with the incident ID.</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
