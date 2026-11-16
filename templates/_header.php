@@ -28,12 +28,9 @@ $static_base_url = $_SERVER['DOCUMENT_ROOT'];
 
 date_default_timezone_set($siteZone->getName());
 
+// Sanitized on display as well as on write, so rows saved before sanitizing existed are safe too.
 function renderUpdateContent($description) {
-  if (str_starts_with($description, '<p>')) {
-    echo $description;
-  } else {
-    echo '<p>' . $description . '</p>';
-  }
+  echo sanitizeUpdateBody((string)$description);
 }
 ?>
 <!doctype html>

@@ -1,81 +1,36 @@
 <?php
+/*
+  Status Page
+  Copyright 2026 Sejin Kim
+
+  Licensed under the MIT License. See LICENSE.
+*/
+?>
+<?php
 require('_guard.php');
 include('../templates/_header.php');
+require_once __DIR__ . '/../lib/incidents.php';
 ?>
 <div class="d-flex flex-row">
   <div class="container">
     <div class="row">
       <div class="col">
 <?php
-$addmaintstarttimestamp = $_POST['plannedmaintenancestart'];
-$addmaintendtimestamp = $_POST['plannedmaintenanceend'];
-$addmaintdescription = str_replace("<p>&nbsp;</p>", "", $_POST['plannedmaintenancedescription']);
-$addmaintmessage = $_POST['plannedmaintenancemessage'];
-if (isset($_POST['plannedmaintenanceaffectedservices'])) {
-  $affectedservicesarray = $_POST['plannedmaintenanceaffectedservices'];
-  $affectedservicesstr = implode(',', $affectedservicesarray);
-} else {
-  exit('Missing affected services');
-}
-$stmt = $link->prepare("INSERT INTO incident (incident_date, incident_description, incident_status_short, incident_describes_ids) VALUES (?, ?, 'RES', ?)");
-$stmt->bind_param('sss', $addmaintstarttimestamp, $addmaintdescription, $affectedservicesstr);
-if ($stmt->execute()) {
-  $incidentid = $link->insert_id;
-  $stmt->close();
-  saveIncidentServices($link, (int)$incidentid, $affectedservicesarray, 'PLA');
-  $substmt = $link->prepare("INSERT INTO incident_update (incident_update_timestamp, incident_update_status_short, incident_update_description, incident_update_incident_id, incident_update_is_planned_maint) VALUES (?, 'PLA', 'Planned maintenance begins', ?, 'Y')");
-  $substmt->bind_param('si', $addmaintstarttimestamp, $incidentid);
-  if ($substmt->execute()) {
-    $substmt->close();
-    $subsubstmt = $link->prepare("INSERT INTO incident_update (incident_update_timestamp, incident_update_status_short, incident_update_description, incident_update_incident_id, incident_update_is_planned_maint) VALUES (?, 'RES', ?, ?, 'Y')");
-    $subsubstmt->bind_param('ssi', $addmaintendtimestamp, $addmaintmessage, $incidentid);
-    if ($subsubstmt->execute()) {
-      $subsubstmt->close();
-      foreach ($affectedservicesarray as &$serviceid) {
-        $svcstmt = $link->prepare("UPDATE services SET service_status_short = 'PLA' WHERE service_id = ?");
-        $svcstmt->bind_param('i', $serviceid);
-        echo 'Updating service ID ' . htmlspecialchars($serviceid);
-        if ($svcstmt->execute()) {
-?>
-<p>Updated service <?=htmlspecialchars($serviceid)?>.</p>
-<?php
-        } else {
-?>
-<p>
-  Error applying maintenance window to services: <?=htmlspecialchars($link->error)?>
-</p>
-<?php
-        }
-        $svcstmt->close();
-      }
-    } else {
-?>
-<p>
-  Error adding maintenance window end: <?=htmlspecialchars($link->error)?>
-<?php
-      $subsubstmt->close();
-    }
-  } else {
-?>
-<p>
-  Error adding maintenance window start: <?=htmlspecialchars($link->error)?>
-</p>
-<?php
-    $substmt->close();
-  }
-?>
-<?php
-} else {
-?>
-<p>
-  Error while creating the incident: <?=htmlspecialchars($link->error)?>
-</p>
-<?php
-  $stmt->close();
+try {
+  $incidentid = scheduleMaintenance($db, [
+    'title' => str_replace('<p>&nbsp;</p>', '', (string)($_POST['plannedmaintenancedescription'] ?? '')),
+    'message' => str_replace('<p>&nbsp;</p>', '', (string)($_POST['plannedmaintenancemessage'] ?? '')),
+    'start' => $_POST['plannedmaintenancestart'] ?? '',
+    'end' => $_POST['plannedmaintenanceend'] ?? '',
+    'services' => $_POST['plannedmaintenanceaffectedservices'] ?? [],
+  ], $siteZone, (int)$_SESSION['id']);
+  echo '<p>Scheduled planned maintenance ' . $incidentid . ' and set the affected services.</p>';
+} catch (IncidentValidationException $e) {
+  echo '<p class="text-danger">' . e($e->getMessage()) . '</p>';
 }
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
-      <button class="btn btn-secondary" onclick="history.back()">Go Back</a>
+      <button class="btn btn-secondary" onclick="history.back()">Go Back</button>
       </div>
     </div>
   </div>

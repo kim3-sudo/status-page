@@ -4,14 +4,20 @@ namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Service status is derived from incidents, so these tests build incidents rather
+ * than setting a stored status. Times are small integers: "now" is usually 30 and
+ * the window starts at 0.
+ */
 final class StatusModelTest extends TestCase
 {
-    // --- helpers ---------------------------------------------------------
+    private const NOW = 30;
+    private const CORE = [['id' => 1, 'name' => 'Core']];
 
-    private function svc(int $id, ?string $stored, int $group = 1, string $name = ''): array
+    private function svc(int $id, int $group = 1, string $name = ''): array
     {
         return ['id' => $id, 'name' => $name !== '' ? $name : "svc$id", 'description' => null,
-                'link' => null, 'stored_status' => $stored, 'group_id' => $group];
+                'link' => null, 'group_id' => $group];
     }
 
     /** @param array<int, string> $services service id => severity for this incident */
@@ -30,7 +36,11 @@ final class StatusModelTest extends TestCase
         return ['groups' => $groups, 'services' => $services, 'incidents' => $incidents];
     }
 
-    private const CORE = [['id' => 1, 'name' => 'Core']];
+    private function statusOf(array $incidents, ?array $services = null, int $now = self::NOW): string
+    {
+        $services ??= [$this->svc(1)];
+        return buildStatusSnapshot($this->inputs(self::CORE, $services, $incidents), $now, 0)['services'][1]['status'];
+    }
 
     // --- dbBool ----------------------------------------------------------
 
@@ -44,64 +54,107 @@ final class StatusModelTest extends TestCase
         }
     }
 
-    // --- planned maintenance rule ----------------------------------------
+    // --- derived service state -------------------------------------------
 
-    public function testEndedMaintenanceIsNotShownAsCurrent(): void
+    public function testServiceWithNoIncidentsIsOperational(): void
     {
-        $snapshot = buildStatusSnapshot($this->inputs(
-            self::CORE,
-            [$this->svc(1, 'PLA')],
-            [$this->inc(5, [1 => 'PLA'], [$this->upd(10, 'PLA'), $this->upd(20, 'RES')])]
-        ), 30, 0);
+        $this->assertSame('OPE', $this->statusOf([]));
+    }
 
-        $this->assertSame('OPE', $snapshot['services'][1]['status']);
-        $this->assertSame('OPE', $snapshot['banner']);
+    public function testOpenOutageSetsItsSeverity(): void
+    {
+        $this->assertSame('MAJ', $this->statusOf([$this->inc(1, [1 => 'MAJ'], [$this->upd(10, 'INV')])]));
+    }
+
+    public function testResolvedOutageIsOperational(): void
+    {
+        $incident = $this->inc(1, [1 => 'MAJ'], [$this->upd(10, 'INV'), $this->upd(20, 'RES')]);
+        $this->assertSame('OPE', $this->statusOf([$incident]));
+    }
+
+    public function testLatestUpdateDecidesTheState(): void
+    {
+        $incident = $this->inc(1, [1 => 'MAJ'], [$this->upd(10, 'INV'), $this->upd(20, 'RES'), $this->upd(25, 'INV')]);
+        $this->assertSame('MAJ', $this->statusOf([$incident]));
+    }
+
+    public function testUpdatesAfterNowAreIgnored(): void
+    {
+        $incident = $this->inc(1, [1 => 'MAJ'], [$this->upd(10, 'INV'), $this->upd(50, 'RES')]);
+        $this->assertSame('MAJ', $this->statusOf([$incident]));
+    }
+
+    public function testEndedMaintenanceIsNotCurrent(): void
+    {
+        $incident = $this->inc(1, [1 => 'PLA'], [$this->upd(10, 'PLA'), $this->upd(20, 'RES')]);
+        $this->assertSame('OPE', $this->statusOf([$incident]));
     }
 
     public function testActiveMaintenanceShowsPlannedStatus(): void
     {
-        $snapshot = buildStatusSnapshot($this->inputs(
-            self::CORE,
-            [$this->svc(1, 'PLA')],
-            [$this->inc(5, [1 => 'PLA'], [$this->upd(10, 'PLA')])]
-        ), 30, 0);
-
-        $this->assertSame('PLA', $snapshot['services'][1]['status']);
-        $this->assertSame('PLA', $snapshot['banner']);
+        $this->assertSame('PLA', $this->statusOf([$this->inc(1, [1 => 'PLA'], [$this->upd(10, 'PLA')])]));
     }
 
-    public function testMaintenanceNeverHidesAnOutage(): void
+    public function testFutureMaintenanceIsNotCurrentYet(): void
     {
-        $snapshot = buildStatusSnapshot($this->inputs(
-            self::CORE,
-            [$this->svc(1, 'MAJ')],
-            [$this->inc(5, [1 => 'PLA'], [$this->upd(10, 'PLA')])]
-        ), 30, 0);
-
-        $this->assertSame('MAJ', $snapshot['services'][1]['status']);
+        $incident = $this->inc(1, [1 => 'PLA'], [$this->upd(50, 'PLA'), $this->upd(60, 'RES')]);
+        $this->assertSame('OPE', $this->statusOf([$incident]));
     }
 
-    public function testActiveMaintenanceOnOneServiceDoesNotAffectAnother(): void
+    public function testOutageIsNotHiddenByMaintenance(): void
     {
-        $snapshot = buildStatusSnapshot($this->inputs(
-            self::CORE,
-            [$this->svc(1, 'PLA'), $this->svc(2, 'OPE')],
-            [$this->inc(5, [1 => 'PLA'], [$this->upd(10, 'PLA')])]
-        ), 30, 0);
+        $incidents = [
+            $this->inc(1, [1 => 'MAJ'], [$this->upd(10, 'INV')]),
+            $this->inc(2, [1 => 'PLA'], [$this->upd(15, 'PLA')]),
+        ];
+        $this->assertSame('MAJ', $this->statusOf($incidents));
+    }
+
+    public function testMaintenanceOnOneServiceDoesNotAffectAnother(): void
+    {
+        $services = [$this->svc(1), $this->svc(2)];
+        $snapshot = buildStatusSnapshot($this->inputs(self::CORE, $services, [
+            $this->inc(5, [1 => 'PLA'], [$this->upd(10, 'PLA')]),
+        ]), self::NOW, 0);
 
         $this->assertSame('PLA', $snapshot['services'][1]['status']);
         $this->assertSame('OPE', $snapshot['services'][2]['status']);
+    }
+
+    public function testSeverityIsKeptPerServiceOnOneIncident(): void
+    {
+        $services = [$this->svc(1), $this->svc(2)];
+        $snapshot = buildStatusSnapshot($this->inputs(self::CORE, $services, [
+            $this->inc(1, [1 => 'MAJ', 2 => 'DEG'], [$this->upd(10, 'INV')]),
+        ]), self::NOW, 0);
+
+        $this->assertSame('MAJ', $snapshot['services'][1]['status']);
+        $this->assertSame('DEG', $snapshot['services'][2]['status']);
+    }
+
+    public function testCurrentServiceStatesListsEveryOpenState(): void
+    {
+        $incidents = [
+            $this->inc(1, [1 => 'MAJ'], [$this->upd(10, 'INV')]),
+            $this->inc(2, [1 => 'PLA', 2 => 'DEG'], [$this->upd(12, 'PLA')]),
+            $this->inc(3, [2 => 'MIN'], [$this->upd(5, 'INV'), $this->upd(8, 'RES')]),
+        ];
+        $states = currentServiceStates($incidents, self::NOW);
+
+        $this->assertSame(['MAJ', 'PLA'], $states[1]);
+        // Planned maintenance applies PLA to every service on that incident, so service 2 is PLA too.
+        $this->assertSame(['PLA'], $states[2]);
     }
 
     // --- banner and groups -----------------------------------------------
 
     public function testBannerIsWorstAcrossAllServicesIncludingUngrouped(): void
     {
-        $snapshot = buildStatusSnapshot($this->inputs(
-            self::CORE,
-            [$this->svc(1, 'DEG'), $this->svc(9, 'MAJ', 99)],
-            []
-        ), 30, 0);
+        $services = [$this->svc(1), $this->svc(9, 99)];
+        $snapshot = buildStatusSnapshot($this->inputs(self::CORE, $services, [
+            $this->inc(1, [1 => 'DEG'], [$this->upd(10, 'INV')]),
+            $this->inc(2, [9 => 'MAJ'], [$this->upd(10, 'INV')]),
+        ]), self::NOW, 0);
 
         $this->assertSame('MAJ', $snapshot['banner']);
         $this->assertCount(1, $snapshot['groups']);
@@ -110,14 +163,13 @@ final class StatusModelTest extends TestCase
     public function testGroupBadgeIsWorstMemberNotLastMember(): void
     {
         // Members in name order: the MAJ service comes first, a DEG one after it.
-        // The old badge script showed whichever came last.
         $groups = [['id' => 1, 'name' => 'Core'], ['id' => 2, 'name' => 'Edge']];
-        $services = [
-            $this->svc(1, 'MAJ', 1, 'Alpha'),
-            $this->svc(2, 'DEG', 1, 'Beta'),
-            $this->svc(3, 'DEG', 2, 'Gamma'),
-        ];
-        $snapshot = buildStatusSnapshot($this->inputs($groups, $services, []), 30, 0);
+        $services = [$this->svc(1, 1, 'Alpha'), $this->svc(2, 1, 'Beta'), $this->svc(3, 2, 'Gamma')];
+        $snapshot = buildStatusSnapshot($this->inputs($groups, $services, [
+            $this->inc(1, [1 => 'MAJ'], [$this->upd(10, 'INV')]),
+            $this->inc(2, [2 => 'DEG'], [$this->upd(10, 'INV')]),
+            $this->inc(3, [3 => 'DEG'], [$this->upd(10, 'INV')]),
+        ]), self::NOW, 0);
 
         $this->assertSame('MAJ', $snapshot['groups'][0]['status']);
         $this->assertSame('DEG', $snapshot['groups'][1]['status']);
@@ -125,23 +177,17 @@ final class StatusModelTest extends TestCase
 
     public function testGroupMembersKeepInputOrder(): void
     {
-        $services = [$this->svc(7, 'OPE', 1, 'Aardvark'), $this->svc(2, 'OPE', 1, 'Zebra')];
-        $snapshot = buildStatusSnapshot($this->inputs(self::CORE, $services, []), 30, 0);
+        $services = [$this->svc(7, 1, 'Aardvark'), $this->svc(2, 1, 'Zebra')];
+        $snapshot = buildStatusSnapshot($this->inputs(self::CORE, $services, []), self::NOW, 0);
 
         $this->assertSame([7, 2], array_column($snapshot['groups'][0]['services'], 'id'));
     }
 
     public function testEmptyGroupIsOperational(): void
     {
-        $snapshot = buildStatusSnapshot($this->inputs(self::CORE, [], []), 30, 0);
+        $snapshot = buildStatusSnapshot($this->inputs(self::CORE, [], []), self::NOW, 0);
         $this->assertSame('OPE', $snapshot['groups'][0]['status']);
         $this->assertSame('OPE', $snapshot['banner']);
-    }
-
-    public function testNullStoredStatusIsOperational(): void
-    {
-        $snapshot = buildStatusSnapshot($this->inputs(self::CORE, [$this->svc(1, null)], []), 30, 0);
-        $this->assertSame('OPE', $snapshot['services'][1]['status']);
     }
 
     // --- uptime ----------------------------------------------------------
@@ -153,7 +199,7 @@ final class StatusModelTest extends TestCase
             $this->inc(2, [1 => 'PLA'], [$this->upd(50, 'PLA'), $this->upd(60, 'RES')]),
             $this->inc(3, [1 => 'DEG'], [$this->upd(70, 'INV'), $this->upd(75, 'RES')]),
         ];
-        $snapshot = buildStatusSnapshot($this->inputs(self::CORE, [$this->svc(1, 'OPE')], $incidents), 100, 0);
+        $snapshot = buildStatusSnapshot($this->inputs(self::CORE, [$this->svc(1)], $incidents), 100, 0);
 
         $this->assertEqualsWithDelta(90.0, $snapshot['services'][1]['uptime'], 1e-9);
     }
@@ -161,14 +207,14 @@ final class StatusModelTest extends TestCase
     public function testMinorOutageCountsAsDowntime(): void
     {
         $incidents = [$this->inc(1, [1 => 'MIN'], [$this->upd(0, 'INV'), $this->upd(25, 'RES')])];
-        $snapshot = buildStatusSnapshot($this->inputs(self::CORE, [$this->svc(1, 'OPE')], $incidents), 100, 0);
+        $snapshot = buildStatusSnapshot($this->inputs(self::CORE, [$this->svc(1)], $incidents), 100, 0);
 
         $this->assertEqualsWithDelta(75.0, $snapshot['services'][1]['uptime'], 1e-9);
     }
 
     public function testUptimeIsFullWhenNoIncidents(): void
     {
-        $snapshot = buildStatusSnapshot($this->inputs(self::CORE, [$this->svc(1, 'OPE')], []), 100, 0);
+        $snapshot = buildStatusSnapshot($this->inputs(self::CORE, [$this->svc(1)], []), 100, 0);
         $this->assertSame(100.0, $snapshot['services'][1]['uptime']);
     }
 
@@ -176,7 +222,7 @@ final class StatusModelTest extends TestCase
     {
         $snapshot = buildStatusSnapshot($this->inputs(
             self::CORE,
-            [$this->svc(1, 'OPE')],
+            [$this->svc(1)],
             [$this->inc(1, [1 => 'MAJ'], [$this->upd(10, 'RES')])]
         ), 100, 0);
 

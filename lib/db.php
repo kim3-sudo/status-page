@@ -203,6 +203,35 @@ final class Db
         }
     }
 
+    public function inTransaction(): bool
+    {
+        return $this->pdo->inTransaction();
+    }
+
+    /**
+     * Runs $work inside a savepoint when called within a transaction. If $work
+     * throws, only the savepoint's changes are undone and the outer transaction stays
+     * usable. PostgreSQL aborts the whole transaction on any error otherwise.
+     * Outside a transaction it simply runs $work.
+     */
+    public function savepoint(callable $work): mixed
+    {
+        if (!$this->pdo->inTransaction()) {
+            return $work($this);
+        }
+
+        $name = 'sp_' . bin2hex(random_bytes(6));
+        $this->pdo->exec("SAVEPOINT $name");
+        try {
+            $result = $work($this);
+            $this->pdo->exec("RELEASE SAVEPOINT $name");
+            return $result;
+        } catch (Throwable $e) {
+            $this->pdo->exec("ROLLBACK TO SAVEPOINT $name");
+            throw $e;
+        }
+    }
+
     private function run(string $sql, array $params): PDOStatement
     {
         $stmt = $this->pdo->prepare($sql);

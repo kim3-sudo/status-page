@@ -32,18 +32,17 @@ writeToLog($link, 'Deleting service', $_SESSION['id']);
     <div class="row">
       <div class="col">
 <?php
-$deleteserviceid = $_POST['deleteserviceid'];
-writeToLog($link, 'Deleting service ' . $deleteserviceid, $_SESSION['id']);
-$stmt = $link->prepare('DELETE FROM services WHERE service_id = ?');
-$stmt->bind_param('i', $deleteserviceid);
-if ($stmt->execute()) {
-  writeToLog($link, 'Deleted the service', $_SESSION['id']);
-  echo '<p>Deleted service</p>';
+$deleteserviceid = (int)($_POST['deleteserviceid'] ?? 0);
+writeToLog($db, 'Deleting service ' . $deleteserviceid, $_SESSION['id']);
+// Incident history refers to the service. Deleting it would lose that history, so refuse.
+if ((int)$db->value('SELECT COUNT(*) FROM incident_service WHERE service_id = ?', [$deleteserviceid]) > 0) {
+  writeToLog($db, 'Refused to delete service ' . $deleteserviceid . ': it has incident history', $_SESSION['id'], 'WARN');
+  echo '<p class="text-danger">This service appears in incident history, so it cannot be deleted. Its history would lose its meaning.</p>';
 } else {
-  writeToLog($link, 'Failed to delete the service', $_SESSION['id']);
-  echo '<p>Error: ' . htmlspecialchars($link->error) . '</p>';
+  $db->execute('DELETE FROM services WHERE service_id = ?', [$deleteserviceid]);
+  writeToLog($db, 'Deleted the service', $_SESSION['id']);
+  echo '<p>Deleted service</p>';
 }
-$stmt->close();
 ?>
       <a href="./" class="btn btn-primary">Admin Portal</a>
       <button class="btn btn-secondary" onclick="history.back()">Go Back</a>

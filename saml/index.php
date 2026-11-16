@@ -173,7 +173,7 @@ if (isset($_GET['sso'])) {
         samlErrorPage('Server Error', 'Unable to verify credentials. Please try again later.', '../login.php', 500);
     }
 
-    // Honour the RelayState (e.g. the admin portal URL set by ?sso2), otherwise
+    // Honor the RelayState (e.g. the admin portal URL set by ?sso2), otherwise
     // fall back to the admin portal root.
     if (isset($_POST['RelayState']) && Utils::getSelfURL() != $_POST['RelayState']) {
         $auth->redirectTo($_POST['RelayState']);
@@ -208,7 +208,7 @@ if (isset($_GET['sso'])) {
         );
     }
 
-// ── No recognised action: send to login ───────────────────────────────────
+// ── No recognized action: send to login ───────────────────────────────────
 } else {
     header('Location: ../login.php');
     exit();

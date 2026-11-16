@@ -80,7 +80,12 @@ function auditWrite($link, string $entry, $uid, string $type): bool
 {
     $entry = substr($entry, 0, 139);
     try {
-        auditInsert($link, $entry, $uid, $type);
+        if ($link instanceof Db) {
+            // Inside a transaction, a failed insert must not abort the rest of it (PostgreSQL does).
+            $link->savepoint(fn () => auditInsert($link, $entry, $uid, $type));
+        } else {
+            auditInsert($link, $entry, $uid, $type);
+        }
         return true;
     } catch (Throwable $e) {
         // mysqli throws on failure by default (PHP 8.1+), so this is the normal failure path.

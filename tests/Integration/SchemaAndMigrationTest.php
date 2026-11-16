@@ -176,18 +176,6 @@ final class SchemaAndMigrationTest extends TestCase
 
     // --- status read and write paths ------------------------------------
 
-    public function testSaveIncidentServicesRecordsAndUpdatesSeverity(): void
-    {
-        $this->seedLegacyIncidents();
-
-        saveIncidentServices($this->db, 2, [1, '2', 0, -4], 'MIN');
-        saveIncidentServices($this->db, 2, [1], 'DEG');
-
-        $rows = $this->db->all('SELECT service_id, severity FROM incident_service WHERE incident_id = 2 ORDER BY service_id');
-        $this->assertSame([['service_id' => 1, 'severity' => 'DEG'], ['service_id' => 2, 'severity' => 'MIN']],
-            array_map(fn (array $r) => ['service_id' => (int)$r['service_id'], 'severity' => $r['severity']], $rows));
-    }
-
     public function testLoadStatusInputsReadsMembershipAndConvertsTimes(): void
     {
         $this->db->execute("INSERT INTO servicegroups (servicegroup_id, servicegroup_name) VALUES (1, 'Core')");

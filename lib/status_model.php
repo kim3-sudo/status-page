@@ -14,10 +14,11 @@
 //     parameter, so they can be tested with fixed times.
 //
 // Display rules:
-//   - A service's status is the worst of its stored status and any planned
-//     maintenance window that is active now for one of its incidents. A stored
-//     PLA with no active window is ignored, so a maintenance that has ended is
-//     never shown as current.
+//   - A service's status is derived from its incidents at the chosen time. Each
+//     incident's latest update at or before that time gives its state for each
+//     service: resolved means nothing; planned maintenance means PLA; anything
+//     else means the service's severity for that incident. The worst state wins.
+//     The stored services.service_status_short column is not read here.
 //   - The banner and each group badge use the same worst-status rule as the
 //     service cards, so they cannot disagree.
 //   - Downtime for uptime comes from each incident's severity for each service
@@ -39,8 +40,7 @@ function dbBool($value): bool
  *
  * @param array{
  *   groups: list<array{id:int, name:string}>,
- *   services: list<array{id:int, name:string, description:?string, link:?string,
- *                        stored_status:?string, group_id:int}>,
+ *   services: list<array{id:int, name:string, description:?string, link:?string, group_id:int}>,
  *   incidents: list<array{id:int, services:array<int, string>,
  *                         updates:list<array{ts:int, status:string}>}>
  * } $inputs  services maps service id => severity for each incident
@@ -52,49 +52,23 @@ function dbBool($value): bool
  */
 function buildStatusSnapshot(array $inputs, int $now, int $windowStart): array
 {
-    // Maintenance windows across all incidents, and which incidents touch each service.
-    $maintenanceRows = [];
-    $incidentsByService = [];
-    $segmentInputs = [];
-    foreach ($inputs['incidents'] as $incident) {
-        $segmentInputs[] = ['services' => $incident['services'], 'updates' => $incident['updates']];
-        foreach ($incident['updates'] as $update) {
-            if ($update['status'] === 'PLA' || $update['status'] === 'RES') {
-                $maintenanceRows[] = ['incident_id' => $incident['id'], 'ts' => $update['ts'], 'status' => $update['status']];
-            }
-        }
-        foreach ($incident['services'] as $serviceId => $severity) {
-            $incidentsByService[(int)$serviceId][] = $incident['id'];
-        }
-    }
-
-    $activeIncidentIds = array_map(
-        fn (array $window): int => $window['incident_id'],
-        activeMaintenanceWindows($maintenanceRows, $now)
+    $states = currentServiceStates($inputs['incidents'], $now);
+    $segmentInputs = array_map(
+        fn (array $incident): array => ['services' => $incident['services'], 'updates' => $incident['updates']],
+        $inputs['incidents']
     );
     $downtimeSegments = segmentsByService($segmentInputs, $now);
 
     $services = [];
     foreach ($inputs['services'] as $service) {
         $id = $service['id'];
-        $inMaintenance = array_intersect($incidentsByService[$id] ?? [], $activeIncidentIds) !== [];
-
-        $codes = [];
-        $stored = $service['stored_status'] ?? 'OPE';
-        if ($stored !== 'PLA') {
-            $codes[] = $stored;
-        }
-        if ($inMaintenance) {
-            $codes[] = 'PLA';
-        }
-
         $services[$id] = [
             'id' => $id,
             'name' => $service['name'],
             'description' => $service['description'],
             'link' => $service['link'],
             'group_id' => $service['group_id'],
-            'status' => worstServiceStatus($codes),
+            'status' => worstServiceStatus($states[$id] ?? []),
             'uptime' => uptimePercent($downtimeSegments[$id] ?? [], $windowStart, $now),
         ];
     }
@@ -122,6 +96,35 @@ function buildStatusSnapshot(array $inputs, int $now, int $windowStart): array
         'groups' => $groups,
         'services' => $services,
     ];
+}
+
+/**
+ * Pure. The state each service is in at $now, from every incident's latest update
+ * at or before $now. Resolved incidents contribute nothing. A planned-maintenance
+ * update gives PLA. Any other open update gives the incident's severity for the
+ * service. Only updates at or before $now count, so future-dated updates are ignored.
+ *
+ * @param list<array{services: array<int|string, string>, updates: list<array{ts:int, status:string}>}> $incidents
+ * @return array<int, list<string>> service id => state codes
+ */
+function currentServiceStates(array $incidents, int $now): array
+{
+    $states = [];
+    foreach ($incidents as $incident) {
+        $latest = null;
+        foreach ($incident['updates'] as $update) {
+            if ($update['ts'] <= $now && ($latest === null || $update['ts'] >= $latest['ts'])) {
+                $latest = $update;
+            }
+        }
+        if ($latest === null || $latest['status'] === 'RES') {
+            continue;
+        }
+        foreach ($incident['services'] as $serviceId => $severity) {
+            $states[(int)$serviceId][] = $latest['status'] === 'PLA' ? 'PLA' : (string)$severity;
+        }
+    }
+    return $states;
 }
 
 /**
@@ -177,13 +180,12 @@ function loadStatusInputs(Db $db, DateTimeZone $siteZone): array
     }
 
     $services = [];
-    foreach ($db->all('SELECT service_id, service_name, service_description, service_link, service_status_short, servicegroup_id FROM services ORDER BY service_name ASC') as $row) {
+    foreach ($db->all('SELECT service_id, service_name, service_description, service_link, servicegroup_id FROM services ORDER BY service_name ASC') as $row) {
         $services[] = [
             'id' => (int)$row['service_id'],
             'name' => (string)$row['service_name'],
             'description' => $row['service_description'],
             'link' => $row['service_link'],
-            'stored_status' => $row['service_status_short'],
             'group_id' => (int)$row['servicegroup_id'],
         ];
     }
